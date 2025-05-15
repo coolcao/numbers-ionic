@@ -1,0 +1,201 @@
+<main class="h-full w-full font-sans select-none">
+  <!-- 主内容 -->
+  <main class="container mx-auto flex-1 px-4 py-4">
+    <!-- 数字卡片网格 -->
+    @if (gameStatus() === "playing") {
+      <div class="mb-6 flex items-center justify-center">
+        <button
+          (click)="replayAudio()"
+          class="flex cursor-pointer items-center justify-center rounded-full bg-teal-400 px-6 py-3 text-lg font-bold text-white shadow-lg transition-colors hover:bg-teal-500 dark:bg-teal-600 dark:hover:bg-teal-700"
+        >
+          <i class="fa-solid fa-volume-high"></i>
+          <span class="ml-2">重新播报</span>
+        </button>
+      </div>
+      <div
+        class="mx-auto grid max-w-4xl grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-5"
+      >
+        @for (num of numbers(); track $index) {
+          <div
+            (click)="checkNumber(num)"
+            [@cardAnimation]="cardStates()[num] || 'default'"
+            class="number-card cursor-pointer rounded-2xl border-2 border-teal-200 bg-white p-6 text-center shadow-lg transition-transform duration-300 hover:scale-110 hover:shadow-xl dark:border-teal-800 dark:bg-gray-700"
+          >
+            <div
+              [@numberAnimation]="cardStates()[num] || 'default'"
+              class="mb-3 text-7xl font-bold text-teal-500 dark:text-teal-400"
+            >
+              {{ num }}
+            </div>
+            <div
+              [@indicatorAnimation]="cardStates()[num] || 'default'"
+              class="h-2 w-full rounded-full bg-teal-300 dark:bg-teal-600"
+            ></div>
+          </div>
+        }
+      </div>
+    }
+    @if (gameStatus() === "initial") {
+      <div
+        class="relative mx-auto my-5 w-full max-w-4xl overflow-hidden rounded-3xl bg-gradient-to-br from-sky-100 to-green-100 p-8 shadow-xl dark:from-indigo-900/50 dark:to-purple-900/50 dark:shadow-gray-800/50"
+      >
+        <!-- 装饰元素 -->
+        <div
+          class="absolute top-2 left-4 animate-bounce text-4xl text-yellow-400 dark:text-yellow-300"
+        >
+          ✨
+        </div>
+        <div
+          class="absolute right-6 bottom-4 animate-pulse text-3xl text-blue-400 dark:text-purple-300"
+        >
+          ⭐️
+        </div>
+
+        <!-- 文字内容 -->
+        <div
+          class="font-comic relative z-10 flex flex-col items-center justify-center space-y-6 text-center text-gray-800 dark:text-gray-100"
+        >
+          <div class="animate-slide-in-down text-3xl leading-relaxed font-bold">
+            🎮<span
+              class="mr-2 ml-2 text-3xl text-yellow-500 dark:text-yellow-300"
+              >数字听选游戏</span
+            >🎮
+          </div>
+
+          <div
+            class="animate-fade-in-up w-fit rounded-xl border-2 border-dashed border-yellow-200 bg-white/50 p-4 text-xl shadow-md dark:border-purple-300 dark:bg-black/20"
+          >
+            <p class="mb-3">🎧 游戏中我会随机说出数字</p>
+            <p>👆 你要快速点击对应的卡片哦！</p>
+          </div>
+
+          <div
+            class="text text-em text-em animate-pulse font-semibold text-emerald-600 dark:text-green-300"
+          >
+            准备好就点击下面的星星按钮开始吧！ 🌟
+          </div>
+          <button
+            (click)="startGame()"
+            class="relative my-10 cursor-pointer rounded-3xl bg-gradient-to-br from-purple-300 via-purple-400 to-purple-500 px-8 py-4 text-2xl font-bold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95 dark:from-indigo-600 dark:via-indigo-700 dark:to-indigo-800 dark:shadow-gray-800/50 hover:dark:from-indigo-500 hover:dark:via-indigo-600 hover:dark:to-indigo-700"
+          >
+            <!-- 云朵装饰 -->
+            <div
+              class="absolute -top-4 -left-4 h-12 w-12 rounded-full bg-white shadow-md dark:bg-gray-200 dark:shadow-gray-800/50"
+            ></div>
+            <div
+              class="absolute -top-6 right-6 h-8 w-8 rounded-full bg-white shadow-md dark:bg-gray-200 dark:shadow-gray-800/50"
+            ></div>
+            <div
+              class="absolute -top-2 -right-2 h-10 w-10 rounded-full bg-white shadow-md dark:bg-gray-200 dark:shadow-gray-800/50"
+            ></div>
+
+            <!-- 星星动画 -->
+            <span
+              class="mr-2 inline-block animate-bounce dark:brightness-125 dark:filter"
+            >
+              ⭐️
+            </span>
+            <!-- 文字部分 -->
+            <span
+              class="text-shadow font-comic tracking-wide dark:text-gray-100"
+            >
+              开始游戏
+            </span>
+            <span
+              class="ml-2 inline-block animate-pulse dark:brightness-125 dark:filter"
+            >
+              ✨
+            </span>
+          </button>
+        </div>
+      </div>
+    }
+    @if (gameStatus() === "finished") {
+      <div
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      >
+        <!-- 弹框主体 -->
+        <div
+          class="animate-scale-in relative max-w-3xl min-w-md rounded-3xl bg-gradient-to-br from-green-200 via-blue-100 to-sky-200 p-8 shadow-2xl dark:from-gray-800 dark:via-gray-700 dark:to-gray-900"
+        >
+          <!-- 装饰元素 -->
+          <div
+            class="text-4xl400400 absolute top-4 right-6 dark:text-yellow-300"
+          >
+            🎉
+          </div>
+          <div
+            class="absolute bottom-6 left-4 text-3xl text-pink-400 dark:text-pink-300"
+          >
+            ✨
+          </div>
+
+          <!-- 内容 -->
+          <div class="space-y-6 text-center">
+            <h2
+              class="font-comic text-4xl font-bold text-cyan-800 dark:text-white"
+            >
+              游戏结束！
+            </h2>
+
+            <!-- 数据统计 -->
+            <div
+              class="rounded-xl border-2 border-dashed border-green-300 bg-white/80 p-4 shadow-inner dark:border-purple-400 dark:bg-black/30"
+            >
+              <div
+                class="font-comic text font-comic text-base text-gray-700 dark:text-gray-200"
+              >
+                <p>
+                  总题目：<span class="text-2xl text-blue-500">{{
+                    round()
+                  }}</span>
+                </p>
+                <p>
+                  答对题：<span class="text-2xl text-green-500">{{
+                    count()
+                  }}</span>
+                </p>
+                <p class="mt-2 text-xl">
+                  正确率：<span class="text-2xl font-bold">{{ rate() }}%</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- 动态评语 -->
+            <div class="font-comic space-y-3 text-xl">
+              <div
+                class="text-3xl"
+                [ngClass]="{
+                  'text-red-500': rate() < 50,
+                  'text-amber-500': rate() >= 50 && rate() < 80,
+                  'text-green-500': rate() >= 80,
+                }"
+              >
+                {{ comment() }}
+              </div>
+              <p class="text-xl text-cyan-600 dark:text-gray-300">
+                {{ subComment() }}
+              </p>
+            </div>
+
+            <!-- 操作按钮 -->
+            <button
+              (click)="restartGame()"
+              class="font-comic mx-2 cursor-pointer rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 px-6 py-3 text-xl text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl dark:from-purple-500 dark:to-blue-600"
+            >
+              <i class="fa-solid fa-arrows-rotate"></i>
+              <span class="ml-1">再玩一次</span>
+            </button>
+            <button
+              (click)="backHome()"
+              class="font-comic mx-2 cursor-pointer rounded-2xl bg-gradient-to-r from-indigo-400 to-indigo-500 px-6 py-3 text-xl text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl dark:from-yellow-500 dark:to-orange-600"
+            >
+              <i class="fa-solid fa-house"></i>
+              <span class="ml-1">回到首页</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </main>
+</main>

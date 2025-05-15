@@ -1,0 +1,170 @@
+/* 吉祥物容器 */
+.mascot-container {
+  width: 180px;
+  height: 200px;
+  position: relative;
+  margin: 0 auto 30px;
+}
+
+/* 熊头部 */
+.bear-head {
+  width: 140px;
+  height: 140px;
+  background-color: #fcd34d; /* amber-300 */
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  z-index: 3;
+}
+
+/* 熊耳朵 */
+.bear-ear {
+  width: 40px;
+  height: 40px;
+  background-color: #fbbf24; /* amber-400 */
+  border-radius: 50%;
+  position: absolute;
+  top: 10px;
+  z-index: 2;
+}
+.bear-ear.left {
+  left: 20px;
+}
+.bear-ear.right {
+  right: 20px;
+}
+
+/* 熊内耳 */
+.bear-inner-ear {
+  width: 20px;
+  height: 20px;
+  background-color: #f59e0b; /* amber-500 */
+  border-radius: 50%;
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
+/* 熊面部 */
+.bear-face {
+  width: 120px;
+  height: 100px;
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+}
+
+/* 熊眼睛 */
+.bear-eye {
+  width: 20px;
+  height: 25px;
+  background-color: #1f2937; /* gray-800 */
+  border-radius: 50%;
+  position: absolute;
+  top: 30px;
+}
+.bear-eye.left {
+  left: 30px;
+}
+.bear-eye.right {
+  right: 30px;
+}
+
+/* 熊眼白 */
+.bear-eye-white {
+  width: 6px;
+  height: 6px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 5px;
+  left: 5px;
+}
+
+/* 熊鼻子 */
+.bear-nose {
+  width: 25px;
+  height: 20px;
+  background-color: #1f2937; /* gray-800 */
+  border-radius: 50%;
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* 熊嘴巴 */
+.bear-mouth {
+  width: 40px;
+  height: 15px;
+  border-bottom: 3px solid #1f2937;
+  border-radius: 0 0 40px 40px;
+  position: absolute;
+  top: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* 熊身体 */
+.bear-body {
+  width: 120px;
+  height: 100px;
+  background-color: #fbbf24; /* amber-400 */
+  border-radius: 50% 50% 0 0;
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+/* 熊肚子 */
+.bear-belly {
+  width: 80px;
+  height: 60px;
+  background-color: #fcd34d; /* amber-300 */
+  border-radius: 50%;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* 熊手臂 */
+.bear-arm {
+  width: 30px;
+  height: 50px;
+  background-color: #f59e0b; /* amber-500 */
+  border-radius: 15px;
+  position: absolute;
+  bottom: 50px;
+  z-index: 1;
+}
+.bear-arm.left {
+  left: 15px;
+  transform: rotate(30deg);
+}
+.bear-arm.right {
+  right: 15px;
+  transform: rotate(-30deg);
+}
+
+/* 动画效果 */
+@keyframes wave {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+}
+.mascot-container:hover .bear-arm.left {
+  animation: wave 1s ease-in-out infinite;
+  transform-origin: top center;
+}

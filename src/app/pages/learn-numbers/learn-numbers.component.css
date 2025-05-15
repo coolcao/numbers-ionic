@@ -1,0 +1,33 @@
+.modal-enter {
+  animation: modal-enter 0.3s ease-out;
+}
+@keyframes modal-enter {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.number-bounce {
+  animation: number-bounce 0.5s ease;
+}
+@keyframes number-bounce {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+.animal-img {
+  transition: all 0.3s ease;
+}
+.animal-img:hover {
+  transform: rotate(5deg) scale(1.05);
+}

@@ -1,0 +1,318 @@
+import { AfterViewInit, Component, computed, effect, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { trigger, state, style, animate, transition, keyframes } from '@angular/animations';
+import { Router } from '@angular/router';
+import { interval, Subscription, timer } from 'rxjs';
+import { NumberBubblesAudioService } from './number-bubbles.audio.service';
+import { AppStore } from '../../store/app.store';
+import { NumberBubblesStore } from '../../store/number-bubbles.store';
+
+interface Bubble {
+  index: number;
+  size: number;
+  duration: number;
+  color: string;
+  textColor?: string;
+  left: number;
+  number: number;
+  state?: string;
+}
+
+@Component({
+  selector: 'app-number-bubbles',
+  standalone: false,
+  templateUrl: './number-bubbles.component.html',
+  styleUrl: './number-bubbles.component.css',
+  animations: [
+    trigger('bubbleAnimation', [
+      // 泡泡初始状态
+      state('void', style({
+        top: '-50px',
+        opacity: 0
+      })),
+      // 泡泡下落状态
+      state('falling', style({
+        top: '100%',
+        opacity: 0.8
+      })),
+      // 从初始状态到下落状态的转换
+      transition('void => falling', [
+        animate('{{duration}}s linear', keyframes([
+          style({ top: '-50px', opacity: 0, offset: 0 }),
+          style({ top: '10%', opacity: 1, offset: 0.1 }),
+          style({ top: '100%', opacity: 0.8, offset: 1 })
+        ]))
+      ], { params: { duration: 5 } }),
+      // 爆炸动画
+      state('exploded', style({
+        transform: 'scale(0)',
+        opacity: 0
+      })),
+      // 从下落状态到爆炸状态的转换
+      transition('falling => exploded', [
+        animate('400ms cubic-bezier(0.36, 0.07, 0.19, 0.97)', keyframes([
+          style({ transform: 'scale(1)', opacity: 1, filter: 'blur(0px)', offset: 0 }),
+          style({ transform: 'scale(1.5)', opacity: 0.7, filter: 'blur(1px)', offset: 0.5 }),
+          style({ transform: 'scale(2)', opacity: 0, filter: 'blur(2px)', offset: 1 })
+        ]))
+      ])
+    ]),
+    // 游戏结束弹窗动画
+    trigger('gameOverAnimation', [
+      transition(':enter', [
+        style({ transform: 'scale(0.8)', opacity: 0 }),
+        animate('300ms ease-out', style({ transform: 'scale(1)', opacity: 1 }))
+      ]),
+      transition(':leave', [
+        animate('200ms ease-in', style({ transform: 'scale(0.8)', opacity: 0 }))
+      ])
+    ])
+  ]
+})
+export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly router = inject(Router);
+  private readonly store = inject(AppStore);
+  private readonly numberBubblesStore = inject(NumberBubblesStore);
+  private readonly numberBubblesAudioService = inject(NumberBubblesAudioService);
+  private bubbleSubscription?: Subscription;
+
+  numbers = this.numberBubblesStore.numbers;
+  // 标记需要消除的数字
+  targetNumbers = signal<number[]>([]);
+
+  gameDuration = this.numberBubblesStore.gameDuration;
+  // 标记是否已到时间
+  isTimeUp = signal(false);
+  // 游戏状态，初始状态， 游戏中， 游戏结束
+  gameStatus = signal<string>('initial'); // initial, playing, finished
+
+  // 标记生成目标数字的泡泡总数
+  targetBubbleCount = signal(0);
+  // 标记已消除的目标数字的泡泡总数
+  eliminatedBubbleCount = signal(0);
+  // 标记正确率
+  accuracy = computed(() => {
+    const total = this.targetBubbleCount();
+    const correct = this.eliminatedBubbleCount();
+    if (total === 0) return 0;
+    return Math.round((correct / total) * 100);
+  });
+  // 根据正确率定制提示
+  comment = computed(() => {
+    if (this.accuracy() === 100) return '🎉 全对！你是数字小天才！🎉'
+    if (this.accuracy() >= 90) return '🌟 太棒了！几乎全对！🌟'
+    if (this.accuracy() >= 80) return '👍 真厉害～加油～ 👍'
+    if (this.accuracy() >= 60) return '💪 不错哦，再试试看！💪'
+    return '🤗 再试一次会更好～ 🤗'
+  });
+  subComment = computed(() => {
+    if (this.accuracy() === 100) return '所有数字都听对啦，太完美了！'
+    if (this.accuracy() >= 80) return '马上就要成为数字小达人了！'
+    if (this.accuracy() >= 60) return '已经超过很多小朋友啦！'
+    return '每个小错误都是进步的机会哦！'
+  })
+
+  @ViewChild('bubbleContainer', { static: false }) bubbleContainer!: ElementRef;
+  colors = ['#FF5733', '#FFC300', '#DAF7A6', '#C70039', '#900C3F', '#581845', '#355C7D', '#6C5B7B', '#C06C84', '#F67280'];
+  bubbles = signal<Bubble[]>([]);
+  bubbleInterval = 700; // 700毫秒生成一个泡泡
+
+  // 是否正在播放音效，正在播放音效时不可点击按钮
+  isPlaying = signal(false);
+
+  // 是否正在播放目标数字的音频
+  playTargets = signal(false);
+
+  constructor() {
+    effect(() => {
+      if (this.isTimeUp() && this.bubbles().length === 0) {
+        this.isPlaying.set(true);
+        this.numberBubblesAudioService.playSuccess();
+        this.isPlaying.set(false);
+        this.gameStatus.set('finished');
+        this.bubbleSubscription?.unsubscribe();
+      }
+    });
+
+  }
+  async ngOnInit(): Promise<void> {
+    this.isPlaying.set(true);
+    await this.numberBubblesAudioService.playWelcomeAndRules();
+    this.isPlaying.set(false);
+    this.generateTargetNumbers();
+  }
+  ngAfterViewInit() {
+
+  }
+  ngOnDestroy(): void {
+    if (this.bubbleSubscription) {
+      this.bubbleSubscription.unsubscribe();
+    }
+  }
+  private async playTargetNumbersAudio() {
+    this.isPlaying.set(true);
+    this.playTargets.set(true);
+    await this.numberBubblesAudioService.playTargetNumbersAudio(this.targetNumbers());
+    this.isPlaying.set(false);
+    this.playTargets.set(false);
+  }
+  private removeBubble(index: number) {
+    const bubbles = [...this.bubbles().filter((b: Bubble) => b.index !== index)];
+    this.bubbles.set(bubbles);
+  }
+  private generateTargetNumbers() {
+    // 随机生成3个numbers中的数字，不重复
+    const targetNumbers: number[] = [];
+    while (targetNumbers.length < 3) {
+      const randomIndex = Math.floor(Math.random() * this.numbers().length);
+      const randomNumber = this.numbers()[randomIndex];
+      if (!targetNumbers.includes(randomNumber)) {
+        targetNumbers.push(randomNumber);
+      }
+    }
+    this.targetNumbers.set([...targetNumbers]);
+  }
+
+
+  backHome() {
+    if (this.isPlaying()) {
+      return;
+    }
+    this.router.navigate(['home']);
+  }
+  restartGame() {
+    if (this.isPlaying()) {
+      return;
+    }
+    this.gameStatus.set('initial');
+    this.isTimeUp.set(false);
+    this.targetBubbleCount.set(0);
+    this.eliminatedBubbleCount.set(0);
+    this.bubbles.set([]);
+    this.startGame();
+  }
+  async startGame() {
+    if (this.isPlaying()) {
+      return;
+    }
+
+
+    this.gameStatus.set('playing');
+    this.generateTargetNumbers();
+    await this.playTargetNumbersAudio();
+    this.startGameTimer();
+    this.startBubbleGeneration();
+  }
+  startBubbleGeneration() {
+    this.bubbleSubscription = interval(this.bubbleInterval).subscribe(() => {
+      if (this.gameStatus() === 'playing') {
+        // 60%概率生成目标数字，40%概率生成其他数字
+        const isTarget = Math.random() < 0.6;
+        let number: number;
+
+        if (isTarget && this.targetNumbers().length > 0) {
+          // 从目标数字中随机选一个
+          const targetIdx = Math.floor(Math.random() * this.targetNumbers().length);
+          number = this.targetNumbers()[targetIdx];
+        } else {
+          // 从非目标数字中随机选一个
+          const nonTargetNumbers = this.numbers().filter(n => !this.targetNumbers().includes(n));
+          const nonTargetIdx = Math.floor(Math.random() * nonTargetNumbers.length);
+          number = nonTargetNumbers[nonTargetIdx];
+        }
+
+        if (this.targetNumbers().includes(number)) {
+          this.targetBubbleCount.update(count => count + 1);
+        }
+        const newBubble = this.generateBubble(
+          Date.now(), // 使用时间戳作为唯一索引
+          number,
+        );
+        this.bubbles.update(bubbles => [...bubbles, newBubble]);
+      }
+    });
+  }
+  startGameTimer() {
+    timer(this.gameDuration() * 1000).subscribe(() => {
+      this.isTimeUp.set(true);
+      this.bubbleSubscription?.unsubscribe(); // 确保在游戏结束时取消订阅
+    });
+  }
+
+  generateBubble(index: number, number: number): Bubble {
+    // 泡泡大小设置在60-80之间，持续时间设置在3-8秒之间
+    const size = Math.floor(Math.random() * (80 - 60 + 1)) + 60;
+    // 持续时间设置在3-5秒之间
+    const duration = Math.random() * 2 + 5;
+    const color = this.colors[Math.floor(Math.random() * this.colors.length)];
+    // 获取容器的宽度
+    const containerWidth = this.bubbleContainer.nativeElement.getBoundingClientRect().width;
+    // 计算泡泡的最大左侧位置，确保泡泡不会超出容器右侧
+    const maxLeft = 100 - (size / containerWidth * 100);
+    const left = Math.random() * maxLeft;
+
+    const textColor = this.getTextColor(color);
+
+    return {
+      index,
+      size,
+      duration,
+      color,
+      textColor,
+      left,
+      number,
+      state: 'falling', // 设置初始状态为下落
+    };
+  }
+
+  async onBubbleClick(idx: number) {
+    const bubble = this.bubbles().find((b: any) => b.index === idx);
+    if (!bubble) return;
+    if (!this.targetNumbers().includes(bubble.number)) {
+      console.log('点击的数字不是目标数字', bubble.number);
+      return;
+    }
+    this.eliminatedBubbleCount.update(count => count + 1);
+
+    // 更新泡泡状态为爆炸
+    this.bubbles.update(bubbles => {
+      return bubbles.map(b => {
+        if (b.index === idx) {
+          return { ...b, state: 'exploded' };
+        }
+        return b;
+      });
+    });
+
+    this.numberBubblesAudioService.playExplode();
+    // 动画结束后移除泡泡
+    setTimeout(() => {
+      this.removeBubble(idx);
+    }, 400);
+  }
+
+  // 动画结束处理函数
+  onAnimationDone(event: any, index: number) {
+    // 如果是下落动画结束，移除泡泡
+    if (event.toState === 'falling') {
+      this.removeBubble(index);
+    }
+  }
+
+  getRgbaColor(hexColor: string) {
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, 1)`;
+  }
+  // 根据背景色计算文本颜色，要与背景色的对比度高
+  getTextColor(hexColor: string) {
+    // 从十六进制颜色值中提取RGB值
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    // 计算亮度值
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    // 根据亮度值选择文本颜色，亮度低则用白色，亮度高则用黑色
+    return luminance > 0.5 ? '#000000' : '#FFFFFF';
+  }
+}

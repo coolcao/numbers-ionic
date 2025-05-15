@@ -1,0 +1,129 @@
+<main class="h-full w-full font-sans select-none">
+  <!-- 主内容 -->
+  <main class="container mx-auto flex-1 px-4 py-4">
+    <!-- 标题和说明 -->
+    <div class="mb-8 text-center">
+      <h2
+        class="mb-2 text-3xl font-bold text-teal-600 md:text-4xl dark:text-teal-400"
+      >
+        @if (learnMode() == LearnMode.Starter) {
+          入门模式 (0-9)
+        }
+        @if (learnMode() == LearnMode.Advanced) {
+          <div class="flex w-full items-center justify-center">
+            <span class="mx-10">进阶模式 (10-99)</span>
+            <div>
+              <select
+                id="currentGroup"
+                [ngModel]="currentGroup()"
+                (ngModelChange)="currentGroup.set($event)"
+                class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-xl text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+              >
+                <option [ngValue]="0">10~24</option>
+                <option [ngValue]="1">25~39</option>
+                <option [ngValue]="2">40~54</option>
+                <option [ngValue]="3">55~69</option>
+                <option [ngValue]="4">70~84</option>
+                <option [ngValue]="5">85~99</option>
+              </select>
+            </div>
+          </div>
+        }
+      </h2>
+      <p class="text-lg text-gray-600 dark:text-gray-300">
+        点击数字卡片，听听它们的读音吧！
+      </p>
+    </div>
+
+    <!-- 数字卡片网格 -->
+    <div
+      class="mx-auto grid max-w-4xl grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-5"
+    >
+      @for (num of currentGroupNumbers(); track $index) {
+        <div
+          (click)="playNumber(num)"
+          [@numberAnimation]="numberAnimationState()[num] || 'default'"
+          class="number-card cursor-pointer rounded-2xl border-2 border-teal-200 bg-white p-6 text-center shadow-lg hover:scale-110 hover:shadow-xl dark:border-teal-800 dark:bg-gray-700"
+        >
+          <div class="mb-3 text-7xl font-bold text-teal-500 dark:text-teal-400">
+            {{ num }}
+          </div>
+          <div
+            class="h-2 w-full rounded-full bg-teal-300 dark:bg-teal-600"
+          ></div>
+        </div>
+      }
+    </div>
+  </main>
+
+  <!-- 数字详情弹框  -->
+  <div
+    *ngIf="showNumberDetail() && learnMode() === LearnMode.Starter"
+    id="number-detail-modal"
+    class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-2xl"
+  >
+    <div
+      class="modal-enter relative mx-4 h-full max-h-[720px] w-full max-w-4xl overflow-hidden rounded-3xl border-4 border-teal-200 bg-white p-6 shadow-2xl dark:border-teal-600 dark:bg-gray-700"
+    >
+      <!-- 关闭按钮 -->
+      <!-- <button
+        (click)="playing.set(false)"
+        class="absolute top-4 right-4 text-3xl text-teal-500 transition-colors hover:text-teal-600 dark:text-teal-400 dark:hover:text-teal-300"
+      >
+        ✕
+      </button> -->
+
+      <!-- 数字展示区 -->
+      <div class="mb-6 text-center">
+        <div
+          id="detail-number"
+          class="number-bounce mb-2 text-8xl font-bold text-teal-500 dark:text-teal-400"
+        >
+          {{ clickedNumber() }}
+        </div>
+        <div
+          class="mx-auto h-2 w-24 rounded-full bg-teal-300 dark:bg-teal-500"
+        ></div>
+      </div>
+
+      <!-- 数字说明 -->
+      <div class="mb-6 rounded-xl bg-teal-100 p-4 dark:bg-teal-900">
+        <h3
+          class="flex items-center justify-center text-xl font-bold text-teal-600 dark:text-teal-400"
+        >
+          {{ starterNumbersDetail()[clickedNumber()!].desc }}
+        </h3>
+      </div>
+
+      <!-- 关联图片 -->
+      <div class="mb-6 text-center">
+        <img
+          id="number-image"
+          [src]="numberDetailImage()"
+          class="animal-img mx-auto h-96 w-96 rounded-2xl border-4 border-teal-300 object-contain dark:border-teal-500"
+        />
+      </div>
+
+      <!-- 互动按钮 -->
+      <!-- <div class="flex justify-center space-x-4">
+        <button
+          class="flex items-center rounded-full bg-teal-400 px-4 py-2 font-medium text-white transition-colors hover:bg-teal-500 dark:bg-teal-600 dark:hover:bg-teal-700"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="mr-1 h-5 w-5"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          播放读音
+        </button>
+      </div> -->
+    </div>
+  </div>
+</main>

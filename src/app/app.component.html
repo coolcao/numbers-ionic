@@ -1,0 +1,73 @@
+<main
+  class="overflow-auto h-screen w-full bg-cyan-50 font-sans text-gray-800 dark:bg-sky-950 dark:text-gray-400"
+>
+  <div class="mx-auto flex min-h-screen max-w-7xl min-w-[375px] flex-col">
+    <!-- 头部 - 使用蓝绿色系 -->
+    <header
+      class="relative rounded-b-[3rem] bg-cyan-500 py-5 text-center text-white shadow-md dark:bg-cyan-600"
+    >
+      <h1 class="m-0 text-4xl font-bold drop-shadow-md md:text-5xl">
+        宝宝数字乐园
+      </h1>
+      <div class="absolute top-2 flex w-full justify-around">
+        <div class="h-8 w-8 rounded-full bg-white"></div>
+        <div class="clip-star h-8 w-8 bg-yellow-300"></div>
+        <div class="clip-heart h-8 w-8 bg-purple-400"></div>
+      </div>
+      <button
+        (click)="toggleTheme()"
+        id="darkModeToggle"
+        class="absolute top-5 right-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full"
+      >
+        <span class="text-2xl text-amber-300 dark:hidden"
+          ><i class="fa-solid fa-sun"></i
+        ></span>
+        <span class="hidden text-2xl text-amber-300 dark:inline"
+          ><i class="fa-solid fa-moon"></i
+        ></span>
+      </button>
+    </header>
+
+    <div class="relative flex-1 py-10">
+      <router-outlet />
+    </div>
+    <!-- 页脚 -->
+    <footer
+      class="relative mt-8 rounded-t-[3rem] bg-cyan-500 py-5 text-center text-white dark:bg-cyan-600"
+    >
+      <div class="absolute -top-8 flex h-16 w-full justify-around">
+        <span
+          class="animate-float dark:text-sky absolute text-3xl font-bold text-sky-400 drop-shadow-md dark:text-white"
+          style="left: 10%; animation-delay: 0s; animation-duration: 3.5s"
+          >1</span
+        >
+        <span
+          class="animate-float absolute text-3xl font-bold text-cyan-400 drop-shadow-md dark:text-white"
+          style="left: 25%; animation-delay: 0.5s; animation-duration: 4s"
+          >2</span
+        >
+        <span
+          class="animate-float absolute text-3xl font-bold text-lime-600 drop-shadow-md dark:text-white"
+          style="left: 40%; animation-delay: 1s; animation-duration: 3.2s"
+          >3</span
+        >
+        <span
+          class="animate-float absolute text-3xl font-bold text-yellow-400 drop-shadow-md dark:text-white"
+          style="left: 55%; animation-delay: 1.5s; animation-duration: 3.8s"
+          >4</span
+        >
+        <span
+          class="animate-float absolute text-3xl font-bold text-teal-400 drop-shadow-md dark:text-white"
+          style="left: 70%; animation-delay: 2s; animation-duration: 3.5s"
+          >5</span
+        >
+        <span
+          class="animate-float absolute text-3xl font-bold text-orange-400 drop-shadow-md dark:text-white"
+          style="left: 85%; animation-delay: 2s; animation-duration: 3.5s"
+          >6</span
+        >
+      </div>
+      <p class="m-0">© 2025 宝宝数字乐园 - 让学习变得有趣</p>
+    </footer>
+  </div>
+</main>
