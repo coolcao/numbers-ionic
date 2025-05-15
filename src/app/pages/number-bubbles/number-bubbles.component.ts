@@ -85,6 +85,14 @@ export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy 
   // 游戏状态，初始状态， 游戏中， 游戏结束
   gameStatus = signal<string>('initial'); // initial, playing, finished
 
+  // 泡泡尺寸范围
+  bubbleSizeMin = signal(80);
+  bubbleSizeMax = signal(120);
+
+  // 泡泡持续时间范围
+  bubbleDurationStart = signal(8);
+  bubbleDurationEnd = signal(13);
+
   // 标记生成目标数字的泡泡总数
   targetBubbleCount = signal(0);
   // 标记已消除的目标数字的泡泡总数
@@ -122,9 +130,14 @@ export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy 
   // 是否正在播放目标数字的音频
   playTargets = signal(false);
 
+  // 当前下落的泡泡中，是否还有目标数字
+  hasTargetBubble = computed(() => {
+    return this.bubbles().some((bubble: Bubble) => this.targetNumbers().includes(bubble.number));
+  })
+
   constructor() {
     effect(() => {
-      if (this.isTimeUp() && this.bubbles().length === 0) {
+      if (this.isTimeUp() && !this.hasTargetBubble()) {
         this.isPlaying.set(true);
         this.numberBubblesAudioService.playSuccess();
         this.isPlaying.set(false);
@@ -239,10 +252,9 @@ export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   generateBubble(index: number, number: number): Bubble {
-    // 泡泡大小设置在60-80之间，持续时间设置在3-8秒之间
-    const size = Math.floor(Math.random() * (80 - 60 + 1)) + 60;
-    // 持续时间设置在3-5秒之间
-    const duration = Math.random() * 2 + 5;
+    const size = Math.floor(Math.random() * (this.bubbleSizeMax() - this.bubbleSizeMin() + 1)) + this.bubbleSizeMin();
+    // 持续时间在 start 和 end 之间随机生成
+    const duration = Math.random() * (this.bubbleDurationEnd() - this.bubbleDurationStart()) + this.bubbleDurationStart();
     const color = this.colors[Math.floor(Math.random() * this.colors.length)];
     // 获取容器的宽度
     const containerWidth = this.bubbleContainer.nativeElement.getBoundingClientRect().width;

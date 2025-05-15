@@ -10,8 +10,7 @@ export class NumberBubblesStore {
   size = computed(() => this.appStore.learnMode() === 'starter' ? 10 : 30);
   learnMode = computed(() => this.appStore.learnMode());
 
-  // 数字泡泡游戏采用定时的方式，入门模式时间为 15s， 进阶模式为 30s
-  gameDuration = computed(() => this.learnMode() === 'starter' ? 15 : 30);
+  gameDuration = computed(() => this.learnMode() === 'starter' ? 25 : 40);
 
   // 数字泡泡的数字范围，入门模式为 0-9， 进阶模式为 10-99中随机取30个数字
   numbers = computed(() => {
