@@ -16,13 +16,10 @@ export class LearnNumbersComponent implements OnInit, OnDestroy {
   private readonly learnNumbersStore = inject(LearnNumbersStore);
   private readonly audioService = inject(LearnNumbersAudioService);
 
-  private readonly audioUri = 'assets/audio';
-
   numbers = this.learnNumbersStore.numbers;
   learnMode = this.learnNumbersStore.learnMode;
   starterNumbersDetail = this.learnNumbersStore.starterNumbersDetail;
 
-  finishedWelcome = signal(false);
   showNumberDetail = signal(false);
   numberDetailImage = signal<string>('');
   clickedNumber = signal<number | null>(null);
@@ -75,7 +72,6 @@ export class LearnNumbersComponent implements OnInit, OnDestroy {
   async ngOnInit(): Promise<void> {
     await this.audioService.preloadWelcome(this.learnMode());
     await Promise.all([this.audioService.preloadNumbers(this.numbers()), this.playWelcome(), this.audioService.preloadNumberDesc(this.numbers()), this.audioService.preloadNumberMeaning(this.numbers())]);
-    this.finishedWelcome.set(true);
   }
 
   ngOnDestroy(): void {
@@ -83,9 +79,7 @@ export class LearnNumbersComponent implements OnInit, OnDestroy {
   }
 
   async playNumber(number: number) {
-    if (!this.finishedWelcome()) {
-      return;
-    }
+    this.audioService.stopAll();
     this.clickedNumber.set(number);
     this.updateNumberAnimationState(number, 'playing');
     // 入门模式，播放数字，然后展示数字的详细信息

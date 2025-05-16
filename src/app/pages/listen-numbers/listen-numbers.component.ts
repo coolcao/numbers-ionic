@@ -170,9 +170,6 @@ export class ListenNumbersComponent implements OnInit, OnDestroy {
   // 游戏状态，初始状态， 游戏中， 游戏结束
   gameStatus = signal<string>('initial'); // initial, playing, finished
 
-  // 标记是否正在播放当前数字，如果正在播放，就不允许点击后面的数字
-  isPlaying = signal(false);
-
   // 是否完成游戏
   isFinished = computed(() => {
     return this.roundCount() === this.round();
@@ -222,10 +219,7 @@ export class ListenNumbersComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.audioService.preloadWelcomeAndRules().then(() => {
-      this.isPlaying.set(true);
       return this.audioService.playWelcomeAndRules();
-    }).then(() => {
-      this.isPlaying.set(false);
     });
   }
 
@@ -249,16 +243,15 @@ export class ListenNumbersComponent implements OnInit, OnDestroy {
     this.cardStates.set(states);
   }
 
-
   private async waitForSeconds(seconds: number) {
     return new Promise(resolve => setTimeout(resolve, seconds * 1000));
   }
 
   async startGame() {
-    if (this.isPlaying()) {
-      return;
-    }
+    this.audioService.stopAll();
     this.gameStatus.set('playing');
+    // 等待1s
+    await this.waitForSeconds(1);
     await this.generateNumbers();
   }
 
@@ -270,19 +263,14 @@ export class ListenNumbersComponent implements OnInit, OnDestroy {
   }
 
   backHome() {
-    if (this.isPlaying()) {
-      return;
-    }
+    this.audioService.stopAll();
     this.router.navigate(['home']);
   }
 
   async checkNumber(number: number) {
-    if (this.isPlaying()) {
-      return;
-    }
+    this.audioService.stopAll();
 
     this.roundCount.update((v) => v + 1);
-    this.isPlaying.set(true);
     if (number === this.num()) {
       this.updateCardState(number, 'right');
       this.count.update((v) => v + 1);
@@ -305,7 +293,6 @@ export class ListenNumbersComponent implements OnInit, OnDestroy {
     } else {
       await this.generateNumbers();
     }
-    this.isPlaying.set(false);
   }
 
   // 随机生成数字

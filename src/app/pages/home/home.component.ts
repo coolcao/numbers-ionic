@@ -23,7 +23,6 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   learnMode = this.store.learnMode;
 
-  finishedWelcome = signal(false);
   resourceLoading = false;
 
   private preLoadImage() {
@@ -53,10 +52,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     ]);
   }
   private async playWelcomeAudio() {
-    this.finishedWelcome.set(false);
     await this.audioService.play('welcome');
     await this.audioService.play('start');
-    this.finishedWelcome.set(true);
   }
 
   async ngOnInit(): Promise<void> {
@@ -69,21 +66,15 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   goToLearn() {
-    if (!this.finishedWelcome()) {
-      return;
-    }
+    this.audioService.stopAll();
     this.router.navigate(['learn-numbers']);
   }
   goToListen() {
-    if (!this.finishedWelcome()) {
-      return;
-    }
+    this.audioService.stopAll();
     this.router.navigate(['listen-numbers']);
   }
   goToBubbles() {
-    if (!this.finishedWelcome()) {
-      return;
-    }
+    this.audioService.stopAll();
     this.router.navigate(['number-bubbles']);
   }
 

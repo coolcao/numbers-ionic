@@ -70,12 +70,15 @@ interface Bubble {
 })
 export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
-  private readonly store = inject(AppStore);
   private readonly numberBubblesStore = inject(NumberBubblesStore);
   private readonly numberBubblesAudioService = inject(NumberBubblesAudioService);
   private bubbleSubscription?: Subscription;
 
   numbers = this.numberBubblesStore.numbers;
+
+  // 标记需要消除的目标数字的个数
+  targetNumberCount = signal(2);
+
   // 标记需要消除的数字
   targetNumbers = signal<number[]>([]);
 
@@ -84,6 +87,8 @@ export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy 
   isTimeUp = signal(false);
   // 游戏状态，初始状态， 游戏中， 游戏结束
   gameStatus = signal<string>('initial'); // initial, playing, finished
+
+  bubbleInterval = signal(900); // 700毫秒生成一个泡泡
 
   // 泡泡尺寸范围
   bubbleSizeMin = signal(80);
@@ -122,10 +127,6 @@ export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy 
   @ViewChild('bubbleContainer', { static: false }) bubbleContainer!: ElementRef;
   colors = ['#FF5733', '#FFC300', '#DAF7A6', '#C70039', '#900C3F', '#581845', '#355C7D', '#6C5B7B', '#C06C84', '#F67280'];
   bubbles = signal<Bubble[]>([]);
-  bubbleInterval = 700; // 700毫秒生成一个泡泡
-
-  // 是否正在播放音效，正在播放音效时不可点击按钮
-  isPlaying = signal(false);
 
   // 是否正在播放目标数字的音频
   playTargets = signal(false);
@@ -138,9 +139,7 @@ export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy 
   constructor() {
     effect(() => {
       if (this.isTimeUp() && !this.hasTargetBubble()) {
-        this.isPlaying.set(true);
         this.numberBubblesAudioService.playSuccess();
-        this.isPlaying.set(false);
         this.gameStatus.set('finished');
         this.bubbleSubscription?.unsubscribe();
       }
@@ -148,9 +147,7 @@ export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy 
 
   }
   async ngOnInit(): Promise<void> {
-    this.isPlaying.set(true);
     await this.numberBubblesAudioService.playWelcomeAndRules();
-    this.isPlaying.set(false);
     this.generateTargetNumbers();
   }
   ngAfterViewInit() {
@@ -162,10 +159,8 @@ export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy 
     }
   }
   private async playTargetNumbersAudio() {
-    this.isPlaying.set(true);
     this.playTargets.set(true);
     await this.numberBubblesAudioService.playTargetNumbersAudio(this.targetNumbers());
-    this.isPlaying.set(false);
     this.playTargets.set(false);
   }
   private removeBubble(index: number) {
@@ -173,9 +168,8 @@ export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy 
     this.bubbles.set(bubbles);
   }
   private generateTargetNumbers() {
-    // 随机生成3个numbers中的数字，不重复
     const targetNumbers: number[] = [];
-    while (targetNumbers.length < 3) {
+    while (targetNumbers.length < this.targetNumberCount()) {
       const randomIndex = Math.floor(Math.random() * this.numbers().length);
       const randomNumber = this.numbers()[randomIndex];
       if (!targetNumbers.includes(randomNumber)) {
@@ -185,17 +179,10 @@ export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy 
     this.targetNumbers.set([...targetNumbers]);
   }
 
-
   backHome() {
-    if (this.isPlaying()) {
-      return;
-    }
     this.router.navigate(['home']);
   }
   restartGame() {
-    if (this.isPlaying()) {
-      return;
-    }
     this.gameStatus.set('initial');
     this.isTimeUp.set(false);
     this.targetBubbleCount.set(0);
@@ -204,11 +191,6 @@ export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy 
     this.startGame();
   }
   async startGame() {
-    if (this.isPlaying()) {
-      return;
-    }
-
-
     this.gameStatus.set('playing');
     this.generateTargetNumbers();
     await this.playTargetNumbersAudio();
@@ -216,8 +198,8 @@ export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy 
     this.startBubbleGeneration();
   }
   startBubbleGeneration() {
-    this.bubbleSubscription = interval(this.bubbleInterval).subscribe(() => {
-      if (this.gameStatus() === 'playing') {
+    this.bubbleSubscription = interval(this.bubbleInterval()).subscribe(() => {
+      if (this.gameStatus() === 'playing' && this.bubbles().length < 8) {
         // 60%概率生成目标数字，40%概率生成其他数字
         const isTarget = Math.random() < 0.6;
         let number: number;

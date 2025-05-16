@@ -25,6 +25,7 @@ export class NumberBubblesAudioService {
   }
 
   async playTargetNumbersAudio(numbers: number[]) {
+    this.audioService.stopAll();
     await this.preloadAudio('playTarget', this.audioPath.playTarget);
     await this.playAudio('playTarget');
     for (const number of numbers) {
@@ -33,6 +34,7 @@ export class NumberBubblesAudioService {
     }
   }
   async playWelcomeAndRules() {
+    this.audioService.stopAll();
     await this.preloadAudio('welcome', this.audioPath.welcome);
     await Promise.all([
       this.playAudio('welcome'),
