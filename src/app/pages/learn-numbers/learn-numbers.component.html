@@ -1,15 +1,15 @@
 <main class="h-full w-full font-sans select-none">
   <!-- 主内容 -->
-  <main class="container mx-auto flex-1 px-4 py-4">
+  <main class="container mx-auto flex-1 px-4 py-4 -mt-5">
     <!-- 标题和说明 -->
-    <div class="mb-8 text-center">
+    <div class="text-center">
       <h2
         class="mb-2 text-3xl font-bold text-teal-600 md:text-4xl dark:text-teal-400"
       >
         @if (learnMode() == LearnMode.Starter) { 入门模式 (0-9) } @if
         (learnMode() == LearnMode.Advanced) {
-        <div class="flex w-full items-center justify-center">
-          <span class="mx-10">进阶模式 (10-99)</span>
+        <div class="flex w-full items-center justify-center flex-col">
+          <span class="mx-10">进阶模式</span>
           <div>
             <select
               id="currentGroup"
