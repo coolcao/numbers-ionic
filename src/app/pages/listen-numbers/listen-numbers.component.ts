@@ -13,122 +13,107 @@ import { ListenNumberAudioService } from './listen-numbers.audio.service';
   styleUrl: './listen-numbers.component.css',
   animations: [
     trigger('cardAnimation', [
-      // 默认状态
       state('default', style({
         transform: 'scale(1)',
-        backgroundColor: 'white',
-        borderColor: '#99f6e4' // teal-200
+        backgroundColor: 'var(--card-bg-default)',
+        borderColor: 'var(--card-border-default)'
       })),
-
-      // 正确答案状态
       state('right', style({
         transform: 'scale(1.1)',
-        backgroundColor: '#bbf7d0', // green-200
-        borderColor: '#4ade80' // green-400
+        backgroundColor: 'var(--card-bg-right)',
+        borderColor: 'var(--card-border-right)'
       })),
-
-      // 错误答案状态
       state('wrong', style({
         transform: 'scale(1.1)',
-        backgroundColor: '#fecaca', // red-200
-        borderColor: '#f87171' // red-400
+        backgroundColor: 'var(--card-bg-wrong)',
+        borderColor: 'var(--card-border-wrong)'
       })),
-
-      // 从默认状态到正确状态的转换
       transition('default => right', [
-        animate('0.5s', keyframes([
+        animate('0.3s', keyframes([
           style({ transform: 'scale(1)', offset: 0 }),
           style({ transform: 'scale(1.2) rotate(5deg)', offset: 0.3 }),
-          style({ transform: 'scale(1.1) rotate(0deg)', backgroundColor: '#bbf7d0', borderColor: '#4ade80', offset: 1 })
+          style({
+            transform: 'scale(1.1) rotate(0deg)',
+            backgroundColor: 'var(--card-bg-right)',
+            borderColor: 'var(--card-border-right)',
+            offset: 1
+          })
         ]))
       ]),
-
-      // 从默认状态到错误状态的转换
       transition('default => wrong', [
-        animate('0.5s', keyframes([
+        animate('0.3s', keyframes([
           style({ transform: 'translateX(0)', offset: 0 }),
           style({ transform: 'translateX(-10px)', offset: 0.1 }),
           style({ transform: 'translateX(10px)', offset: 0.2 }),
           style({ transform: 'translateX(-10px)', offset: 0.3 }),
           style({ transform: 'translateX(10px)', offset: 0.4 }),
           style({ transform: 'translateX(-10px)', offset: 0.5 }),
-          style({ transform: 'translateX(0) scale(1.1)', backgroundColor: '#fecaca', borderColor: '#f87171', offset: 1 })
+          style({
+            transform: 'translateX(0) scale(1.1)',
+            backgroundColor: 'var(--card-bg-wrong)',
+            borderColor: 'var(--card-border-wrong)',
+            offset: 1
+          })
         ]))
       ]),
-
-      // 从任何状态回到默认状态
       transition('* => default', [
         animate('0.3s')
       ])
     ]),
 
-    // 数字文本的动画
     trigger('numberAnimation', [
       state('default', style({
-        color: '#14b8a6' // teal-500
+        color: 'var(--text-default)'
       })),
       state('right', style({
-        color: '#22c55e' // green-500
+        color: 'var(--text-right)'
       })),
       state('wrong', style({
-        color: '#ef4444' // red-500
+        color: 'var(--text-wrong)'
       })),
-
-      // 正确答案时的文本动画
       transition('default => right', [
-        animate('0.5s', keyframes([
+        animate('0.3s', keyframes([
           style({ transform: 'scale(1)', offset: 0 }),
-          style({ transform: 'scale(1.3)', offset: 0.3 }),
-          style({ transform: 'scale(1)', color: '#22c55e', offset: 1 })
+          style({ transform: 'scale(1.1)', offset: 0.3 }),
+          style({ transform: 'scale(1)', color: 'var(--text-right)', offset: 1 })
         ]))
       ]),
-
-      // 错误答案时的文本动画
       transition('default => wrong', [
-        animate('0.5s', keyframes([
+        animate('0.3s', keyframes([
           style({ transform: 'scale(1)', offset: 0 }),
           style({ transform: 'scale(0.8)', offset: 0.3 }),
-          style({ transform: 'scale(1)', color: '#ef4444', offset: 1 })
+          style({ transform: 'scale(1)', color: 'var(--text-wrong)', offset: 1 })
         ]))
       ]),
-
-      // 回到默认状态
       transition('* => default', [
         animate('0.3s')
       ])
     ]),
 
-    // 底部指示条的动画
     trigger('indicatorAnimation', [
       state('default', style({
-        backgroundColor: '#5eead4' // teal-300
+        backgroundColor: 'var(--indicator-default)'
       })),
       state('right', style({
-        backgroundColor: '#4ade80' // green-400
+        backgroundColor: 'var(--indicator-right)'
       })),
       state('wrong', style({
-        backgroundColor: '#f87171' // red-400
+        backgroundColor: 'var(--indicator-wrong)'
       })),
-
-      // 正确答案时的指示条动画
       transition('default => right', [
-        animate('0.5s', keyframes([
+        animate('0.3s', keyframes([
           style({ width: '100%', offset: 0 }),
           style({ width: '110%', offset: 0.3 }),
-          style({ width: '100%', backgroundColor: '#4ade80', offset: 1 })
+          style({ width: '100%', backgroundColor: 'var(--indicator-right)', offset: 1 })
         ]))
       ]),
-
-      // 错误答案时的指示条动画
       transition('default => wrong', [
-        animate('0.5s', keyframes([
+        animate('0.3s', keyframes([
           style({ width: '100%', offset: 0 }),
           style({ width: '90%', offset: 0.3 }),
-          style({ width: '100%', backgroundColor: '#f87171', offset: 1 })
+          style({ width: '100%', backgroundColor: 'var(--indicator-wrong)', offset: 1 })
         ]))
       ]),
-
-      // 回到默认状态
       transition('* => default', [
         animate('0.3s')
       ])

@@ -51,3 +51,43 @@
     opacity: 1;
   }
 }
+
+:host {
+  /* 卡片颜色 */
+  --card-bg-default: white;
+  --card-border-default: #99f6e4; /* teal-200 */
+  --card-bg-right: #bbf7d0; /* green-200 */
+  --card-border-right: #4ade80; /* green-400 */
+  --card-bg-wrong: #fecaca; /* red-200 */
+  --card-border-wrong: #f87171; /* red-400 */
+
+  /* 文本颜色 */
+  --text-default: #14b8a6; /* teal-500 */
+  --text-right: #22c55e; /* green-500 */
+  --text-wrong: #ef4444; /* red-500 */
+
+  /* 指示条颜色 */
+  --indicator-default: #5eead4; /* teal-300 */
+  --indicator-right: #4ade80; /* green-400 */
+  --indicator-wrong: #f87171; /* red-400 */
+}
+
+:host-context(body.dark) {
+  /* 卡片颜色 */
+  --card-bg-default: #1e293b; /* slate-800 */
+  --card-border-default: #0f766e; /* teal-700 */
+  --card-bg-right: #14532d; /* green-900 */
+  --card-border-right: #22c55e; /* green-500 */
+  --card-bg-wrong: #7f1d1d; /* red-900 */
+  --card-border-wrong: #ef4444; /* red-500 */
+
+  /* 文本颜色 */
+  --text-default: #2dd4bf; /* teal-400 */
+  --text-right: #4ade80; /* green-400 */
+  --text-wrong: #f87171; /* red-400 */
+
+  /* 指示条颜色 */
+  --indicator-default: #0d9488; /* teal-600 */
+  --indicator-right: #22c55e; /* green-500 */
+  --indicator-wrong: #ef4444; /* red-500 */
+}
