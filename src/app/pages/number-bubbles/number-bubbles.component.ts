@@ -41,22 +41,8 @@ interface Bubble {
           style({ top: '10%', opacity: 1, offset: 0.1 }),
           style({ top: '100%', opacity: 0.8, offset: 1 })
         ]))
-      ], { params: { duration: 5 } }),
-      // 爆炸动画
-      state('exploded', style({
-        transform: 'scale(0)',
-        opacity: 0
-      })),
-      // 从下落状态到爆炸状态的转换
-      transition('falling => exploded', [
-        animate('400ms cubic-bezier(0.36, 0.07, 0.19, 0.97)', keyframes([
-          style({ transform: 'scale(1)', opacity: 1, filter: 'blur(0px)', offset: 0 }),
-          style({ transform: 'scale(1.5)', opacity: 0.7, filter: 'blur(1px)', offset: 0.5 }),
-          style({ transform: 'scale(2)', opacity: 0, filter: 'blur(2px)', offset: 1 })
-        ]))
-      ])
+      ], { params: { duration: 5 } })
     ]),
-    // 游戏结束弹窗动画
     trigger('gameOverAnimation', [
       transition(':enter', [
         style({ transform: 'scale(0.8)', opacity: 0 }),
@@ -65,7 +51,7 @@ interface Bubble {
       transition(':leave', [
         animate('200ms ease-in', style({ transform: 'scale(0.8)', opacity: 0 }))
       ])
-    ])
+    ]),
   ]
 })
 export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -265,38 +251,94 @@ export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy 
       const bubbleElement = document.querySelector(`[data-index="${idx}"]`);
       if (bubbleElement) {
         bubbleElement.animate([
-          { transform: 'translate3d(-12px, 0, 0)' },  // 增加左右移动的距离
-          { transform: 'translate3d(12px, 0, 0)' },   // 从 5px 增加到 15px
-          { transform: 'translate3d(-8px, 0, 0)' },  // 第二次抖动幅度稍小
+          { transform: 'translate3d(-12px, 0, 0)' },
+          { transform: 'translate3d(12px, 0, 0)' },
+          { transform: 'translate3d(-8px, 0, 0)' },
           { transform: 'translate3d(8px, 0, 0)' },
-          { transform: 'translate3d(-5px, 0, 0)' },   // 最后抖动幅度最小
+          { transform: 'translate3d(-5px, 0, 0)' },
           { transform: 'translate3d(5px, 0, 0)' },
           { transform: 'translate3d(0, 0, 0)' }
         ], {
-          duration: 500,    // 增加动画持续时间，让抖动效果更明显
+          duration: 500,
           easing: 'cubic-bezier(.36,.07,.19,.97)',
-          iterations: 1     // 可以设置多次抖动，比如设置为 2 就会抖动两次
+          iterations: 1
         });
       }
       return;
     }
     this.eliminatedBubbleCount.update(count => count + 1);
 
-    // 更新泡泡状态为爆炸
-    this.bubbles.update(bubbles => {
-      return bubbles.map(b => {
-        if (b.index === idx) {
-          return { ...b, state: 'exploded' };
-        }
-        return b;
-      });
-    });
+    const bubbleElement = document.querySelector(`[data-index="${idx}"]`);
+    if (bubbleElement) {
+      // 创建粒子容器
+      const particleContainer = document.createElement('div');
+      particleContainer.style.position = 'absolute';
+      const rect = bubbleElement.getBoundingClientRect();
+      particleContainer.style.left = rect.left + 'px';
+      particleContainer.style.top = rect.top + 'px';
+      particleContainer.style.width = rect.width + 'px';
+      particleContainer.style.height = rect.height + 'px';
+      document.body.appendChild(particleContainer);
 
-    this.numberBubblesAudioService.playExplode();
-    // 动画结束后移除泡泡
-    setTimeout(() => {
-      this.removeBubble(idx);
-    }, 400);
+      // 创建粒子
+      const particleCount = 30; // 粒子数量
+      const particles = [];
+      for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.style.position = 'absolute';
+        particle.style.width = '22px';
+        particle.style.height = '22px';
+        particle.style.backgroundColor = bubble.color;
+        particle.style.borderRadius = '50%';
+        particle.style.left = '50%';
+        particle.style.top = '50%';
+        particle.style.transform = 'translate(-50%, -50%)';
+        particleContainer.appendChild(particle);
+        particles.push(particle);
+      }
+
+      // 播放爆炸音效
+      this.numberBubblesAudioService.playExplode();
+
+      // 设置粒子动画
+      particles.forEach((particle, i) => {
+        const angle = (i / particleCount) * 360; // 均匀分布在圆周上
+        const radius = 70; // 爆炸半径
+        const duration = 500; // 动画持续时间
+
+        particle.animate([
+          {
+            transform: 'translate(-50%, -50%) scale(1)',
+            opacity: 1
+          },
+          {
+            transform: `translate(calc(-50% + ${radius * Math.cos(angle * Math.PI / 180)}px),
+                       calc(-50% + ${radius * Math.sin(angle * Math.PI / 180)}px)) scale(0.2)`,
+            opacity: 0
+          }
+        ], {
+          duration: duration,
+          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          fill: 'forwards'
+        });
+      });
+
+      // 原泡泡缩小消失
+      bubbleElement.animate([
+        { transform: 'scale(1)', opacity: 1 },
+        { transform: 'scale(0.8)', opacity: 0 }
+      ], {
+        duration: 200,
+        easing: 'ease-out',
+        fill: 'forwards'
+      });
+
+      // 动画结束后清理
+      setTimeout(() => {
+        particleContainer.remove();
+        this.removeBubble(idx);
+      }, 500);
+    }
   }
 
   // 动画结束处理函数
