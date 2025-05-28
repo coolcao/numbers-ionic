@@ -1,5 +1,5 @@
 <main
-  class="overflow-auto h-screen w-full bg-cyan-50 font-sans text-gray-800 dark:bg-sky-950 dark:text-gray-400"
+  class="h-screen w-full overflow-auto bg-cyan-50 font-sans text-gray-800 dark:bg-sky-950 dark:text-gray-400"
 >
   <div class="mx-auto flex min-h-screen max-w-7xl flex-col">
     <!-- 头部 - 使用蓝绿色系 -->
@@ -17,7 +17,7 @@
       <button
         (click)="toggleTheme()"
         id="darkModeToggle"
-        class="absolute top-5 right-10 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full"
+        class="absolute right-10 top-5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full"
       >
         <span class="text-2xl text-amber-300 dark:hidden"
           ><i class="fa-solid fa-sun"></i
@@ -29,7 +29,7 @@
     </header>
 
     <div
-      class="relative flex-1 py-10 flex flex-col justify-center items-center"
+      class="relative flex flex-1 flex-col items-center justify-center py-10"
     >
       <router-outlet />
     </div>
@@ -39,32 +39,32 @@
     >
       <div class="absolute -top-8 flex h-16 w-full justify-around">
         <span
-          class="animate-float dark:text-sky absolute text-3xl font-bold text-sky-400 drop-shadow-md dark:text-white"
+          class="animate-float dark:text-sky absolute text-3xl font-bold text-sky-400 drop-shadow-md dark:text-sky-600"
           style="left: 10%; animation-delay: 0s; animation-duration: 3.5s"
           >1</span
         >
         <span
-          class="animate-float absolute text-3xl font-bold text-cyan-400 drop-shadow-md dark:text-white"
+          class="animate-float absolute text-3xl font-bold text-cyan-400 drop-shadow-md dark:text-cyan-600"
           style="left: 25%; animation-delay: 0.5s; animation-duration: 4s"
           >2</span
         >
         <span
-          class="animate-float absolute text-3xl font-bold text-lime-600 drop-shadow-md dark:text-white"
+          class="animate-float absolute text-3xl font-bold text-lime-600 drop-shadow-md dark:text-lime-600"
           style="left: 40%; animation-delay: 1s; animation-duration: 3.2s"
           >3</span
         >
         <span
-          class="animate-float absolute text-3xl font-bold text-yellow-400 drop-shadow-md dark:text-white"
+          class="animate-float absolute text-3xl font-bold text-yellow-400 drop-shadow-md dark:text-yellow-600"
           style="left: 55%; animation-delay: 1.5s; animation-duration: 3.8s"
           >4</span
         >
         <span
-          class="animate-float absolute text-3xl font-bold text-teal-400 drop-shadow-md dark:text-white"
+          class="animate-float absolute text-3xl font-bold text-teal-400 drop-shadow-md dark:text-teal-600"
           style="left: 70%; animation-delay: 2s; animation-duration: 3.5s"
           >5</span
         >
         <span
-          class="animate-float absolute text-3xl font-bold text-orange-400 drop-shadow-md dark:text-white"
+          class="animate-float absolute text-3xl font-bold text-orange-400 drop-shadow-md dark:text-orange-600"
           style="left: 85%; animation-delay: 2s; animation-duration: 3.5s"
           >6</span
         >
