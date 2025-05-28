@@ -1,12 +1,12 @@
 <!-- 主要内容 -->
-<main class="flex flex-1 flex-col items-center px-5 select-none">
+<main class="flex flex-1 select-none flex-col items-center px-5">
   <!-- 吉祥物 - 使用黄色系 -->
   <div class="relative my-8 h-48 w-48">
     <app-bear></app-bear>
   </div>
 
   <!-- 模式选择 -->
-  <div class="mx-5 mt-8 mb-6 w-full">
+  <div class="mx-5 mb-6 mt-8 w-full">
     <div
       class="mx-auto max-w-4xl rounded-2xl bg-white p-4 shadow-lg dark:bg-sky-900"
     >
@@ -41,7 +41,7 @@
             </p>
             <div
               *ngIf="learnMode() === LearnMode.Starter"
-              class="absolute -top-3 -right-3 h-8 w-8 rounded-full bg-sky-500 text-center leading-8 text-white"
+              class="absolute -right-3 -top-3 h-8 w-8 rounded-full bg-sky-500 text-center leading-8 text-white"
             >
               ✓
             </div>
@@ -75,7 +75,7 @@
             </p>
             <div
               *ngIf="learnMode() === LearnMode.Advanced"
-              class="absolute -top-3 -right-3 h-8 w-8 rounded-full bg-purple-500 text-center leading-8 text-white"
+              class="absolute -right-3 -top-3 h-8 w-8 rounded-full bg-purple-500 text-center leading-8 text-white"
             >
               ✓
             </div>
@@ -95,7 +95,7 @@
     >
       <!-- 数字积木背景装饰 -->
       <div
-        class="absolute top-2 right-2 text-2xl font-bold text-amber-200 opacity-50 dark:text-amber-500"
+        class="absolute right-2 top-2 text-2xl font-bold text-amber-200 opacity-50 dark:text-amber-500"
       >
         1
       </div>
@@ -105,7 +105,7 @@
         2
       </div>
       <div
-        class="absolute top-2 left-2 text-2xl font-bold text-amber-200 opacity-50 dark:text-amber-400"
+        class="absolute left-2 top-2 text-2xl font-bold text-amber-200 opacity-50 dark:text-amber-400"
       >
         3
       </div>
@@ -164,7 +164,7 @@
     >
       <!-- 声波动画背景 -->
       <div
-        class="absolute right-0 bottom-0 left-0 flex h-8 items-end space-x-1 px-2"
+        class="absolute bottom-0 left-0 right-0 flex h-8 items-end space-x-1 px-2"
       >
         <div
           class="animate-wave w-2 rounded-t-sm bg-sky-200 dark:bg-sky-700"
@@ -193,7 +193,7 @@
         <div class="relative mb-2 text-5xl text-sky-400 dark:text-sky-300">
           🎵
           <span
-            class="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-sky-500 text-xs text-white dark:bg-sky-400"
+            class="absolute right-0 top-0 flex h-5 w-5 items-center justify-center rounded-full bg-sky-500 text-xs text-white dark:bg-sky-400"
             >♪</span
           >
         </div>
@@ -231,7 +231,7 @@
     >
       <!-- 泡泡背景装饰 -->
       <div
-        class="absolute -top-5 -right-5 h-20 w-20 rounded-full bg-purple-200 opacity-30 dark:bg-purple-700"
+        class="absolute -right-5 -top-5 h-20 w-20 rounded-full bg-purple-200 opacity-30 dark:bg-purple-700"
       ></div>
       <div
         class="absolute -bottom-5 -left-5 h-16 w-16 rounded-full bg-blue-200 opacity-30 dark:bg-blue-700"
@@ -273,11 +273,8 @@
       <div
         class="pointer-events-none absolute inset-0 rounded-2xl opacity-10 transition-opacity duration-300 hover:opacity-20"
         style="
-          background: radial-gradient(
-              circle at 70% 30%,
-              #93c5fd,
-              transparent 50%
-            ),
+          background:
+            radial-gradient(circle at 70% 30%, #93c5fd, transparent 50%),
             radial-gradient(circle at 30% 70%, #d8b4fe, transparent 50%);
         "
       ></div>
