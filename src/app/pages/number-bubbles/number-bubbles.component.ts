@@ -262,7 +262,22 @@ export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy 
     const bubble = this.bubbles().find((b: any) => b.index === idx);
     if (!bubble) return;
     if (!this.targetNumbers().includes(bubble.number)) {
-      console.log('点击的数字不是目标数字', bubble.number);
+      const bubbleElement = document.querySelector(`[data-index="${idx}"]`);
+      if (bubbleElement) {
+        bubbleElement.animate([
+          { transform: 'translate3d(-12px, 0, 0)' },  // 增加左右移动的距离
+          { transform: 'translate3d(12px, 0, 0)' },   // 从 5px 增加到 15px
+          { transform: 'translate3d(-8px, 0, 0)' },  // 第二次抖动幅度稍小
+          { transform: 'translate3d(8px, 0, 0)' },
+          { transform: 'translate3d(-5px, 0, 0)' },   // 最后抖动幅度最小
+          { transform: 'translate3d(5px, 0, 0)' },
+          { transform: 'translate3d(0, 0, 0)' }
+        ], {
+          duration: 500,    // 增加动画持续时间，让抖动效果更明显
+          easing: 'cubic-bezier(.36,.07,.19,.97)',
+          iterations: 1     // 可以设置多次抖动，比如设置为 2 就会抖动两次
+        });
+      }
       return;
     }
     this.eliminatedBubbleCount.update(count => count + 1);
