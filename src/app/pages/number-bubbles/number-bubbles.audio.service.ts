@@ -14,6 +14,7 @@ export class NumberBubblesAudioService {
     start: `${this.audioUri}/number_bubbles/number_bubbles_start.mp3`,
     playTarget: `${this.audioUri}/number_bubbles/number_bubbles_play_target.mp3`,
     explode: `${this.audioUri}/number_bubbles/number_bubbles_explode.mp3`,
+    wrong: `${this.audioUri}/number_bubbles/number_bubbles_wrong.mp3`,
     success: `${this.audioUri}/success.mp3`
   };
 
@@ -48,6 +49,11 @@ export class NumberBubblesAudioService {
   async playExplode() {
     await this.preloadAudio('explode', this.audioPath.explode);
     await this.playAudio('explode');
+  }
+
+  async playWrong() {
+    await this.preloadAudio('wrong', this.audioPath.wrong);
+    await this.playAudio('wrong');
   }
 
   async playSuccess() {

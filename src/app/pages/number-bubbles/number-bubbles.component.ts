@@ -264,6 +264,7 @@ export class NumberBubblesComponent implements OnInit, AfterViewInit, OnDestroy 
           iterations: 1
         });
       }
+      this.numberBubblesAudioService.playWrong();
       return;
     }
     this.eliminatedBubbleCount.update(count => count + 1);
