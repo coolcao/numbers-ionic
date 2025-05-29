@@ -12,3 +12,8 @@ export interface StarterNumberInfo {
   meaningAudio: string;// 数字的含义语音
   meaningImg: string; // 数字的含义图片
 }
+
+export interface GoBackState {
+  title: string;
+  url: string;
+}

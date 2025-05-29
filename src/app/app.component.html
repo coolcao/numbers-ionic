@@ -6,11 +6,21 @@
     <header
       class="relative rounded-b-[3rem] bg-cyan-500 py-5 text-center text-white shadow-md dark:bg-cyan-600"
     >
+      <button
+        (click)="goBack()"
+        class="absolute left-8 top-6 z-50 cursor-pointer transition-transform duration-300 hover:scale-125"
+        aria-label="返回上一级"
+        role="button"
+      >
+        <span class="text-3xl text-amber-300">
+          <i class="fa-solid fa-arrow-left"></i>
+        </span>
+      </button>
       <h1 class="m-0 text-4xl font-bold drop-shadow-md md:text-5xl">
         宝宝数字乐园
       </h1>
       <div class="absolute top-2 flex w-full justify-around">
-        <div class="h-8 w-8 rounded-full bg-white"></div>
+        <div class="h-2 w-2 rounded-full bg-white/50"></div>
         <div class="clip-star h-8 w-8 bg-yellow-300"></div>
         <div class="clip-heart h-8 w-8 bg-purple-400"></div>
       </div>

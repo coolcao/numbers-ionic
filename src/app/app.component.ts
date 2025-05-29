@@ -1,8 +1,9 @@
-import { Component, effect, inject, OnInit } from '@angular/core';
+import { Component, effect, HostListener, inject, OnInit } from '@angular/core';
 import { AppStore } from 'src/app/store/app.store';
 
 import { Capacitor } from '@capacitor/core';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +13,7 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 })
 export class AppComponent implements OnInit {
   store = inject(AppStore);
+  router = inject(Router);
 
   isDarkMode = this.store.isDarkMode;
 
@@ -33,6 +35,15 @@ export class AppComponent implements OnInit {
       return;
     }
     this.initializeApp();
+  }
+
+  @HostListener('window:popstate', ['$event'])
+  onPopState(event: Event) {
+    this.goBack();
+  }
+
+  goBack() {
+    this.router.navigate(['/', 'home']);
   }
 
 

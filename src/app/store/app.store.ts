@@ -1,5 +1,5 @@
 import { Injectable, signal } from "@angular/core";
-import { LearnMode } from "src/app/app.types";
+import { GoBackState, LearnMode } from "src/app/app.types";
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +23,5 @@ export class AppStore {
   setDarkMode(isDarkMode: boolean) {
     this._isDarkMode.set(isDarkMode);
   }
-
 
 }

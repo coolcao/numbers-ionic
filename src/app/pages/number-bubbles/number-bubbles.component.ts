@@ -3,7 +3,6 @@ import { trigger, state, style, animate, transition, keyframes } from '@angular/
 import { Router } from '@angular/router';
 import { interval, Subscription, timer } from 'rxjs';
 import { NumberBubblesAudioService } from './number-bubbles.audio.service';
-import { AppStore } from '../../store/app.store';
 import { NumberBubblesStore } from '../../store/number-bubbles.store';
 
 interface Bubble {
