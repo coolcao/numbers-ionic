@@ -4,6 +4,7 @@ import { HomeComponent } from 'src/app/pages/home/home.component';
 import { LearnNumbersComponent } from 'src/app/pages/learn-numbers/learn-numbers.component';
 import { ListenNumbersComponent } from 'src/app/pages/listen-numbers/listen-numbers.component';
 import { NumberBubblesComponent } from 'src/app/pages/number-bubbles/number-bubbles.component';
+import { NumberTrainComponent } from 'src/app/pages/number-train/number-train.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -11,6 +12,7 @@ const routes: Routes = [
   { path: 'learn-numbers', component: LearnNumbersComponent },
   { path: 'listen-numbers', component: ListenNumbersComponent },
   { path: 'number-bubbles', component: NumberBubblesComponent },
+  { path: 'number-train', component: NumberTrainComponent },
   { path: '**', redirectTo: '/home' }
 ];
 

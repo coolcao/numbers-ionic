@@ -1,0 +1,50 @@
+<div class="flex min-h-[600px] w-full flex-col items-center justify-center">
+  <div
+    class="flex h-1/2 min-h-[200px] w-full items-center justify-center"
+    cdkDropListGroup
+  >
+    <div
+      cdkDropList
+      #sourceList="cdkDropList"
+      [cdkDropListData]="targetTrains()"
+      [cdkDropListConnectedTo]="[targetList]"
+      (cdkDropListDropped)="drop($event)"
+      class="flex w-full items-center justify-center"
+    >
+      @for (t of targetTrains(); track $index) {
+        <div class="h-auto w-[120px] cursor-pointer" cdkDrag>
+          @if (t.type === "engine") {
+            <app-train-engine [number]="t.number"></app-train-engine>
+          } @else if (t.type === "car") {
+            <app-train-car [number]="t.number"></app-train-car>
+          } @else if (t.type === "caboose") {
+            <app-train-caboose [number]="t.number"></app-train-caboose>
+          }
+        </div>
+      }
+    </div>
+  </div>
+  <div class="flex h-1/2 min-h-[200px] w-full items-center justify-center">
+    <div
+      cdkDropList
+      #targetList="cdkDropList"
+      [cdkDropListData]="trains()"
+      [cdkDropListConnectedTo]="[sourceList]"
+      (cdkDropListDropped)="drop($event)"
+      cdkDropListOrientation="horizontal"
+      class="flex w-full flex-row items-center justify-center"
+    >
+      @for (t of trains(); track $index) {
+        <div class="h-auto w-[120px]" cdkDrag [cdkDragDisabled]="true">
+          @if (t.type === "engine") {
+            <app-train-engine [number]="t.number"></app-train-engine>
+          } @else if (t.type === "car") {
+            <app-train-car [number]="t.number"></app-train-car>
+          } @else if (t.type === "caboose") {
+            <app-train-caboose [number]="t.number"></app-train-caboose>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

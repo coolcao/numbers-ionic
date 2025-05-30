@@ -217,6 +217,14 @@
   optionalDependencies:
     lmdb "3.2.6"
 
+"@angular/cdk@19":
+  version "19.2.18"
+  resolved "https://registry.yarnpkg.com/@angular/cdk/-/cdk-19.2.18.tgz#0fb3fcc0cc8cb21501f07625ef2ed4d6f8287f01"
+  integrity sha512-aGMHOYK/VV9PhxGTUDwiu/4ozoR/RKz8cimI+QjRxEBhzn4EPqjUDSganvlhmgS7cTN3+aqozdvF/GopMRJjLg==
+  dependencies:
+    parse5 "^7.1.2"
+    tslib "^2.3.0"
+
 "@angular/cli@^19.0.0":
   version "19.2.11"
   resolved "https://registry.yarnpkg.com/@angular/cli/-/cli-19.2.11.tgz#055a01412c9b3ce4c85194700991e39206a14d8c"
@@ -8182,7 +8190,7 @@ parse5-sax-parser@^7.0.0:
   dependencies:
     parse5 "^7.0.0"
 
-parse5@^7.0.0:
+parse5@^7.0.0, parse5@^7.1.2:
   version "7.3.0"
   resolved "https://registry.yarnpkg.com/parse5/-/parse5-7.3.0.tgz#d7e224fa72399c7a175099f45fc2ad024b05ec05"
   integrity sha512-IInvU7fabl34qmi9gY8XOVxhYyMyuH2xUNpb2q8/Y+7552KlejkRvqvD19nMoUW/uQGGbqNpA6Tufu5FL5BZgw==

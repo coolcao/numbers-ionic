@@ -3,7 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
-
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 
 import { AppRoutingModule } from 'src/app/app-routing.module';
@@ -15,11 +15,35 @@ import { HomeComponent } from 'src/app/pages/home/home.component';
 import { LearnNumbersComponent } from 'src/app/pages/learn-numbers/learn-numbers.component';
 import { ListenNumbersComponent } from 'src/app/pages/listen-numbers/listen-numbers.component';
 import { NumberBubblesComponent } from 'src/app/pages/number-bubbles/number-bubbles.component';
+import { NumberTrainComponent } from 'src/app/pages/number-train/number-train.component';
+import { TrainEngineComponent } from 'src/app/pages/number-train/components/train-engine/train-engine.component';
+import { TrainCarComponent } from 'src/app/pages/number-train/components/train-car/train-car.component';
+import { TrainCabooseComponent } from 'src/app/pages/number-train/components/train-caboose/train-caboose.component';
+
 
 
 @NgModule({
-  declarations: [AppComponent, BearComponent, ModalComponent, HomeComponent, LearnNumbersComponent, ListenNumbersComponent, NumberBubblesComponent],
-  imports: [BrowserModule, IonicModule.forRoot(), AppRoutingModule, FormsModule, BrowserAnimationsModule],
+  declarations: [
+    AppComponent,
+    BearComponent,
+    ModalComponent,
+    HomeComponent,
+    LearnNumbersComponent,
+    ListenNumbersComponent,
+    NumberBubblesComponent,
+    NumberTrainComponent,
+    TrainEngineComponent,
+    TrainCarComponent,
+    TrainCabooseComponent
+  ],
+  imports: [
+    BrowserModule,
+    IonicModule.forRoot(),
+    AppRoutingModule,
+    FormsModule,
+    BrowserAnimationsModule,
+    DragDropModule,
+  ],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
   bootstrap: [AppComponent],
 })
