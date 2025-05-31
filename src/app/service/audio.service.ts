@@ -30,7 +30,7 @@ export class AudioService {
   }
 
   // 播放音频并返回Promise
-  async play(key: string, options: { interrupt?: boolean, loop?: boolean } = {}): Promise<void> {
+  async play(key: string, options: { interrupt?: boolean, loop?: boolean, volume?: number } = {}): Promise<void> {
     return new Promise((resolve, reject) => {
       const sound = this.sounds.get(key);
       if (!sound) {
@@ -44,6 +44,11 @@ export class AudioService {
       if (options.loop) {
         sound.loop(true);
       }
+
+      if (options.volume) {
+        sound.volume(0.5);
+      }
+
 
       const soundId = sound.play();
 

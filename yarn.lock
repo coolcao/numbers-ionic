@@ -217,7 +217,7 @@
   optionalDependencies:
     lmdb "3.2.6"
 
-"@angular/cdk@19":
+"@angular/cdk@^19.2.18":
   version "19.2.18"
   resolved "https://registry.yarnpkg.com/@angular/cdk/-/cdk-19.2.18.tgz#0fb3fcc0cc8cb21501f07625ef2ed4d6f8287f01"
   integrity sha512-aGMHOYK/VV9PhxGTUDwiu/4ozoR/RKz8cimI+QjRxEBhzn4EPqjUDSganvlhmgS7cTN3+aqozdvF/GopMRJjLg==
@@ -1283,6 +1283,11 @@
   version "7.0.1"
   resolved "https://registry.yarnpkg.com/@capacitor/keyboard/-/keyboard-7.0.1.tgz#edf212528cd1587494ceb1d260868c1a9540aed1"
   integrity sha512-Gi064vOARMac+x9/DmEFeywN9oAETMf3OYsMuYm9gA8SvdsDJ3QJqMoFnSEIORYXe21Jzt2SIEdLlpT65P/b2g==
+
+"@capacitor/screen-orientation@^7.0.1":
+  version "7.0.1"
+  resolved "https://registry.yarnpkg.com/@capacitor/screen-orientation/-/screen-orientation-7.0.1.tgz#e23672034700515126883cf97eb2a598fde4d48f"
+  integrity sha512-6s2CLPAy7xFCzAXtj///xR1/BqqsX0NBt1BkhffPAh6jOs3n3CZsbh+YnPEptyeBBUtpsWWOE9rrvgtvy6iKJg==
 
 "@capacitor/status-bar@^7.0.1":
   version "7.0.1"

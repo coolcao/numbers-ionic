@@ -57,6 +57,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
+    this.store.setShowHeader(true);
+    this.store.setShowFooter(true);
     this.preLoadImage();
     await this.preloadAudio();
     await this.playWelcomeAudio();
@@ -76,6 +78,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   goToBubbles() {
     this.audioService.stopAll();
     this.router.navigate(['number-bubbles']);
+  }
+  goToTrainGame() {
+    this.audioService.stopAll();
+    this.router.navigate(['number-train']);
   }
 
   changeLearnMode(mode: LearnMode) {

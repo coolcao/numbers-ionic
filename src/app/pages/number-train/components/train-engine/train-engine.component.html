@@ -11,8 +11,8 @@
     height="150"
     rx="10"
     ry="10"
-    fill="#60a5fa"
-    stroke="#3b82f6"
+    fill="#06b6d4"
+    stroke="#0891b2"
     stroke-width="4"
   />
   <rect
@@ -22,8 +22,8 @@
     height="30"
     rx="5"
     ry="5"
-    fill="#93c5fd"
-    stroke="#3b82f6"
+    fill="#67e8f9"
+    stroke="#0891b2"
     stroke-width="4"
   />
   <rect
@@ -33,26 +33,26 @@
     height="110"
     rx="5"
     ry="5"
-    fill="#fca5a5"
-    stroke="#ef4444"
+    fill="#f472b6"
+    stroke="#db2777"
     stroke-width="4"
   />
-  <rect x="30" y="125" width="40" height="40" fill="#fecaca" />
+  <rect x="30" y="125" width="40" height="40" fill="#fbcfe8" />
   <rect
     x="115"
     y="40"
     width="30"
     height="30"
-    fill="#f87171"
-    stroke="#ef4444"
+    fill="#f472b6"
+    stroke="#db2777"
     stroke-width="4"
   />
   <circle
     cx="130"
     cy="35"
     r="15"
-    fill="#f87171"
-    stroke="#ef4444"
+    fill="#f472b6"
+    stroke="#db2777"
     stroke-width="4"
   />
   <rect
@@ -74,7 +74,7 @@
     font-size="72"
     font-weight="bold"
     text-anchor="middle"
-    fill="#ff0000"
+    fill="#db2777"
     stroke="#000000"
     stroke-width="2"
   >
@@ -87,8 +87,8 @@
     height="60"
     rx="5"
     ry="5"
-    fill="#bfdbfe"
-    stroke="#3b82f6"
+    fill="#a5f3fc"
+    stroke="#0891b2"
     stroke-width="3"
   />
   <rect
@@ -98,8 +98,8 @@
     height="60"
     rx="5"
     ry="5"
-    fill="#bfdbfe"
-    stroke="#3b82f6"
+    fill="#a5f3fc"
+    stroke="#0891b2"
     stroke-width="3"
   />
   <rect
@@ -109,7 +109,7 @@
     height="100"
     rx="5"
     ry="5"
-    fill="#fde68a"
+    fill="#fef08a"
     stroke="#eab308"
     stroke-width="3"
   />
@@ -143,4 +143,50 @@
   <line x1="290" y1="270" x2="360" y2="270" stroke="#d1d5db" stroke-width="2" />
   <line x1="300" y1="235" x2="350" y2="305" stroke="#d1d5db" stroke-width="2" />
   <line x1="300" y1="305" x2="350" y2="235" stroke="#d1d5db" stroke-width="2" />
+  <!-- 烟囱冒烟动画 -->
+  <g>
+    <circle cx="130" cy="20" r="35" fill="#d1d5db" opacity="0.8">
+      <animate
+        attributeName="r"
+        values="25;28;25"
+        dur="3s"
+        repeatCount="indefinite"
+      />
+      <animate
+        attributeName="opacity"
+        values="0.8;0.4;0"
+        dur="3s"
+        repeatCount="indefinite"
+      />
+      <animate
+        attributeName="cy"
+        values="20;10;20"
+        dur="3s"
+        repeatCount="indefinite"
+      />
+    </circle>
+    <circle cx="125" cy="10" r="24" fill="#d1d5db" opacity="0.6">
+      <animate
+        attributeName="r"
+        values="4;7;4"
+        dur="3s"
+        repeatCount="indefinite"
+        begin="1s"
+      />
+      <animate
+        attributeName="opacity"
+        values="0.8;0.5;0"
+        dur="3s"
+        repeatCount="indefinite"
+        begin="1s"
+      />
+      <animate
+        attributeName="cy"
+        values="20;5;20"
+        dur="3s"
+        repeatCount="indefinite"
+        begin="1s"
+      />
+    </circle>
+  </g>
 </svg>

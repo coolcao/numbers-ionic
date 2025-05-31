@@ -1,50 +1,141 @@
-<div class="flex min-h-[600px] w-full flex-col items-center justify-center">
+@if (gameState() === "playing") {
   <div
-    class="flex h-1/2 min-h-[200px] w-full items-center justify-center"
-    cdkDropListGroup
+    [ngClass]="{ 'min-h-[600px]': platform() === 'web' }"
+    class="flex w-full flex-col items-center justify-center"
   >
     <div
-      cdkDropList
-      #sourceList="cdkDropList"
-      [cdkDropListData]="targetTrains()"
-      [cdkDropListConnectedTo]="[targetList]"
-      (cdkDropListDropped)="drop($event)"
-      class="flex w-full items-center justify-center"
+      class="mb-4 flex w-full justify-between rounded-lg bg-cyan-100 px-4 py-2 dark:bg-cyan-600"
     >
-      @for (t of targetTrains(); track $index) {
-        <div class="h-auto w-[120px] cursor-pointer" cdkDrag>
-          @if (t.type === "engine") {
-            <app-train-engine [number]="t.number"></app-train-engine>
-          } @else if (t.type === "car") {
-            <app-train-car [number]="t.number"></app-train-car>
-          } @else if (t.type === "caboose") {
-            <app-train-caboose [number]="t.number"></app-train-caboose>
-          }
-        </div>
-      }
+      <div class="text-gray-600 dark:text-gray-200">
+        总轮数: {{ totalRound() }}
+      </div>
+      <div class="text-gray-600 dark:text-gray-200">
+        当前第 {{ currentRound() }} 轮
+      </div>
+      <div class="text-gray-600 dark:text-gray-200">
+        正确轮数: {{ correctRound() }}
+      </div>
     </div>
-  </div>
-  <div class="flex h-1/2 min-h-[200px] w-full items-center justify-center">
     <div
-      cdkDropList
-      #targetList="cdkDropList"
-      [cdkDropListData]="trains()"
-      [cdkDropListConnectedTo]="[sourceList]"
-      (cdkDropListDropped)="drop($event)"
-      cdkDropListOrientation="horizontal"
-      class="flex w-full flex-row items-center justify-center"
+      [ngClass]="{
+        'min-h-[200px]': platform() === 'web',
+        'min-h-[100px]': platform() !== 'web',
+      }"
+      class="flex w-full items-center justify-center"
+      cdkDropListGroup
     >
-      @for (t of trains(); track $index) {
-        <div class="h-auto w-[120px]" cdkDrag [cdkDragDisabled]="true">
-          @if (t.type === "engine") {
-            <app-train-engine [number]="t.number"></app-train-engine>
-          } @else if (t.type === "car") {
-            <app-train-car [number]="t.number"></app-train-car>
-          } @else if (t.type === "caboose") {
-            <app-train-caboose [number]="t.number"></app-train-caboose>
-          }
-        </div>
-      }
+      <div
+        cdkDropList
+        #sourceList="cdkDropList"
+        [cdkDropListData]="targetTrains()"
+        [cdkDropListConnectedTo]="[targetList]"
+        (cdkDropListDropped)="drop($event)"
+        class="flex w-full items-center justify-center"
+      >
+        @for (t of targetTrains(); track $index) {
+          <div class="h-auto w-[180px] cursor-pointer" cdkDrag>
+            @if (t.type === "engine") {
+              <app-train-engine [number]="t.number"></app-train-engine>
+            } @else if (t.type === "car") {
+              <app-train-car [number]="t.number"></app-train-car>
+            } @else if (t.type === "caboose") {
+              <app-train-caboose [number]="t.number"></app-train-caboose>
+            }
+          </div>
+        }
+      </div>
+    </div>
+    <div
+      [ngClass]="{
+        'min-h-[300px]': platform() === 'web',
+        'min-h-[100px]': platform() !== 'web',
+      }"
+      class="flex h-1/2 w-full items-center justify-center"
+    >
+      <!-- 定义动画样式 -->
+      <!-- 移除原有的CSS动画样式 -->
+      <div
+        cdkDropList
+        #targetList="cdkDropList"
+        [cdkDropListData]="trains()"
+        [cdkDropListConnectedTo]="[sourceList]"
+        (cdkDropListDropped)="drop($event)"
+        cdkDropListOrientation="horizontal"
+        class="flex w-full flex-row items-center justify-center"
+        [@trainMoveLeft]="animationState()"
+        [@explodeDisappear]="explodeState()"
+      >
+        @for (t of trains(); track $index) {
+          <div class="h-auto w-[180px]" cdkDrag [cdkDragDisabled]="true">
+            @if (t.type === "engine") {
+              <app-train-engine [number]="t.number"></app-train-engine>
+            } @else if (t.type === "car") {
+              <app-train-car [number]="t.number"></app-train-car>
+            } @else if (t.type === "caboose") {
+              <app-train-caboose [number]="t.number"></app-train-caboose>
+            }
+          </div>
+        }
+      </div>
     </div>
   </div>
-</div>
+} @else if (gameState() === "finished") {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    [@gameOverAnimation]
+  >
+    <!-- 弹框主体 -->
+    <div
+      class="min-w-md relative max-w-3xl rounded-3xl bg-gradient-to-br from-green-200 via-blue-100 to-sky-200 p-8 shadow-2xl dark:from-gray-800 dark:via-gray-700 dark:to-gray-900"
+    >
+      <!-- 装饰元素 -->
+      <div class="text-4xl400400 absolute right-6 top-4 dark:text-yellow-300">
+        🎉
+      </div>
+      <div
+        class="absolute bottom-6 left-4 text-3xl text-pink-400 dark:text-pink-300"
+      >
+        ✨
+      </div>
+
+      <!-- 内容 -->
+      <div class="mb-5 space-y-6 text-center">
+        <h2 class="font-comic text-4xl font-bold text-cyan-800 dark:text-white">
+          游戏结束！
+        </h2>
+
+        <!-- 数据统计 -->
+        <div
+          class="rounded-xl border-2 border-dashed border-green-300 bg-white/80 p-4 shadow-inner dark:border-purple-400 dark:bg-black/30"
+        >
+          <div
+            class="font-comic text font-comic text-base text-gray-700 dark:text-gray-200"
+          >
+            <p>总轮数: {{ totalRound() }}</p>
+            <p>正确轮数: {{ correctRound() }}</p>
+            <p>
+              正确率:
+              {{ (correctRound() / totalRound()) * 100 | number: "1.0-2" }}%
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 操作按钮 -->
+      <button
+        (click)="restartGame()"
+        class="font-comic mx-2 cursor-pointer rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 px-6 py-3 text-xl text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl dark:from-purple-500 dark:to-blue-600"
+      >
+        <i class="fa-solid fa-arrows-rotate"></i>
+        <span class="ml-1">再玩一次</span>
+      </button>
+      <button
+        (click)="backHome()"
+        class="font-comic mx-2 cursor-pointer rounded-2xl bg-gradient-to-r from-indigo-400 to-indigo-500 px-6 py-3 text-xl text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl dark:from-yellow-500 dark:to-orange-600"
+      >
+        <i class="fa-solid fa-house"></i>
+        <span class="ml-1">回到首页</span>
+      </button>
+    </div>
+  </div>
+}

@@ -16,6 +16,8 @@ export class AppComponent implements OnInit {
   router = inject(Router);
 
   isDarkMode = this.store.isDarkMode;
+  showHeader = this.store.showHeader;
+  showFooter = this.store.showFooter;
 
   constructor() {
     effect(() => {
@@ -31,7 +33,9 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (this.getPlatform() === 'web') {
+    const platform = this.getPlatform();
+    this.store.setPlatform(platform);
+    if (platform === 'web') {
       return;
     }
     this.initializeApp();
