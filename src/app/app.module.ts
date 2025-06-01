@@ -19,6 +19,7 @@ import { NumberTrainComponent } from 'src/app/pages/number-train/number-train.co
 import { TrainEngineComponent } from 'src/app/pages/number-train/components/train-engine/train-engine.component';
 import { TrainCarComponent } from 'src/app/pages/number-train/components/train-car/train-car.component';
 import { TrainCabooseComponent } from 'src/app/pages/number-train/components/train-caboose/train-caboose.component';
+import { NumberMarketComponent } from 'src/app/pages/number-market/number-market.component';
 
 
 
@@ -34,7 +35,8 @@ import { TrainCabooseComponent } from 'src/app/pages/number-train/components/tra
     NumberTrainComponent,
     TrainEngineComponent,
     TrainCarComponent,
-    TrainCabooseComponent
+    TrainCabooseComponent,
+    NumberMarketComponent,
   ],
   imports: [
     BrowserModule,

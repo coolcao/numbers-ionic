@@ -87,4 +87,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   changeLearnMode(mode: LearnMode) {
     this.store.setLearnMode(mode);
   }
+
+  goToMarketGame() {
+    this.audioService.stopAll();
+    this.router.navigate(['number-market']);
+  }
 }

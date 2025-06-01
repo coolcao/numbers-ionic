@@ -173,6 +173,8 @@ export class NumberTrainComponent implements OnInit, OnDestroy {
     // this.trainNumbers.set(trainNumbers);
     // this.targetNumbers.set(targetNumbers);
 
+    this.playWelcome();
+
     this.playNextRound();
 
     if (this.platform() === 'android' || this.platform() === 'ios') {
@@ -258,6 +260,15 @@ export class NumberTrainComponent implements OnInit, OnDestroy {
   async playWrong() {
     await this.audioService.preload('wrong', 'assets/audio/number-train/wrong-answer.mp3');
     await this.audioService.play('wrong', { volume: 0.4 });
+  }
+
+  async playWelcome() {
+    await Promise.all([
+      this.audioService.preload('welcome1', 'assets/audio/number-train/number-train-welcome.mp3'),
+      this.audioService.preload('welcome2', 'assets/audio/number-train/number-train-welcome2.mp3'),
+      this.audioService.preload('welcome3', 'assets/audio/number-train/number-train-welcome3.mp3'),
+    ]);
+    await this.audioService.playSequence(['welcome1', 'welcome2', 'welcome3']);
   }
 
   restartGame() {
