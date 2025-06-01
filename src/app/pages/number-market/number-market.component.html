@@ -4,10 +4,11 @@
     <h1
       class="mb-8 animate-pulse text-4xl font-bold text-teal-900 dark:text-teal-400"
     >
-      欢迎来到数字小超市！
+      数字小超市！
     </h1>
     <p class="mb-12 text-xl text-teal-900 dark:text-teal-400">
-      数一数，选一选，听指令购买水果蔬菜哦～
+      数一数，选一选 <br />
+      听指令购买水果蔬菜哦～
     </p>
     <p class="mb-12 text-xl text-teal-900 dark:text-teal-400">
       让我们一起在购物中学习数字吧！
@@ -25,7 +26,7 @@
 </div>
 <main
   *ngIf="gameState() === 'playing'"
-  class="container mx-auto min-w-[370px] px-4 py-0"
+  class="container mx-auto min-w-[350px] px-4 py-0"
 >
   <!-- 游戏目标提示 -->
   <div
@@ -39,7 +40,12 @@
       个
       <span class="text-2xl md:text-3xl">{{ this.targetGoods()?.image }}</span>
     </p>
-    <div id="voiceIcon" class="ml-2 inline-block animate-pulse cursor-pointer">
+    <div
+      *ngIf="targetNumber() && targetGoods()"
+      (click)="playRound(targetNumber(), targetGoods()!)"
+      id="voiceIcon"
+      class="ml-2 inline-block animate-pulse cursor-pointer"
+    >
       <i class="fa fa-volume-up text-2xl"></i>
     </div>
   </div>
@@ -119,7 +125,7 @@
       >
         <!-- 购物车篮子主体 -->
         <div
-          class="absolute inset-0 z-10 overflow-hidden rounded-lg bg-teal-300/40 shadow-xl dark:bg-teal-600/50"
+          class="absolute inset-0 z-10 overflow-hidden rounded-2xl bg-teal-300/40 dark:bg-teal-600/50"
         >
           <!-- 篮子内部 -->
           <div
@@ -148,18 +154,13 @@
 
           <!-- 篮子底部阴影 -->
           <div
-            class="absolute bottom-0 left-0 h-10 w-full bg-gradient-to-t from-teal-400/70 to-transparent dark:from-teal-600/30"
+            class="absolute bottom-0 left-0 h-10 w-full rounded-2xl bg-gradient-to-t from-teal-400/70 to-transparent dark:from-teal-600/30"
           ></div>
         </div>
 
         <!-- 购物车把手 -->
         <div
           class="border-6 sm:border-7 lg:h-18 lg:border-9 xl:border-10 absolute -top-6 left-1/2 z-0 h-12 w-[130px] -translate-x-1/2 transform rounded-b-3xl border-t-0 border-teal-300/50 shadow-lg dark:border-teal-400/40 sm:-top-7 sm:h-14 sm:w-[150px] md:-top-8 md:h-16 md:w-[180px] md:border-8 lg:-top-9 lg:w-[210px] xl:-top-10 xl:h-20 xl:w-[240px]"
-        ></div>
-
-        <!-- 立体感装饰 -->
-        <div
-          class="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-blue-600/20 to-transparent"
         ></div>
       </div>
 

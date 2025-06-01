@@ -224,6 +224,7 @@ export class NumberMarketComponent implements OnInit, OnDestroy {
   }
 
   async playRound(num: number, goodsItem: GoodsItem) {
+    this.audioService.stopAll();
     await Promise.all([
       this.audioService.preload('buy1', `assets/audio/number-market/buy1.mp3`),
       this.audioService.preload('buy2', `assets/audio/number-market/buy2.mp3`),
