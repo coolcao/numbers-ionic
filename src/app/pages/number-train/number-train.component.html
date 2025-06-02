@@ -1,25 +1,37 @@
 @if (gameState() === "playing") {
   <div
-    [ngClass]="{ 'min-h-[600px]': platform() === 'web' }"
-    class="flex w-full flex-col items-center justify-center"
+    [ngClass]="{
+      'min-h-[600px]': platform() === 'web',
+      'min-h-[300px]': platform() !== 'web',
+    }"
+    class="flex h-full w-full flex-col items-center justify-center"
   >
     <div
-      class="mb-4 flex w-full justify-between rounded-lg bg-cyan-100 px-4 py-2 dark:bg-cyan-600"
+      class="absolute inset-0 my-0 flex h-fit w-full justify-center space-x-8 rounded-2xl bg-white/90 px-6 py-1 shadow-md backdrop-blur-sm dark:bg-gray-800/90"
     >
-      <div class="text-gray-600 dark:text-gray-200">
+      <div
+        class="flex items-center gap-1 text-lg font-medium text-teal-600 dark:text-teal-300"
+      >
+        <i class="fa-solid fa-list-ol"></i>
         总轮数: {{ totalRound() }}
       </div>
-      <div class="text-gray-600 dark:text-gray-200">
+      <div
+        class="flex items-center gap-1 text-lg font-medium text-teal-600 dark:text-teal-300"
+      >
+        <i class="fa-solid fa-sync"></i>
         当前第 {{ currentRound() }} 轮
       </div>
-      <div class="text-gray-600 dark:text-gray-200">
+      <div
+        class="flex items-center gap-1 text-lg font-medium text-teal-600 dark:text-teal-300"
+      >
+        <i class="fa-solid fa-check-circle"></i>
         正确轮数: {{ correctRound() }}
       </div>
     </div>
     <div
       [ngClass]="{
         'min-h-[200px]': platform() === 'web',
-        'min-h-[100px]': platform() !== 'web',
+        'min-h-[108px]': platform() !== 'web',
       }"
       class="flex w-full items-center justify-center"
       cdkDropListGroup
@@ -47,10 +59,10 @@
     </div>
     <div
       [ngClass]="{
-        'min-h-[300px]': platform() === 'web',
-        'min-h-[100px]': platform() !== 'web',
+        'web-train min-h-[300px] items-center': platform() === 'web',
+        'app-train min-h-[130px] items-end': platform() !== 'web',
       }"
-      class="flex h-1/2 w-full items-center justify-center"
+      class="train flex h-1/2 w-full items-center justify-center pb-2"
     >
       <!-- 定义动画样式 -->
       <!-- 移除原有的CSS动画样式 -->
