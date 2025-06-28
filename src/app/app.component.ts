@@ -1,9 +1,11 @@
-import { Component, effect, HostListener, inject, OnInit } from '@angular/core';
+import { Component, effect, HostListener, inject, OnInit, signal } from '@angular/core';
 import { AppStore } from 'src/app/store/app.store';
 
 import { Capacitor } from '@capacitor/core';
+import { App, BackButtonListenerEvent } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { Router } from '@angular/router';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-root',
@@ -19,7 +21,11 @@ export class AppComponent implements OnInit {
   showHeader = this.store.showHeader;
   showFooter = this.store.showFooter;
 
-  constructor() {
+  showExit = signal(false);
+
+  constructor(
+    private alertController: AlertController
+  ) {
     effect(() => {
       if (this.isDarkMode()) {
         document.body.classList.add('dark');
@@ -39,6 +45,8 @@ export class AppComponent implements OnInit {
       return;
     }
     this.initializeApp();
+    this.setupBackEvent();
+
   }
 
   @HostListener('window:popstate', ['$event'])
@@ -81,6 +89,21 @@ export class AppComponent implements OnInit {
     StatusBar.setOverlaysWebView({ overlay: false }); // 关键设置
     // 初始化状态栏颜色
     this.updateStatusBarColor(this.isDarkMode());
+  }
+
+  exitGame() {
+    if (Capacitor.getPlatform() === 'android') {
+      (App as any).exitApp(); // 强制退出（Android）
+    } else {
+      App.minimizeApp(); // iOS 最小化
+    }
+    this.showExit.set(false);
+  }
+
+  private setupBackEvent() {
+    App.addListener('backButton', async (event: BackButtonListenerEvent) => {
+      this.showExit.set(true);
+    });
   }
 
 }
