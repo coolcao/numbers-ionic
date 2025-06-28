@@ -21,7 +21,7 @@ import { Router } from '@angular/router';
         transform: 'translateX(-120%)'
       })),
       transition('* => active', [
-        animate('3s ease-in-out')
+        animate('4s ease-in-out')
       ]),
       transition('active => *', [
         animate('0s ease-in-out')
@@ -126,11 +126,12 @@ export class NumberTrainComponent implements OnInit, OnDestroy {
         // 组合成功，播放成功音效并玩下一局
         if (result === 'success') {
           this.playWhistle().then(() => {
+            this.playTrainMove();
             this.animationState.set('active');
             this.correctRound.update(round => round + 1);
 
             if (this.currentRound() < this.totalRound()) {
-              timer(3000).subscribe(() => {
+              timer(4000).subscribe(() => {
                 this.playNextRound();
               });
             }
@@ -256,6 +257,10 @@ export class NumberTrainComponent implements OnInit, OnDestroy {
   async playWhistle() {
     await this.audioService.preload('whistle', 'assets/audio/number-train/train-whistle.mp3');
     await this.audioService.play('whistle');
+  }
+  async playTrainMove() {
+    await this.audioService.preload('train-move', 'assets/audio/number-train/train-move.m4a');
+    await this.audioService.play('train-move', { volume: 0.2, loop: false });
   }
   async playWrong() {
     await this.audioService.preload('wrong', 'assets/audio/number-train/wrong-answer.mp3');
