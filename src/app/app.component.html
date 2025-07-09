@@ -8,6 +8,7 @@
       class="relative rounded-b-[3rem] bg-cyan-500 py-5 text-center text-white shadow-md dark:bg-cyan-600"
     >
       <button
+        *ngIf="showBack()"
         (click)="goBack()"
         class="absolute left-8 top-6 z-50 cursor-pointer transition-transform duration-300 hover:scale-125"
         aria-label="返回上一级"

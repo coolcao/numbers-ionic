@@ -1,11 +1,13 @@
 import { Component, effect, HostListener, inject, OnInit, signal } from '@angular/core';
-import { AppStore } from 'src/app/store/app.store';
+import { Location } from '@angular/common';
+import { NavigationEnd, Router } from '@angular/router';
 
+import { filter } from 'rxjs';
 import { Capacitor } from '@capacitor/core';
 import { App, BackButtonListenerEvent } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
-import { Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
+import { AppStore } from 'src/app/store/app.store';
 
 @Component({
   selector: 'app-root',
@@ -15,11 +17,13 @@ import { AlertController } from '@ionic/angular';
 })
 export class AppComponent implements OnInit {
   store = inject(AppStore);
+  location = inject(Location);
   router = inject(Router);
 
   isDarkMode = this.store.isDarkMode;
   showHeader = this.store.showHeader;
   showFooter = this.store.showFooter;
+  showBack = signal(false);
 
   showExit = signal(false);
 
@@ -39,6 +43,7 @@ export class AppComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.setupRouterEvent();
     const platform = this.getPlatform();
     this.store.setPlatform(platform);
     if (platform === 'web') {
@@ -46,16 +51,15 @@ export class AppComponent implements OnInit {
     }
     this.initializeApp();
     this.setupBackEvent();
-
   }
 
-  @HostListener('window:popstate', ['$event'])
-  onPopState(event: Event) {
-    this.goBack();
-  }
+  // @HostListener('window:popstate', ['$event'])
+  // onPopState(event: Event) {
+  //   this.goBack();
+  // }
 
   goBack() {
-    this.router.navigate(['/', 'home']);
+    this.location.back();
   }
 
 
@@ -102,8 +106,23 @@ export class AppComponent implements OnInit {
 
   private setupBackEvent() {
     App.addListener('backButton', async (event: BackButtonListenerEvent) => {
-      this.showExit.set(true);
+      if (event.canGoBack) {
+        this.goBack();
+      } else {
+        this.showExit.set(true);
+      }
     });
+  }
+  private setupRouterEvent() {
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: NavigationEnd) => {
+      if (event.url == '/' || event.url == '/home') {
+        this.showBack.set(false);
+      } else {
+        this.showBack.set(true);
+      }
+    })
   }
 
 }
