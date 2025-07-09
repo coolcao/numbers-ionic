@@ -6,7 +6,6 @@ import { filter } from 'rxjs';
 import { Capacitor } from '@capacitor/core';
 import { App, BackButtonListenerEvent } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
-import { AlertController } from '@ionic/angular';
 import { AppStore } from 'src/app/store/app.store';
 
 @Component({
@@ -27,9 +26,7 @@ export class AppComponent implements OnInit {
 
   showExit = signal(false);
 
-  constructor(
-    private alertController: AlertController
-  ) {
+  constructor() {
     effect(() => {
       if (this.isDarkMode()) {
         document.body.classList.add('dark');
