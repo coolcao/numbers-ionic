@@ -1,24 +1,45 @@
-<div *ngIf="gameState() === 'init'">
-  <div class="flex h-full flex-col items-center justify-center">
+<div *ngIf="gameState() === 'init'" class="flex items-center justify-center">
+  <div
+    class="mx-auto flex max-w-md flex-col items-center justify-center rounded-2xl"
+  >
     <!-- 欢迎提示词 -->
     <h1
-      class="mb-8 animate-pulse text-4xl font-bold text-teal-900 dark:text-teal-400"
+      class="mb-8 text-4xl font-bold text-teal-900 transition-all duration-300 hover:scale-105 dark:text-teal-400"
     >
-      数字小超市！
+      数字小超市
     </h1>
-    <p class="mb-12 text-xl text-teal-900 dark:text-teal-400">
+    <p class="mb-6 text-center text-xl text-teal-800 dark:text-teal-300">
       数一数，选一选 <br />
       听指令购买水果蔬菜哦～
     </p>
-    <p class="mb-12 text-xl text-teal-900 dark:text-teal-400">
+    <p class="mb-8 text-center text-xl text-teal-700 dark:text-teal-300">
       让我们一起在购物中学习数字吧！
     </p>
-    <!-- 使用与数字、超市相关的表情，并更换为新的 CSS 动画 -->
-    <div class="animate-fade-in-out mb-16 text-8xl">🛒</div>
+    <!-- 装饰图标 -->
+    <div class="mb-6 flex items-center justify-center">
+      <div
+        class="flex h-24 w-24 items-center justify-center rounded-full bg-teal-400 shadow-md dark:bg-teal-600"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-10 w-10 text-white"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+          />
+        </svg>
+      </div>
+    </div>
     <!-- 开始游戏按钮 -->
     <button
       (click)="startGame()"
-      class="flex cursor-pointer items-center justify-center rounded-full bg-teal-400 px-6 py-3 text-lg font-bold text-white shadow-lg transition-colors hover:bg-teal-500 dark:bg-teal-600 dark:hover:bg-teal-700"
+      class="flex cursor-pointer items-center justify-center rounded-full bg-gradient-to-r from-teal-400 to-cyan-500 px-8 py-4 text-lg font-bold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl dark:from-teal-600 dark:to-cyan-700"
     >
       开始游戏
     </button>
@@ -32,14 +53,20 @@
   <div
     class="mb-0 flex transform items-center justify-center rounded-2xl p-4 text-center text-teal-900 transition-transform dark:text-teal-400 sm:mb-4 md:mb-8 lg:mb-12"
   >
-    <p id="gameObjective" class="text-xl font-bold md:text-2xl">
+    <div
+      id="gameObjective"
+      class="flex items-center justify-center text-xl font-bold md:text-2xl"
+    >
       请采购
-      <span id="targetCount" class="text-teal-500 dark:text-teal-200">{{
-        this.targetNumber()
-      }}</span>
+      <div
+        id="targetCount"
+        class="flex h-8 w-8 items-center justify-center rounded-full bg-teal-500 text-white dark:bg-teal-800"
+      >
+        {{ this.targetNumber() }}
+      </div>
       个
-      <span class="text-2xl md:text-3xl">{{ this.targetGoods()?.image }}</span>
-    </p>
+      <span class="text-4xl md:text-5xl">{{ this.targetGoods()?.image }}</span>
+    </div>
     <div
       *ngIf="targetNumber() && targetGoods()"
       (click)="playRound(targetNumber(), targetGoods()!)"
@@ -82,7 +109,7 @@
   <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
     <!-- 商品区 -->
     <div
-      class="relative rounded-2xl bg-teal-200/30 p-6 shadow-lg dark:bg-teal-700/20"
+      class="relative rounded-2xl bg-teal-200/60 p-6 shadow-lg dark:bg-teal-700/50"
     >
       <div
         id="goodsList"
@@ -116,7 +143,7 @@
 
     <!-- 购物车区 -->
     <div
-      class="relative z-20 rounded-2xl bg-teal-200/30 p-2 shadow-lg dark:bg-teal-700/20 sm:p-2 md:p-6 lg:p-10"
+      class="relative z-20 rounded-2xl bg-sky-200/80 p-2 shadow-lg dark:bg-sky-700/20 sm:p-2 md:p-6 lg:p-10"
     >
       <!-- 购物车 -->
       <div
@@ -125,7 +152,7 @@
       >
         <!-- 购物车篮子主体 -->
         <div
-          class="absolute inset-0 z-10 overflow-hidden rounded-2xl bg-teal-300/40 dark:bg-teal-600/50"
+          class="absolute inset-0 z-10 overflow-hidden rounded-2xl bg-sky-300/40 dark:bg-sky-600/50"
         >
           <!-- 篮子内部 -->
           <div
@@ -154,19 +181,19 @@
 
           <!-- 篮子底部阴影 -->
           <div
-            class="absolute bottom-0 left-0 h-10 w-full rounded-2xl bg-gradient-to-t from-teal-400/70 to-transparent dark:from-teal-600/30"
+            class="absolute bottom-0 left-0 h-10 w-full rounded-2xl bg-gradient-to-t from-sky-400/70 to-transparent dark:from-sky-600/30"
           ></div>
         </div>
 
         <!-- 购物车把手 -->
         <div
-          class="border-6 sm:border-7 lg:h-18 lg:border-9 xl:border-10 absolute -top-6 left-1/2 z-0 h-12 w-[130px] -translate-x-1/2 transform rounded-b-3xl border-t-0 border-teal-300/50 shadow-lg dark:border-teal-400/40 sm:-top-7 sm:h-14 sm:w-[150px] md:-top-8 md:h-16 md:w-[180px] md:border-8 lg:-top-9 lg:w-[210px] xl:-top-10 xl:h-20 xl:w-[240px]"
+          class="border-6 sm:border-7 lg:h-18 lg:border-9 xl:border-10 absolute -top-6 left-1/2 z-20 h-12 w-[130px] -translate-x-1/2 transform rounded-b-3xl border-t-0 border-teal-300/50 shadow-lg dark:border-teal-400/40 sm:-top-7 sm:h-14 sm:w-[150px] md:-top-8 md:h-16 md:w-[180px] md:border-8 lg:-top-9 lg:w-[210px] xl:-top-10 xl:h-20 xl:w-[240px]"
         ></div>
       </div>
 
       <!-- 已收集物品计数 -->
       <div class="mt-4 text-center">
-        <p class="text-lg font-bold text-cyan-800 dark:text-cyan-100">
+        <p class="text-lg font-bold text-sky-800 dark:text-sky-100">
           @if (cartGoodsMap.size) {
             @for (item of cartGoodsMap.entries(); track item[0]) {
               <p>{{ item[1].image }}: {{ item[1].amount }}</p>
@@ -178,7 +205,7 @@
         <div class="flex w-full items-center justify-center">
           <button
             (click)="checkRound()"
-            class="flex w-full max-w-[200px] cursor-pointer items-center justify-center rounded-full bg-teal-400 px-6 py-3 text-lg font-bold text-white shadow-lg transition-colors hover:bg-teal-500 dark:bg-teal-600 dark:hover:bg-teal-700"
+            class="flex w-full max-w-[200px] cursor-pointer items-center justify-center rounded-full bg-sky-400 px-6 py-3 text-lg font-bold text-white shadow-lg transition-colors hover:bg-sky-500 dark:bg-sky-600 dark:hover:bg-sky-700"
           >
             结账
           </button>
