@@ -5,12 +5,12 @@
     <!-- 头部 - 使用蓝绿色系 -->
     <header
       *ngIf="showHeader()"
-      class="relative rounded-b-[3rem] bg-cyan-500 py-5 text-center text-white shadow-md dark:bg-cyan-600"
+      class="relative rounded-b-[3rem] bg-cyan-500 py-2 text-center text-white shadow-md dark:bg-cyan-600 sm:py-2 md:py-4"
     >
       <button
         *ngIf="showBack()"
         (click)="goBack()"
-        class="absolute left-8 top-6 z-50 cursor-pointer transition-transform duration-300 hover:scale-125"
+        class="absolute left-8 top-3 z-50 cursor-pointer transition-transform duration-300 hover:scale-125 sm:top-4 md:top-6"
         aria-label="返回上一级"
         role="button"
       >
@@ -29,7 +29,7 @@
       <button
         (click)="toggleTheme()"
         id="darkModeToggle"
-        class="absolute right-10 top-5 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full"
+        class="absolute right-5 top-3 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full sm:top-3 md:top-4"
       >
         <span class="text-2xl text-amber-300 dark:hidden"
           ><i class="fa-solid fa-sun"></i
@@ -48,7 +48,7 @@
     <!-- 页脚 -->
     <footer
       *ngIf="showFooter()"
-      class="relative mt-8 rounded-t-[3rem] bg-cyan-500 py-5 text-center text-white dark:bg-cyan-600"
+      class="relative mt-2 rounded-t-[3rem] bg-cyan-500 py-3 text-center text-white dark:bg-cyan-600 sm:py-3 md:py-5"
     >
       <div class="absolute -top-8 flex h-16 w-full justify-around">
         <span
