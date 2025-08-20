@@ -3,6 +3,7 @@ import { LearnNumbersStore } from '../../store/learn-numbers.store';
 import { LearnMode } from '../../app.types';
 import { LearnNumbersAudioService } from './learn-numbers.service';
 import { learnNumbersAnimations } from './learn-numbers.animations';
+import { AppService } from 'src/app/service/app.service';
 
 @Component({
   selector: 'app-learn-numbers',
@@ -15,6 +16,7 @@ export class LearnNumbersComponent implements OnInit, OnDestroy {
   LearnMode = LearnMode;
   private readonly learnNumbersStore = inject(LearnNumbersStore);
   private readonly audioService = inject(LearnNumbersAudioService);
+  private readonly appService = inject(AppService);
 
   numbers = this.learnNumbersStore.numbers;
   learnMode = this.learnNumbersStore.learnMode;
@@ -70,11 +72,13 @@ export class LearnNumbersComponent implements OnInit, OnDestroy {
 
 
   async ngOnInit(): Promise<void> {
+    await this.appService.lockPortrait();
     await this.audioService.preloadWelcome(this.learnMode());
     await Promise.all([this.audioService.preloadNumbers(this.numbers()), this.playWelcome(), this.audioService.preloadNumberDesc(this.numbers()), this.audioService.preloadNumberMeaning(this.numbers())]);
   }
 
-  ngOnDestroy(): void {
+  async ngOnDestroy(): Promise<void> {
+    await this.appService.unlockScreen();
     this.audioService.stopAll();
   }
 

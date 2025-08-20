@@ -1,6 +1,5 @@
 import { Component, computed, effect, inject, linkedSignal, OnDestroy, OnInit, Signal, signal, WritableSignal } from '@angular/core';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { LearnMode } from 'src/app/app.types';
 import { NumberTrainService } from 'src/app/pages/number-train/number-train.service';
 import { AppStore } from 'src/app/store/app.store';
@@ -9,6 +8,7 @@ import { timer } from 'rxjs';
 import { animate, keyframes, state, style, transition, trigger } from '@angular/animations';
 import { AudioService } from 'src/app/service/audio.service';
 import { Router } from '@angular/router';
+import { AppService } from 'src/app/service/app.service';
 
 @Component({
   selector: 'app-number-train',
@@ -72,6 +72,7 @@ export class NumberTrainComponent implements OnInit, OnDestroy {
   private readonly trainStore = inject(NumberTrainStore);
   private readonly service = inject(NumberTrainService);
   private readonly audioService = inject(AudioService);
+  private readonly appService = inject(AppService);
 
   readonly platform = this.appStore.platform;
 
@@ -179,7 +180,7 @@ export class NumberTrainComponent implements OnInit, OnDestroy {
     this.playNextRound();
 
     if (this.platform() === 'android' || this.platform() === 'ios') {
-      this.lockLandscape();
+      this.appService.lockLandscape();
       this.appStore.setShowHeader(false);
       this.appStore.setShowFooter(false);
     }
@@ -216,16 +217,16 @@ export class NumberTrainComponent implements OnInit, OnDestroy {
     this.appStore.setShowHeader(true);
     this.appStore.setShowFooter(true);
     if (this.platform() === 'android' || this.platform() === 'ios') {
-      ScreenOrientation.unlock();
+      this.appService.unlockScreen().then(() => {
+        console.log('unlock screen');
+      }).catch(err => {
+        console.error(err);
+      });
     }
   }
   // 锁定为横屏
   async lockLandscape() {
-    try {
-      await ScreenOrientation.lock({ orientation: 'landscape' });
-    } catch (e) {
-      console.error('Failed to lock orientation:', e);
-    }
+    await this.appService.lockLandscape();
   }
 
   drop(event: CdkDragDrop<any[]>) {

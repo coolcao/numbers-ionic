@@ -5,6 +5,7 @@ import { AppStore } from '../../store/app.store';
 import { ListenNumbersStore } from '../../store/listen-numbers.store';
 import { LearnMode } from '../../app.types';
 import { ListenNumberAudioService } from './listen-numbers.audio.service';
+import { AppService } from 'src/app/service/app.service';
 
 @Component({
   selector: 'app-listen-numbers',
@@ -129,6 +130,7 @@ export class ListenNumbersComponent implements OnInit, OnDestroy {
   private readonly store = inject(AppStore);
   private readonly listenStore = inject(ListenNumbersStore);
   private readonly audioService = inject(ListenNumberAudioService);
+  private readonly appService = inject(AppService);
 
   learnMode = this.store.learnMode;
   numbers = this.listenStore.numbers;
@@ -202,13 +204,14 @@ export class ListenNumbersComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnInit(): void {
-    this.audioService.preloadWelcomeAndRules().then(() => {
-      return this.audioService.playWelcomeAndRules();
-    });
+  async ngOnInit(): Promise<void> {
+    await this.appService.lockPortrait();
+    await this.audioService.preloadWelcomeAndRules();
+    await this.audioService.playWelcomeAndRules();
   }
 
-  ngOnDestroy(): void {
+  async ngOnDestroy(): Promise<void> {
+    await this.appService.unlockScreen();
     this.audioService.stopAll();
   }
 

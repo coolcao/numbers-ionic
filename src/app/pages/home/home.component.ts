@@ -4,6 +4,7 @@ import { AppStore } from '../../store/app.store';
 import { LearnMode } from '../../app.types';
 import { AudioService } from '../../service/audio.service';
 import { ImagePreloaderService } from '../../image-preloader.service';
+import { AppService } from 'src/app/service/app.service';
 
 @Component({
   selector: 'app-home',
@@ -19,6 +20,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly store = inject(AppStore);
   private readonly audioService = inject(AudioService);
+  private readonly appService = inject(AppService);
   private readonly imagePreloader = inject(ImagePreloaderService);
 
   learnMode = this.store.learnMode;
@@ -60,10 +62,12 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.store.setShowHeader(true);
     this.store.setShowFooter(true);
     this.preLoadImage();
+    await this.appService.lockPortrait();
     await this.preloadAudio();
     await this.playWelcomeAudio();
   }
-  ngOnDestroy(): void {
+  async ngOnDestroy(): Promise<void> {
+    await this.appService.unlockScreen();
     this.audioService.stopAll();
   }
 

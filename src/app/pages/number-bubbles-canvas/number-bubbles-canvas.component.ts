@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { interval, Subscription, timer } from 'rxjs';
 import { NumberBubblesAudioService } from '../number-bubbles/number-bubbles.audio.service';
 import { NumberBubblesStore } from '../../store/number-bubbles.store';
+import { AppService } from 'src/app/service/app.service';
 
 interface Bubble {
   index: number;
@@ -38,6 +39,7 @@ interface Particle {
   styleUrl: './number-bubbles-canvas.component.css'
 })
 export class NumberBubblesCanvasComponent implements OnInit, AfterViewInit, OnDestroy {
+  private readonly appService = inject(AppService);
   private readonly router = inject(Router);
   private readonly numberBubblesStore = inject(NumberBubblesStore);
   private readonly numberBubblesAudioService = inject(NumberBubblesAudioService);
@@ -121,6 +123,7 @@ export class NumberBubblesCanvasComponent implements OnInit, AfterViewInit, OnDe
   }
 
   async ngOnInit(): Promise<void> {
+    await this.appService.lockPortrait();
     await this.numberBubblesAudioService.playWelcomeAndRules();
     this.generateTargetNumbers();
   }
@@ -130,7 +133,8 @@ export class NumberBubblesCanvasComponent implements OnInit, AfterViewInit, OnDe
     // 我们在需要时再初始化 canvas
   }
 
-  ngOnDestroy(): void {
+  async ngOnDestroy(): Promise<void> {
+    await this.appService.unlockScreen();
     if (this.bubbleSubscription) {
       this.bubbleSubscription.unsubscribe();
     }

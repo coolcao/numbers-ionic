@@ -4,6 +4,7 @@ import { Component, effect, inject, OnDestroy, OnInit, signal, WritableSignal } 
 import { Router } from '@angular/router';
 import { LearnMode } from 'src/app/app.types';
 import { NumberMarketService } from 'src/app/pages/number-market/number-market.service';
+import { AppService } from 'src/app/service/app.service';
 import { AudioService } from 'src/app/service/audio.service';
 import { AppStore } from 'src/app/store/app.store';
 import { GoodsItem, NumberMarketStore } from 'src/app/store/number-market.store';
@@ -34,6 +35,7 @@ export class NumberMarketComponent implements OnInit, OnDestroy {
   marketStore = inject(NumberMarketStore);
   audioService = inject(AudioService);
   service = inject(NumberMarketService);
+  appService = inject(AppService);
 
   learnMode = this.store.learnMode;
 
@@ -59,11 +61,13 @@ export class NumberMarketComponent implements OnInit, OnDestroy {
     })
   }
 
-  ngOnInit(): void {
-    this.playWelcome();
+  async ngOnInit(): Promise<void> {
+    await this.appService.lockPortrait();
+    await this.playWelcome();
   }
-  ngOnDestroy(): void {
-    this.audioService.stopAll();
+  async ngOnDestroy(): Promise<void> {
+    await this.appService.unlockScreen();
+    await this.audioService.stopAll();
   }
 
   startGame() {
