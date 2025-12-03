@@ -1,0 +1,88 @@
+<div class="relative h-full w-full overflow-hidden bg-sky-100">
+  <!-- 顶部统计栏 (HTML Overlay) -->
+  <div
+    class="absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-center space-x-8 rounded-2xl bg-white/90 px-6 py-2 shadow-md backdrop-blur-sm dark:bg-gray-800/90"
+  >
+    <div
+      class="flex items-center gap-1 text-lg font-medium text-teal-600 dark:text-teal-300"
+    >
+      <i class="fa-solid fa-list-ol"></i>
+      {{ totalRound() }}
+    </div>
+    <div
+      class="flex items-center gap-1 text-lg font-medium text-teal-600 dark:text-teal-300"
+    >
+      <i class="fa-solid fa-sync"></i>
+      第 {{ currentRound() }} 轮
+    </div>
+    <div
+      class="flex items-center gap-1 text-lg font-medium text-teal-600 dark:text-teal-300"
+    >
+      <i class="fa-solid fa-check-circle"></i>
+      {{ correctRound() }}
+    </div>
+  </div>
+
+  <!-- Pixi Canvas 容器 -->
+  <div #pixiContainer class="h-full w-full"></div>
+
+  <!-- 游戏结束弹窗 -->
+  @if (gameState() === "finished") {
+    <div
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    >
+      <div
+        class="min-w-md relative max-w-3xl rounded-3xl bg-gradient-to-br from-green-200 via-blue-100 to-sky-200 p-8 shadow-2xl dark:from-gray-800 dark:via-gray-700 dark:to-gray-900"
+      >
+        <div class="text-4xl400400 absolute right-6 top-4 dark:text-yellow-300">
+          🎉
+        </div>
+        <div
+          class="absolute bottom-6 left-4 text-3xl text-pink-400 dark:text-pink-300"
+        >
+          ✨
+        </div>
+
+        <div class="mb-5 space-y-6 text-center">
+          <h2
+            class="font-comic text-4xl font-bold text-cyan-800 dark:text-white"
+          >
+            游戏结束！
+          </h2>
+
+          <div
+            class="rounded-xl border-2 border-dashed border-green-300 bg-white/80 p-4 shadow-inner dark:border-purple-400 dark:bg-black/30"
+          >
+            <div
+              class="font-comic text font-comic text-base text-gray-700 dark:text-gray-200"
+            >
+              <p>总轮数: {{ totalRound() }}</p>
+              <p>正确轮数: {{ correctRound() }}</p>
+              <p>
+                正确率:
+                {{ (correctRound() / totalRound()) * 100 | number: "1.0-2" }}%
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-center">
+          <button
+            (click)="restartGame()"
+            class="font-comic mx-2 cursor-pointer rounded-2xl bg-gradient-to-r from-amber-400 to-yellow-500 px-6 py-3 text-xl text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl dark:from-purple-500 dark:to-blue-600"
+          >
+            <i class="fa-solid fa-arrows-rotate"></i>
+            <span class="ml-1">再玩一次</span>
+          </button>
+          <button
+            (click)="backHome()"
+            class="font-comic mx-2 cursor-pointer rounded-2xl bg-gradient-to-r from-indigo-400 to-indigo-500 px-6 py-3 text-xl text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl dark:from-yellow-500 dark:to-orange-600"
+          >
+            <i class="fa-solid fa-house"></i>
+            <span class="ml-1">回到首页</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

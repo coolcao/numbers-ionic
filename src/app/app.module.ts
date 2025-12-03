@@ -21,6 +21,7 @@ import { TrainCabooseComponent } from 'src/app/pages/number-train/components/tra
 import { NumberMarketComponent } from 'src/app/pages/number-market/number-market.component';
 import { NumberBubblesCanvasComponent } from 'src/app/pages/number-bubbles-canvas/number-bubbles-canvas.component';
 import { NumberBubblesPixiComponent } from './pages/number-bubbles-pixi/number-bubbles-pixi.component';
+import { NumberTrainPixiComponent } from './pages/number-train-pixi/number-train-pixi.component';
 
 @NgModule({
   declarations: [
@@ -37,6 +38,7 @@ import { NumberBubblesPixiComponent } from './pages/number-bubbles-pixi/number-b
     NumberMarketComponent,
     NumberBubblesCanvasComponent,
     NumberBubblesPixiComponent,
+    NumberTrainPixiComponent,
   ],
   imports: [
     BrowserModule,
