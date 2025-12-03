@@ -16,8 +16,8 @@ const routes: Routes = [
   { path: 'listen-numbers', component: ListenNumbersComponent },
   // { path: 'number-bubbles', component: NumberBubblesCanvasComponent },
   { path: 'number-bubbles', component: NumberBubblesPixiComponent },
-  { path: 'number-train', component: NumberTrainComponent },
-  { path: 'number-train-pixi', component: NumberTrainPixiComponent },
+  // { path: 'number-train', component: NumberTrainComponent },
+  { path: 'number-train', component: NumberTrainPixiComponent },
   { path: 'number-market', component: NumberMarketComponent },
   { path: '**', redirectTo: '/home' },
 ];
@@ -28,4 +28,4 @@ const routes: Routes = [
   ],
   exports: [RouterModule],
 })
-export class AppRoutingModule {}
+export class AppRoutingModule { }
