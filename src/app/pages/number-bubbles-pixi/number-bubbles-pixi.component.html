@@ -1,10 +1,10 @@
 <div
-  #bubbleContainer
   class="relative flex h-full w-full select-none flex-col overflow-hidden font-sans"
 >
   @if (gameStatus() === "playing") {
+    <!-- 目标数字显示层 -->
     @if (playTargets()) {
-      <div class="flex h-full w-full items-center justify-center">
+      <div class="flex h-full w-full items-center justify-center z-10">
         @for (num of targetNumbers(); track $index) {
           <div
             class="mx-10 select-none font-sans text-4xl font-bold text-yellow-800 md:text-6xl lg:text-8xl"
@@ -13,30 +13,15 @@
           </div>
         }
       </div>
-    } @else {
-      <div
-        *ngFor="let bubble of bubbles()"
-        (click)="onBubbleClick(bubble.index)"
-        class="bubble cursor-pointer select-none"
-        [attr.data-index]="bubble.index"
-        [style.width.px]="bubble.size"
-        [style.height.px]="bubble.size"
-        [style.left.%]="bubble.left"
-        [style.backgroundColor]="getRgbaColor(bubble.color)"
-        [@bubbleAnimation]="{
-          value: bubble.state,
-          params: { duration: bubble.duration },
-        }"
-        (@bubbleAnimation.done)="onAnimationDone($event, bubble.index)"
-      >
-        <div
-          [style.color]="bubble.textColor"
-          class="flex h-full w-full items-center justify-center text-3xl font-extrabold"
-        >
-          {{ bubble.number }}
-        </div>
-      </div>
     }
+    
+    <!-- 游戏容器层 - 始终存在，通过opacity控制显示 -->
+    <div
+      #gameContainer
+      class="absolute inset-0 h-full w-full cursor-pointer"
+      [style.opacity]="playTargets() ? '0' : '1'"
+      [style.pointer-events]="playTargets() ? 'none' : 'auto'"
+    ></div>
   }
   @if (gameStatus() === "initial") {
     <div class="flex flex-1 items-center justify-center">
@@ -62,7 +47,7 @@
           <div class="animate-slide-in-down text-3xl font-bold leading-relaxed">
             🫧<span
               class="ml-2 mr-2 text-3xl text-yellow-500 dark:text-yellow-300"
-              >数字泡泡游戏</span
+              >数字泡泡游戏 (PixiJS版)</span
             >🫧
           </div>
 
@@ -71,6 +56,7 @@
           >
             <p class="mb-3">🎧 游戏开始时我会随机播报一组数字</p>
             <p>👆 你要戳破对应下落的泡泡哦！</p>
+            <p class="mt-2 text-sm text-purple-600">🚀 使用PixiJS渲染，性能更佳！</p>
           </div>
 
           <div
@@ -118,7 +104,6 @@
   @if (gameStatus() === "finished") {
     <div
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      [@gameOverAnimation]
     >
       <!-- 弹框主体 -->
       <div

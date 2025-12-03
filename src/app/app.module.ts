@@ -14,15 +14,13 @@ import { AppComponent } from 'src/app/app.component';
 import { HomeComponent } from 'src/app/pages/home/home.component';
 import { LearnNumbersComponent } from 'src/app/pages/learn-numbers/learn-numbers.component';
 import { ListenNumbersComponent } from 'src/app/pages/listen-numbers/listen-numbers.component';
-import { NumberBubblesComponent } from 'src/app/pages/number-bubbles/number-bubbles.component';
 import { NumberTrainComponent } from 'src/app/pages/number-train/number-train.component';
 import { TrainEngineComponent } from 'src/app/pages/number-train/components/train-engine/train-engine.component';
 import { TrainCarComponent } from 'src/app/pages/number-train/components/train-car/train-car.component';
 import { TrainCabooseComponent } from 'src/app/pages/number-train/components/train-caboose/train-caboose.component';
 import { NumberMarketComponent } from 'src/app/pages/number-market/number-market.component';
 import { NumberBubblesCanvasComponent } from 'src/app/pages/number-bubbles-canvas/number-bubbles-canvas.component';
-
-
+import { NumberBubblesPixiComponent } from './pages/number-bubbles-pixi/number-bubbles-pixi.component';
 
 @NgModule({
   declarations: [
@@ -32,13 +30,13 @@ import { NumberBubblesCanvasComponent } from 'src/app/pages/number-bubbles-canva
     HomeComponent,
     LearnNumbersComponent,
     ListenNumbersComponent,
-    NumberBubblesComponent,
     NumberTrainComponent,
     TrainEngineComponent,
     TrainCarComponent,
     TrainCabooseComponent,
     NumberMarketComponent,
     NumberBubblesCanvasComponent,
+    NumberBubblesPixiComponent,
   ],
   imports: [
     BrowserModule,
@@ -51,4 +49,4 @@ import { NumberBubblesCanvasComponent } from 'src/app/pages/number-bubbles-canva
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
   bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}
