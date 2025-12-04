@@ -85,6 +85,10 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
   private isMobile = false;
   private isTablet = false;
   private scaleFactor = 1;
+  
+  // Performance control
+  private pauseSmokeGeneration = false;
+  private activeSmokeParticles: Graphics[] = [];
   private readonly TRAIN_WIDTH = 180;
   private readonly mobileTrainWidth = 100; // Mobile train width (reduced from 120)
   private readonly tabletTrainWidth = 140; // Tablet train width
@@ -370,7 +374,8 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
     const engineTexture = await Assets.load('assets/images/train/engine.png');
     const carTexture = await Assets.load('assets/images/train/car.png');
     const cabooseTexture = await Assets.load('assets/images/train/caboose.png');
-
+    
+    // 预先设置纹理的基地尺寸，避免运行时缩放
     this.textures['engine'] = engineTexture;
     this.textures['car'] = carTexture;
     this.textures['caboose'] = cabooseTexture;
@@ -509,7 +514,7 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
       let frame = 0;
       smokeUpdate = () => {
         frame++;
-        if (frame % 15 === 0) {
+        if (frame % 20 === 0 && !this.pauseSmokeGeneration) { // 检查是否暂停烟雾生成
           // More frequent smoke
           this.spawnSmoke(container);
         }
@@ -541,20 +546,34 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
     const size = Math.random() * baseSize + baseSize; // Random size
     smoke.circle(0, 0, size);
     smoke.fill({ color: 0xeeeeee, alpha: 0.6 }); // Lighter smoke
-
+    
     // 根据缩放比例调整烟雾位置
     const chimneyOffsetX = -30 * this.scaleFactor;
     const chimneyOffsetY = -50 * this.scaleFactor;
-
+    
     smoke.x = chimneyOffsetX + (Math.random() * 10 - 5); // Stack pos with jitter
     smoke.y = chimneyOffsetY; // 从车头顶部冒出
     parent.addChild(smoke);
+    
+    // 追踪烟雾粒子
+    this.activeSmokeParticles.push(smoke);
 
     // Random velocity
     const vx = Math.random() * 0.5 - 1.5; // Drift left (train moving right)
     const vy = -Math.random() * 1.5 - 1; // Upward
 
     const update = () => {
+      // 检查烟雾是否还存在
+      if (!smoke || smoke.destroyed) {
+        // 从活跃粒子列表中移除
+        const index = this.activeSmokeParticles.indexOf(smoke);
+        if (index > -1) {
+          this.activeSmokeParticles.splice(index, 1);
+        }
+        this.app.ticker.remove(update);
+        return;
+      }
+      
       smoke.x += vx;
       smoke.y += vy;
       smoke.alpha -= 0.008;
@@ -563,6 +582,11 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
 
       if (smoke.alpha <= 0) {
         smoke.destroy();
+        // 从活跃粒子列表中移除
+        const index = this.activeSmokeParticles.indexOf(smoke);
+        if (index > -1) {
+          this.activeSmokeParticles.splice(index, 1);
+        }
         this.app.ticker.remove(update);
       }
     };
@@ -955,26 +979,44 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
     } catch (e) {
       console.error('Audio play failed', e);
     }
+    
+    // 暂时禁用烟雾生成以提高性能
+    this.pauseSmokeGeneration = true;
+    
+    // 清除现有的烟雾粒子，减少渲染负担
+    this.clearExistingSmoke();
 
     // Animate Train Moving Left
-    const speed = 3; // Slower speed
-    const moveTicker = () => {
-      if (!this.bottomZone) return;
+    // 根据设备类型调整速度
+    const speed = this.isMobile ? 5 : 8; // 手机端速度慢一些
+    
+    // 先缓存bottomZone的引用，避免每次查找
+    const zone = this.bottomZone;
+    const screenWidth = this.app.screen.width;
+    
+    // 使用requestAnimationFrame而不是ticker，更精确控制
+    let animationId: number;
+    const animate = () => {
+      if (!zone) return;
 
-      this.bottomZone.x -= speed;
+      zone.x -= speed;
 
       // Stop when off screen
-      if (this.bottomZone.x < -this.app.screen.width - 500) {
-        this.app.ticker.remove(moveTicker);
-        this.bottomZone.x = 0; // Reset
+      if (zone.x < -screenWidth - 500) {
+        cancelAnimationFrame(animationId);
+        zone.x = 0; // Reset
         this.app.stage.eventMode = 'static'; // Re-enable
+        this.pauseSmokeGeneration = false; // 恢复烟雾生成
 
         if (this.currentRound() < this.totalRound()) {
           this.playNextRound();
         }
+      } else {
+        animationId = requestAnimationFrame(animate);
       }
     };
-    this.app.ticker.add(moveTicker);
+    
+    animationId = requestAnimationFrame(animate);
   }
 
   restartGame() {
@@ -986,6 +1028,17 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
 
   backHome() {
     this.router.navigate(['/']);
+  }
+
+  clearExistingSmoke() {
+    // 清除所有活跃的烟雾粒子
+    const particlesToRemove = [...this.activeSmokeParticles];
+    particlesToRemove.forEach(smoke => {
+      if (smoke && !smoke.destroyed) {
+        smoke.destroy();
+      }
+    });
+    this.activeSmokeParticles = [];
   }
 
   async playWelcome() {
@@ -1004,11 +1057,7 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
           'assets/audio/number-train/number-train-welcome3.mp3',
         ),
       ]);
-      await this.audioService.playSequence([
-        'welcome1',
-        'welcome2',
-        'welcome3',
-      ]);
+      await this.audioService.playSequence(['welcome1', 'welcome2', 'welcome3']);
     } catch (e) {
       console.warn('Welcome audio failed', e);
     }
