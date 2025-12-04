@@ -1,0 +1,145 @@
+<div
+  class="relative h-full w-full flex-1 select-none overflow-hidden bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-gray-900 dark:to-gray-800"
+>
+  <!-- Pixi Container -->
+  <div #pixiContainer class="absolute inset-0 z-0 h-full w-full"></div>
+
+  <!-- Init State Overlay -->
+  @if (gameState() === "init") {
+    <div
+      class="absolute inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm dark:bg-black/80"
+    >
+      <div class="animate-fade-in flex flex-col items-center justify-center">
+        <h1
+          class="mb-8 text-5xl font-bold text-teal-900 drop-shadow-md dark:text-teal-400"
+        >
+          数字小超市
+        </h1>
+        <p
+          class="mb-8 max-w-md text-center text-xl leading-relaxed text-teal-800 dark:text-teal-300"
+        >
+          数一数，选一选<br />
+          听指令购买水果蔬菜哦～
+        </p>
+        <div class="mb-12 animate-bounce text-9xl">🛒</div>
+        <button
+          (click)="startGame()"
+          class="group relative transform rounded-full bg-gradient-to-r from-teal-400 to-cyan-500 px-8 py-4 text-2xl font-bold text-white shadow-lg transition-all hover:scale-110 hover:shadow-2xl active:scale-95"
+        >
+          <span class="relative z-10">开始游戏</span>
+          <div
+            class="absolute inset-0 rounded-full bg-white/20 opacity-0 group-hover:animate-ping group-hover:opacity-100"
+          ></div>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Playing State HUD -->
+  @if (gameState() === "playing") {
+    <div
+      class="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between p-2 sm:p-3"
+    >
+      <!-- Top Bar -->
+      <div class="flex w-full items-start justify-between">
+        <button
+          (click)="backHome()"
+          class="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full bg-white/80 text-teal-600 shadow-md backdrop-blur transition-colors hover:bg-white dark:bg-gray-800/80 dark:text-teal-400 dark:hover:bg-gray-700"
+        >
+          <i class="fa-solid fa-house text-xl"></i>
+        </button>
+
+        <!-- Objective Panel -->
+        <div
+          class="pointer-events-auto flex transform items-center space-x-2 rounded-lg border border-teal-200 bg-white/80 px-2 py-1 shadow-md backdrop-blur-sm dark:border-teal-800 dark:bg-gray-800/80"
+        >
+          <div
+            class="flex items-center space-x-1 text-xs font-bold text-teal-900 dark:text-teal-300"
+          >
+            <span class="text-[10px]">请采购</span>
+            <span class="text-xl font-black text-pink-500 dark:text-pink-400">{{
+              targetNumber()
+            }}</span>
+            <span class="text-[10px]">个</span>
+            <span class="text-2xl">{{ targetGoods()?.image }}</span>
+          </div>
+          <button
+            (click)="playCurrentRoundSound()"
+            class="flex h-8 w-8 items-center justify-center rounded-full bg-teal-100 text-teal-600 transition-all hover:scale-110 hover:bg-teal-200 active:scale-95 dark:bg-teal-900 dark:text-teal-300 dark:hover:bg-teal-800"
+          >
+            <i class="fa fa-volume-up animate-pulse text-lg"></i>
+          </button>
+        </div>
+
+        <div class="w-12"></div>
+        <!-- Spacer for balance -->
+      </div>
+
+      <!-- Bottom Bar -->
+      <div class="pointer-events-auto flex items-end justify-center pb-2">
+        <button
+          (click)="checkRound()"
+          class="flex transform items-center space-x-2 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 px-6 py-2 text-lg font-bold text-white shadow-md transition-all hover:scale-105 hover:shadow-lg active:scale-95"
+        >
+          <i class="fa-solid fa-cash-register text-xl"></i>
+          <span>结账</span>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Finished State Overlay -->
+  @if (gameState() === "finished") {
+    <div
+      class="absolute inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      [@gameOverAnimation]
+    >
+      <div
+        class="relative w-full max-w-lg overflow-hidden rounded-3xl bg-white p-8 text-center shadow-2xl dark:bg-gray-800"
+      >
+        <!-- Background decoration -->
+        <div
+          class="pointer-events-none absolute left-0 top-0 h-32 w-full bg-gradient-to-b from-yellow-100 to-transparent dark:from-yellow-900/20"
+        ></div>
+
+        <h2
+          class="relative mb-8 text-4xl font-bold text-teal-800 dark:text-teal-300"
+        >
+          游戏结束! 🎉
+        </h2>
+
+        <div
+          class="relative mb-8 rounded-2xl border-2 border-dashed border-teal-200 bg-gray-50 p-6 dark:border-teal-700 dark:bg-gray-700/50"
+        >
+          <div class="grid grid-cols-2 gap-4 text-lg">
+            <div class="text-gray-500 dark:text-gray-400">总轮数</div>
+            <div class="font-bold text-gray-800 dark:text-gray-200">
+              {{ totalRound() }}
+            </div>
+            <div class="text-gray-500 dark:text-gray-400">正确轮数</div>
+            <div class="font-bold text-green-500">{{ correctRound() }}</div>
+            <div class="text-gray-500 dark:text-gray-400">正确率</div>
+            <div class="font-bold text-blue-500">
+              {{ (correctRound() / totalRound()) * 100 | number: "1.0-0" }}%
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-center space-x-4">
+          <button
+            (click)="restartGame()"
+            class="flex-1 rounded-xl bg-yellow-400 px-6 py-3 font-bold text-white shadow-md transition-transform hover:scale-105 hover:bg-yellow-500 active:scale-95"
+          >
+            <i class="fa-solid fa-rotate-right mr-2"></i> 再玩一次
+          </button>
+          <button
+            (click)="backHome()"
+            class="flex-1 rounded-xl bg-gray-200 px-6 py-3 font-bold text-gray-700 shadow-md transition-transform hover:scale-105 hover:bg-gray-300 active:scale-95 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+          >
+            <i class="fa-solid fa-house mr-2"></i> 回到首页
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

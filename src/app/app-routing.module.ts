@@ -8,6 +8,7 @@ import { NumberBubblesPixiComponent } from 'src/app/pages/number-bubbles-pixi/nu
 import { NumberMarketComponent } from 'src/app/pages/number-market/number-market.component';
 import { NumberTrainComponent } from 'src/app/pages/number-train/number-train.component';
 import { NumberTrainPixiComponent } from './pages/number-train-pixi/number-train-pixi.component';
+import { NumberMarketPixiComponent } from './pages/number-market-pixi/number-market-pixi.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -18,7 +19,8 @@ const routes: Routes = [
   { path: 'number-bubbles', component: NumberBubblesPixiComponent },
   // { path: 'number-train', component: NumberTrainComponent },
   { path: 'number-train', component: NumberTrainPixiComponent },
-  { path: 'number-market', component: NumberMarketComponent },
+  // { path: 'number-market', component: NumberMarketComponent },
+  { path: 'number-market', component: NumberMarketPixiComponent },
   { path: '**', redirectTo: '/home' },
 ];
 
@@ -28,4 +30,4 @@ const routes: Routes = [
   ],
   exports: [RouterModule],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}
