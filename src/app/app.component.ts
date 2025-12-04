@@ -56,7 +56,7 @@ export class AppComponent implements OnInit {
   // }
 
   goBack() {
-    this.location.back();
+    this.router.navigate(['/home'], { replaceUrl: true });
   }
 
 

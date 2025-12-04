@@ -61,4 +61,8 @@ export class NumberBubblesAudioService {
     await this.playAudio('success');
   }
 
+  stopAll() {
+    this.audioService.stopAll();
+  }
+
 }

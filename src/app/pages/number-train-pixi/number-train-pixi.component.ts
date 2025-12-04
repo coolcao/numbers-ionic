@@ -72,6 +72,7 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
   private mainContainer!: Container;
   private topZone!: Container;
   private bottomZone!: Container;
+  private backgroundGraphics!: Graphics;
   private dragItem: Container | null = null;
   private dragOffset = { x: 0, y: 0 };
   private originalPosition = { x: 0, y: 0 };
@@ -85,7 +86,7 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
   private isMobile = false;
   private isTablet = false;
   private scaleFactor = 1;
-  
+
   // Performance control
   private pauseSmokeGeneration = false;
   private activeSmokeParticles: Graphics[] = [];
@@ -106,12 +107,15 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
 
     // 监听主题变化，动态更新背景色
     effect(() => {
-      if (this.app) {
+      if (this.app && this.app.renderer) {
         const isDarkMode = this.appStore.isDarkMode();
         // 使用与页面一致的颜色：rgb(8 47 73) 对应的十六进制是 #082F49
         // 白天模式使用 rgb(236 254 255) 对应的十六进制是 #ECFEFF
-        const backgroundColor = isDarkMode ? 0x082f49 : 0xecfeff; // dark mode 使用 rgb(8 47 73) 或普通模式使用 rgb(236 254 255)
-        this.app.renderer.background.color = backgroundColor;
+        const backgroundColor = isDarkMode ? 0x082f49 : 0xecfeff;
+
+        // 在 PIXI.js v8 中，背景色的动态更改需要使用不同的方法
+        // 我们创建一个背景Graphics对象来替代renderer背景
+        this.updateBackgroundColor(backgroundColor);
 
         // 主题变化时重新生成纹理
         this.generateTextures();
@@ -230,8 +234,20 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    // Clean up smoke particles first
+    this.clearExistingSmoke();
+
+    // Remove window resize listener
+    window.removeEventListener('resize', this.onResize);
+
+    // Destroy PIXI app
     if (this.app) {
-      this.app.destroy(true, { children: true, texture: true });
+      try {
+        this.app.destroy(true, { children: true, texture: true });
+      } catch (error) {
+        console.warn('Error during PIXI app destruction:', error);
+      }
+      this.app = null as any;
     }
 
     // 检查是否为移动端，如果是则解锁屏幕方向
@@ -244,6 +260,8 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
       this.appStore.setShowHeader(true);
       this.appStore.setShowFooter(true);
     }
+
+    this.audioService.stopAll();
   }
 
   async initPixi() {
@@ -275,6 +293,11 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
     // Setup Scene
     this.mainContainer = new Container();
     this.app.stage.addChild(this.mainContainer);
+
+    // Create a background graphics object for dynamic color changes
+    this.backgroundGraphics = new Graphics();
+    this.mainContainer.addChild(this.backgroundGraphics);
+    this.updateBackgroundColor(backgroundColor);
 
     this.createBackground();
     this.createScenery();
@@ -366,6 +389,14 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
       this.isMobile ? (this.isTablet ? 140 : 120) : 200,
       this.app.screen.height * 0.4,
     ); // Lower top zone even further
+
+    // Update background size on resize
+    if (this.backgroundGraphics) {
+      const isDarkMode = this.appStore.isDarkMode();
+      const backgroundColor = isDarkMode ? 0x082f49 : 0xecfeff;
+      this.updateBackgroundColor(backgroundColor);
+    }
+
     this.renderTrains();
   }
 
@@ -374,7 +405,7 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
     const engineTexture = await Assets.load('assets/images/train/engine.png');
     const carTexture = await Assets.load('assets/images/train/car.png');
     const cabooseTexture = await Assets.load('assets/images/train/caboose.png');
-    
+
     // 预先设置纹理的基地尺寸，避免运行时缩放
     this.textures['engine'] = engineTexture;
     this.textures['car'] = carTexture;
@@ -383,6 +414,14 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
 
   generateTextures() {
     // 不再需要生成纹理，所有纹理都从图片加载
+  }
+
+  updateBackgroundColor(color: number) {
+    if (this.backgroundGraphics && this.app) {
+      this.backgroundGraphics.clear();
+      this.backgroundGraphics.rect(0, 0, this.app.screen.width, this.app.screen.height);
+      this.backgroundGraphics.fill({ color });
+    }
   }
 
   createBackground() {
@@ -478,13 +517,13 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
     // Body
     const body = new Sprite(this.textures[train.type]);
     body.anchor.set(0.5);
-    
+
     // 统一设置所有车厢的尺寸为相同值
     const uniformSize = this.isMobile ? (this.isTablet ? 140 : 100) : 180;
-    
+
     // 使用scale而不是width/height来确保比例一致
     body.scale.set(uniformSize / 180); // 原始图片是180x180
-    
+
     // 所有车厢保持在同一水平线上
     body.y = 0;
     container.addChild(body);
@@ -524,7 +563,7 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
 
     // Cleanup
     container.on('destroyed', () => {
-      if (smokeUpdate) {
+      if (smokeUpdate && this.app && this.app.ticker) {
         this.app.ticker.remove(smokeUpdate);
       }
     });
@@ -546,15 +585,15 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
     const size = Math.random() * baseSize + baseSize; // Random size
     smoke.circle(0, 0, size);
     smoke.fill({ color: 0xeeeeee, alpha: 0.6 }); // Lighter smoke
-    
+
     // 根据缩放比例调整烟雾位置
     const chimneyOffsetX = -30 * this.scaleFactor;
     const chimneyOffsetY = -50 * this.scaleFactor;
-    
+
     smoke.x = chimneyOffsetX + (Math.random() * 10 - 5); // Stack pos with jitter
     smoke.y = chimneyOffsetY; // 从车头顶部冒出
     parent.addChild(smoke);
-    
+
     // 追踪烟雾粒子
     this.activeSmokeParticles.push(smoke);
 
@@ -570,10 +609,12 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
         if (index > -1) {
           this.activeSmokeParticles.splice(index, 1);
         }
-        this.app.ticker.remove(update);
+        if (this.app && this.app.ticker) {
+          this.app.ticker.remove(update);
+        }
         return;
       }
-      
+
       smoke.x += vx;
       smoke.y += vy;
       smoke.alpha -= 0.008;
@@ -587,7 +628,9 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
         if (index > -1) {
           this.activeSmokeParticles.splice(index, 1);
         }
-        this.app.ticker.remove(update);
+        if (this.app && this.app.ticker) {
+          this.app.ticker.remove(update);
+        }
       }
     };
     this.app.ticker.add(update);
@@ -979,21 +1022,21 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
     } catch (e) {
       console.error('Audio play failed', e);
     }
-    
+
     // 暂时禁用烟雾生成以提高性能
     this.pauseSmokeGeneration = true;
-    
+
     // 清除现有的烟雾粒子，减少渲染负担
     this.clearExistingSmoke();
 
     // Animate Train Moving Left
     // 根据设备类型调整速度
     const speed = this.isMobile ? 5 : 8; // 手机端速度慢一些
-    
+
     // 先缓存bottomZone的引用，避免每次查找
     const zone = this.bottomZone;
     const screenWidth = this.app.screen.width;
-    
+
     // 使用requestAnimationFrame而不是ticker，更精确控制
     let animationId: number;
     const animate = () => {
@@ -1015,7 +1058,7 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
         animationId = requestAnimationFrame(animate);
       }
     };
-    
+
     animationId = requestAnimationFrame(animate);
   }
 
@@ -1027,7 +1070,7 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
   }
 
   backHome() {
-    this.router.navigate(['/']);
+    this.router.navigate(['/home'], { replaceUrl: true });
   }
 
   clearExistingSmoke() {

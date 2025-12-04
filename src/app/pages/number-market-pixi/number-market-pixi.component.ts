@@ -207,7 +207,7 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     const goodsHeight = height * GOODS_HEIGHT_RATIO;
     const cartHeight = height * CART_HEIGHT_RATIO;
 
-    const goodsY = 60;
+    const goodsY = 80; // 从100调整到80，往上移动20像素
     const cartY = goodsY + goodsHeight + GAP;
 
     // ===== 绘制卡通货架 =====
@@ -245,6 +245,10 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
   private drawCartoonShelf(x: number, y: number, w: number, h: number) {
     const shelfBg = new Graphics();
 
+    // 响应式参数 - 统一计算
+    const screenWidth = this.app.screen.width;
+    const isMobile = screenWidth < 768;
+
     // 货架背景 - 木质纹理效果
     shelfBg.roundRect(x, y, w, h, 15);
     shelfBg.fill({ color: 0xfef3c7, alpha: 0.3 }); // 浅黄色背景
@@ -253,48 +257,79 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     shelfBg.roundRect(x, y, w, h, 15);
     shelfBg.stroke({ width: 6, color: 0xea580c });
 
-    // 绘制货架层板 (两层)
+    // 先绘制货架框架结构
     const shelfCount = 2;
     const shelfHeight = h / shelfCount;
-
+    const shelfThickness = 14; // 增加货架厚度
+    const pillarWidth = 10; // 增加支撑柱宽度
+    
+    // 绘制货架框架 - 整体木质结构
+    const framework = new Graphics();
+    
+    // 左右两根主支撑柱 - 贯穿整个货架高度
+    framework.roundRect(x + 12, y, pillarWidth, h, 5);
+    framework.fill({ color: 0x78350f }); // 深棕色
+    
+    framework.roundRect(x + w - 12 - pillarWidth, y, pillarWidth, h, 5);
+    framework.fill({ color: 0x78350f });
+    
+    // 绘制每一层货架板
     for (let i = 0; i < shelfCount; i++) {
       const shelfY = y + i * shelfHeight;
-
-      // 货架板 - 木板效果
-      const shelf = new Graphics();
-      shelf.roundRect(x + 10, shelfY + 5, w - 20, 12, 6);
-      shelf.fill({ color: 0x78350f }); // 深棕色
-
-      // 货架板高光
-      shelf.roundRect(x + 10, shelfY + 5, w - 20, 4, 6);
-      shelf.fill({ color: 0x92400e, alpha: 0.5 });
-
-      shelfBg.addChild(shelf);
-
-      // 货架支撑柱
-      if (i < shelfCount - 1) {
-        const pillarLeft = new Graphics();
-        pillarLeft.roundRect(x + 15, shelfY + 17, 8, shelfHeight - 22, 4);
-        pillarLeft.fill({ color: 0x78350f });
-        shelfBg.addChild(pillarLeft);
-
-        const pillarRight = new Graphics();
-        pillarRight.roundRect(x + w - 23, shelfY + 17, 8, shelfHeight - 22, 4);
-        pillarRight.fill({ color: 0x78350f });
-        shelfBg.addChild(pillarRight);
-      }
+      
+      // 货架板主体 - 与支撑柱完全连接
+      const shelfBoard = new Graphics();
+      shelfBoard.roundRect(x + 8, shelfY + 2, w - 16, shelfThickness, 7);
+      shelfBoard.fill({ color: 0x78350f }); // 深棕色主体
+      
+      // 货架板上表面高光效果
+      shelfBoard.roundRect(x + 8, shelfY + 2, w - 16, 6, 7);
+      shelfBoard.fill({ color: 0x92400e, alpha: 0.6 }); // 浅棕色高光
+      
+      // 货架板前沿装饰
+      shelfBoard.roundRect(x + 8, shelfY + shelfThickness - 2, w - 16, 3, 2);
+      shelfBoard.fill({ color: 0x65260f }); // 更深的棕色作为阴影
+      
+      shelfBg.addChild(shelfBoard);
     }
+    
+    // 添加货架底板
+    const bottomBoard = new Graphics();
+    bottomBoard.roundRect(x + 8, y + h - 8, w - 16, 8, 5);
+    bottomBoard.fill({ color: 0x78350f });
+    bottomBoard.roundRect(x + 8, y + h - 8, w - 16, 4, 5);
+    bottomBoard.fill({ color: 0x92400e, alpha: 0.6 });
+    shelfBg.addChild(bottomBoard);
+    
+    // 最后添加主支撑柱，确保在最上层
+    shelfBg.addChild(framework);
+    
+    // 添加木纹装饰效果
+    for (let i = 0; i < 3; i++) {
+      const woodGrain = new Graphics();
+      const grainY = y + 20 + i * 30;
+      woodGrain.moveTo(x + 15, grainY);
+      woodGrain.lineTo(x + w - 15, grainY);
+      woodGrain.stroke({ width: 1, color: 0x65260f, alpha: 0.3 });
+      shelfBg.addChild(woodGrain);
+    }
+
+    // 响应式字体大小和标签尺寸
+    const shelfFontSize = isMobile ? 14 : 18; // 手机端使用14px，桌面端使用18px
+    const labelWidth = isMobile ? 100 : 120; // 手机端使用更窄的标签
+    const labelHeight = isMobile ? 26 : 30; // 手机端使用更矮的标签
+    const labelY = isMobile ? y - 13 : y - 15; // 手机端调整位置
 
     // 添加装饰性标签
     const signBg = new Graphics();
-    signBg.roundRect(x + w / 2 - 60, y - 15, 120, 30, 15);
+    signBg.roundRect(x + w / 2 - labelWidth / 2, labelY, labelWidth, labelHeight, 15);
     signBg.fill({ color: 0xfb923c }); // 橙色
     signBg.stroke({ width: 3, color: 0xea580c });
-
+    
     const signText = new Text({
       text: '🍎 货架 🍊',
       style: new TextStyle({
-        fontSize: 18,
+        fontSize: shelfFontSize,
         fill: 0xffffff,
         fontWeight: 'bold',
       }),
@@ -312,6 +347,11 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
 
   private drawCartoonCart(x: number, y: number, w: number, h: number) {
     this.cartZone = new Graphics();
+
+    // 响应式参数 - 统一计算，避免重复声明
+    const screenWidth = this.app.screen.width;
+    const isMobile = screenWidth < 768;
+    const isTablet = screenWidth >= 768 && screenWidth < 1024;
 
     // 购物车主体 - 3D效果
     const cartMainY = y + 50;
@@ -374,41 +414,70 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     handlePath.stroke({ width: 6, color: 0xfb923c });
     this.cartZone.addChild(handlePath);
 
-    // 购物车轮子
-    const wheelY = cartMainY + cartMainH - 5;
-    const wheelPositions = [x + 30, x + w - 30];
+    // 购物车轮子 - 响应式大小
+    // 根据屏幕大小调整轮子尺寸
+    const wheelRadius = isMobile ? 12 : isTablet ? 16 : 20; // 手机12px，平板16px，桌面20px
+    const wheelInnerRadius = wheelRadius * 0.65; // 内圈约65%
+    const wheelCenterRadius = wheelRadius * 0.3; // 中心约30%
+    const shadowOffset = isMobile ? 2 : 3; // 阴影偏移
+    
+    const wheelY = cartMainY + cartMainH - Math.floor(wheelRadius * 0.4); // 根据轮子大小调整位置
+    const wheelOffset = Math.max(30, wheelRadius + 10); // 轮子距离边缘的距离
+    const wheelPositions = [x + wheelOffset, x + w - wheelOffset];
 
     wheelPositions.forEach((wheelX) => {
       // 轮子阴影
       const wheelShadow = new Graphics();
-      wheelShadow.circle(wheelX + 2, wheelY + 2, 12);
+      wheelShadow.circle(wheelX + shadowOffset, wheelY + shadowOffset, wheelRadius);
       wheelShadow.fill({ color: 0x000000, alpha: 0.2 });
       this.cartZone.addChild(wheelShadow);
 
       // 轮子外圈
       const wheel = new Graphics();
-      wheel.circle(wheelX, wheelY, 12);
+      wheel.circle(wheelX, wheelY, wheelRadius);
       wheel.fill({ color: 0x1f2937 }); // 深灰色
 
       // 轮子内圈
-      wheel.circle(wheelX, wheelY, 8);
+      wheel.circle(wheelX, wheelY, wheelInnerRadius);
       wheel.fill({ color: 0x4b5563 }); // 灰色
 
       // 轮子中心
-      wheel.circle(wheelX, wheelY, 4);
+      wheel.circle(wheelX, wheelY, wheelCenterRadius);
       wheel.fill({ color: 0x9ca3af }); // 浅灰色
+      
+      // 轮子辐条装饰 - 在大屏幕上添加更多细节
+      if (!isMobile) {
+        const spokeCount = 6;
+        for (let i = 0; i < spokeCount; i++) {
+          const angle = (i * Math.PI * 2) / spokeCount;
+          const spokeStartRadius = wheelCenterRadius + 2;
+          const spokeEndRadius = wheelInnerRadius - 2;
+          
+          const startX = wheelX + Math.cos(angle) * spokeStartRadius;
+          const startY = wheelY + Math.sin(angle) * spokeStartRadius;
+          const endX = wheelX + Math.cos(angle) * spokeEndRadius;
+          const endY = wheelY + Math.sin(angle) * spokeEndRadius;
+          
+          wheel.moveTo(startX, startY);
+          wheel.lineTo(endX, endY);
+          wheel.stroke({ width: 2, color: 0x6b7280, alpha: 0.6 });
+        }
+      }
 
       this.cartZone.addChild(wheel);
     });
 
-    // 购物车标签
+    // 购物车标签 - 响应式字体大小
+    const cartFontSize = isMobile ? 18 : 24; // 手机端使用18px，桌面端使用24px
+    const strokeWidth = isMobile ? 2 : 3; // 手机端使用较细的描边
+    
     const cartLabel = new Text({
       text: '🛒 购物车',
       style: new TextStyle({
-        fontSize: 24,
+        fontSize: cartFontSize,
         fill: 0xc2410c,
         fontWeight: 'bold',
-        stroke: { color: 0xffffff, width: 3 },
+        stroke: { color: 0xffffff, width: strokeWidth },
       }),
     });
     cartLabel.anchor.set(0.5);
@@ -417,6 +486,72 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     this.cartZone.addChild(cartLabel);
 
     this.cartContainer.addChild(this.cartZone);
+  }
+
+  private addCartCountBadge(count: number) {
+    // 获取购物车的位置信息
+    const width = this.app.screen.width;
+    const height = this.app.screen.height;
+    const cartHeight = height * 0.35;
+    const goodsHeight = height * 0.4;
+    const goodsY = 80;
+    const cartY = goodsY + goodsHeight + 5;
+    const PADDING = 20;
+    
+    // 响应式参数
+    const screenWidth = this.app.screen.width;
+    const isMobile = screenWidth < 768;
+    
+    // 计算徽章位置 - 购物车右上角
+    const badgeX = width - PADDING - 20; // 距离右边缘20px
+    const badgeY = cartY + 20; // 距离购物车顶部20px
+    
+    // 创建徽章容器
+    const badgeContainer = new Container();
+    badgeContainer.x = badgeX;
+    badgeContainer.y = badgeY;
+    
+    // 徽章背景圆圈
+    const badgeRadius = isMobile ? 18 : 22; // 响应式大小
+    const badgeBg = new Graphics();
+    
+    // 添加阴影
+    badgeBg.circle(2, 2, badgeRadius);
+    badgeBg.fill({ color: 0x000000, alpha: 0.2 });
+    
+    // 主背景 - 红色徽章
+    badgeBg.circle(0, 0, badgeRadius);
+    badgeBg.fill({ color: 0xef4444 }); // 红色背景
+    
+    // 徽章边框
+    badgeBg.circle(0, 0, badgeRadius);
+    badgeBg.stroke({ width: 3, color: 0xffffff }); // 白色边框
+    
+    // 徽章内圈高光
+    badgeBg.circle(0, -3, badgeRadius - 5);
+    badgeBg.fill({ color: 0xfca5a5, alpha: 0.5 }); // 浅红色高光
+    
+    // 数量文字
+    const countText = new Text({
+      text: count.toString(),
+      style: new TextStyle({
+        fontSize: isMobile ? 14 : 16,
+        fill: 0xffffff,
+        fontWeight: 'bold',
+        align: 'center',
+      }),
+    });
+    countText.anchor.set(0.5);
+    
+    // 组装徽章
+    badgeContainer.addChild(badgeBg);
+    badgeContainer.addChild(countText);
+    
+    // 添加到购物车容器
+    this.cartContainer.addChild(badgeContainer);
+    
+    // 如果数量为0，隐藏徽章
+    badgeContainer.visible = count > 0;
   }
 
   private onResize() {
@@ -469,7 +604,7 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     const width = this.app.screen.width;
     const height = this.app.screen.height;
     const goodsHeight = height * 0.4; // 更新为40%
-    const goodsY = 60; // 与setupLayout中的goodsY保持一致
+    const goodsY = 80; // 与setupLayout中的goodsY保持一致
 
     // 商品布局 - 4列2行
     const cols = 4;
@@ -628,7 +763,7 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
             this.renderGoods();
           }, 200);
         } else {
-          // 播放错误音效(不等待)
+          // 播放错误音效并等待播放完成
           this.playError();
 
           // Animate back
@@ -720,17 +855,26 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     const height = this.app.screen.height;
     const cartHeight = height * 0.35;
 
+    // 添加购物车右上角数量徽章
+    this.addCartCountBadge(cartItems.length);
+
     const bounds = (this.cartZone as any).hitAreaBounds;
     const padding = 15;
-    const itemSize = 55;
-    const cols = Math.floor((bounds.width - padding * 2) / (itemSize + 5));
+    // 进一步增加购物车内商品大小，使其更接近货架商品大小
+    const screenWidth = this.app.screen.width;
+    const availableWidth = bounds.width - padding * 2;
+    // 根据屏幕大小和可用宽度计算商品尺寸，确保与货架商品大小相似
+    const maxItemSize = Math.min(100, availableWidth / 3.5); // 最大100px，但不超过可用宽度的1/3.5
+    const itemSize = Math.max(75, maxItemSize); // 最小75px，进一步增大
+    const itemSpacing = 10; // 进一步增加间距
+    const cols = Math.floor(availableWidth / (itemSize + itemSpacing));
 
     cartItems.forEach((item, index) => {
       const col = index % cols;
       const row = Math.floor(index / cols);
 
-      const x = bounds.x + padding + col * (itemSize + 5) + itemSize / 2;
-      const y = bounds.y + padding + row * (itemSize + 5) + itemSize / 2;
+      const x = bounds.x + padding + col * (itemSize + itemSpacing) + itemSize / 2;
+      const y = bounds.y + padding + row * (itemSize + itemSpacing) + itemSize / 2;
 
       const container = new Container();
       container.x = x;
@@ -818,8 +962,8 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
       await this.playRoundRight();
       this.correctRound.update((round) => round + 1);
     } else {
-      // 播放错误音效(不等待)
-      this.playRoundWrong();
+      // 播放错误音效并等待播放完成
+      await this.playRoundWrong();
     }
 
     if (this.currentRound() === this.totalRound()) {
@@ -828,11 +972,10 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // 正确时已经等待了音效,错误时延迟500ms后进入下一轮
-    const delay = result ? 300 : 500;
+    // 正确和错误时都已经等待了音效，统一延迟300ms后进入下一轮
     setTimeout(() => {
       this.playNextRound();
-    }, delay);
+    }, 300);
   }
 
   restartGame() {

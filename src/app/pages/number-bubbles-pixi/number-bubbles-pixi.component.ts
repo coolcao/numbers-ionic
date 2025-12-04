@@ -146,12 +146,13 @@ export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterC
       this.bubbleSubscription.unsubscribe();
     }
     this.destroyPixiApp();
+    this.numberBubblesAudioService.stopAll();
   }
 
   private async waitForGameContainer(): Promise<void> {
     let attempts = 0;
     const maxAttempts = 10;
-    
+
     while (!this.gameContainer && attempts < maxAttempts) {
       // 强制进行变更检测
       this.cdr.detectChanges();
@@ -162,10 +163,10 @@ export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterC
 
   private async initPixiApp(): Promise<boolean> {
     if (this.pixiApp) return true;
-    
+
     // 等待Angular完成变更检测和DOM更新
     await this.waitForGameContainer();
-    
+
     if (!this.gameContainer) {
       console.error('Game container is still not available');
       return false;
@@ -214,7 +215,7 @@ export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterC
 
     // 开始游戏循环
     this.startGameLoop();
-    
+
     console.log('PixiJS application initialized successfully');
     return true;
   }
@@ -434,7 +435,7 @@ export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterC
     const R = Math.max(0, Math.min(255, (num >> 16) + amt));
     const G = Math.max(0, Math.min(255, (num >> 8 & 0x00FF) + amt));
     const B = Math.max(0, Math.min(255, (num & 0x0000FF) + amt));
-    
+
     // 返回正确的十六进制颜色值
     return (R << 16) | (G << 8) | B;
   }
@@ -452,7 +453,7 @@ export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterC
       const angle = Math.random() * Math.PI * 2;
       const speedLayer = Math.random();
       let speed;
-      
+
       if (speedLayer < 0.3) {
         speed = Math.random() * 3 + 8;
       } else if (speedLayer < 0.7) {
@@ -467,7 +468,7 @@ export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterC
       // 创建粒子图形
       const particleGraphics = new Graphics();
       particleGraphics.circle(0, 0, size);
-      
+
       // 随机颜色变化
       const colorType = Math.random();
       let particleColor;
@@ -586,7 +587,7 @@ export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterC
     if (this.particleContainer) {
       this.particleContainer.removeChildren();
     }
-    
+
     // 确保所有泡泡对象都被清理
     this.bubbles().forEach(bubble => {
       if (bubble.container && bubble.container.parent) {
