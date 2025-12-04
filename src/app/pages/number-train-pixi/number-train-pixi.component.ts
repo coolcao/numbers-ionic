@@ -157,18 +157,22 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
   // 精确判断设备类型（手机、平板或桌面）
   getDeviceType(): 'mobile' | 'tablet' | 'desktop' {
     const platform = this.getPlatform();
-    
+
     // Web 平台的判断
     if (platform === 'web') {
       const userAgent = navigator.userAgent.toLowerCase();
-      
+
       // 检测平板设备
-      const isTabletDevice = /ipad|android(?!.*mobile)|tablet/i.test(userAgent) || 
-                           (navigator.maxTouchPoints > 1 && /macintosh/.test(userAgent));
-      
+      const isTabletDevice =
+        /ipad|android(?!.*mobile)|tablet/i.test(userAgent) ||
+        (navigator.maxTouchPoints > 1 && /macintosh/.test(userAgent));
+
       // 检测手机设备
-      const isMobileDevice = /mobile|iphone|ipod|android.*mobile|blackberry|opera mini|iemobile/i.test(userAgent);
-      
+      const isMobileDevice =
+        /mobile|iphone|ipod|android.*mobile|blackberry|opera mini|iemobile/i.test(
+          userAgent,
+        );
+
       if (isTabletDevice) {
         return 'tablet';
       } else if (isMobileDevice) {
@@ -177,7 +181,7 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
         return 'desktop';
       }
     }
-    
+
     // 原生平台的判断
     if (platform === 'ios' || platform === 'android') {
       // 通过屏幕尺寸判断是手机还是平板
@@ -185,18 +189,21 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
       const screenHeight = window.screen.height;
       const minDimension = Math.min(screenWidth, screenHeight);
       const maxDimension = Math.max(screenWidth, screenHeight);
-      
+
       // 根据屏幕尺寸和像素密度判断
       // 一般情况下，手机最小边小于768px，平板最小边大于768px
       // 考虑到像素密度，我们使用设备像素比进行调整
       const devicePixelRatio = window.devicePixelRatio || 1;
       const adjustedMinDimension = minDimension * devicePixelRatio;
-      
+
       // iPad 设备特殊处理
-      if (platform === 'ios' && /ipad/.test(navigator.userAgent.toLowerCase())) {
+      if (
+        platform === 'ios' &&
+        /ipad/.test(navigator.userAgent.toLowerCase())
+      ) {
         return 'tablet';
       }
-      
+
       // Android 设备根据屏幕尺寸判断
       if (platform === 'android') {
         // 大于768px的设备认为是平板
@@ -204,17 +211,17 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
           return 'tablet';
         }
       }
-      
+
       // 根据屏幕长宽比和尺寸判断
       const aspectRatio = maxDimension / minDimension;
       // 长宽比在1.3到1.7之间且最小边较大的设备可能是平板
       if (aspectRatio > 1.3 && aspectRatio < 1.7 && minDimension >= 600) {
         return 'tablet';
       }
-      
+
       return 'mobile';
     }
-    
+
     return 'desktop';
   }
 
@@ -226,7 +233,7 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
     // 检查是否为移动端，如果是则解锁屏幕方向
     const platform = this.getPlatform();
     if (platform === 'android' || platform === 'ios') {
-      this.appService.unlockScreen().catch(err => {
+      this.appService.unlockScreen().catch((err) => {
         console.error('Failed to unlock screen:', err);
       });
       // 恢复header和footer的显示
@@ -258,8 +265,8 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
     this.app.stage.eventMode = 'static';
     this.app.stage.hitArea = this.app.screen;
 
-    // Generate Textures
-    this.generateTextures();
+    // Load Textures
+    await this.loadTextures();
 
     // Setup Scene
     this.mainContainer = new Container();
@@ -276,7 +283,9 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
 
     this.bottomZone = new Container();
     this.bottomZone.label = 'bottomZone';
-    this.bottomZone.y = this.app.screen.height - (this.isMobile ? (this.isTablet ? 120 : 90) : 250);
+    this.bottomZone.y =
+      this.app.screen.height -
+      (this.isMobile ? (this.isTablet ? 120 : 90) : 250);
     this.mainContainer.addChild(this.bottomZone);
 
     // Handle Resize
@@ -307,7 +316,8 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
       // Draw Mountains (Background) - Made much larger
       mountain.moveTo(0, groundY);
       // Generate some peaks - Increased spacing and height (about 2x taller)
-      for (let i = 0; i <= w; i += 400) { // Increased spacing
+      for (let i = 0; i <= w; i += 400) {
+        // Increased spacing
         const peakHeight = 600 + Math.sin(i * 0.01) * 200; // Even taller mountains
         mountain.lineTo(i + 200, groundY - peakHeight); // Wider peaks
         mountain.lineTo(i + 400, groundY);
@@ -316,7 +326,8 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
 
       // Draw Trees (Foreground/Midground) - Made much larger
       // Simple triangle trees with increased size (about 3x taller)
-      for (let i = 50; i < w; i += 250) { // Increased spacing
+      for (let i = 50; i < w; i += 250) {
+        // Increased spacing
         const treeX = i + Math.sin(i) * 40; // More horizontal variation
         const treeY = groundY - 40; // Adjusted position
 
@@ -344,400 +355,29 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
   onResize() {
     if (!this.app || !this.bottomZone) return;
     this.app.stage.hitArea = this.app.screen;
-    this.bottomZone.y = this.app.screen.height - (this.isMobile ? (this.isTablet ? 120 : 90) : 200);
-    this.topZone.y = Math.max(this.isMobile ? (this.isTablet ? 140 : 120) : 200, this.app.screen.height * 0.4); // Lower top zone even further
+    this.bottomZone.y =
+      this.app.screen.height -
+      (this.isMobile ? (this.isTablet ? 120 : 90) : 200);
+    this.topZone.y = Math.max(
+      this.isMobile ? (this.isTablet ? 140 : 120) : 200,
+      this.app.screen.height * 0.4,
+    ); // Lower top zone even further
     this.renderTrains();
   }
 
+  async loadTextures() {
+    // 加载火车图片纹理
+    const engineTexture = await Assets.load('assets/images/train/engine.png');
+    const carTexture = await Assets.load('assets/images/train/car.png');
+    const cabooseTexture = await Assets.load('assets/images/train/caboose.png');
+
+    this.textures['engine'] = engineTexture;
+    this.textures['car'] = carTexture;
+    this.textures['caboose'] = cabooseTexture;
+  }
+
   generateTextures() {
-    // Helper to create texture from canvas
-    const createTexture = (
-      drawFn: (ctx: CanvasRenderingContext2D, w: number, h: number) => void,
-      width: number,
-      height: number,
-    ) => {
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d')!;
-      drawFn(ctx, width, height);
-      return Texture.from(canvas);
-    };
-
-    // Coupler Texture
-    this.textures['coupler'] = createTexture(
-      (ctx, w, h) => {
-        const grad = ctx.createLinearGradient(0, 0, 0, h);
-        grad.addColorStop(0, '#616161');
-        grad.addColorStop(1, '#424242');
-        ctx.fillStyle = grad;
-        ctx.strokeStyle = '#212121';
-        ctx.lineWidth = 2;
-
-        ctx.beginPath();
-        ctx.roundRect(0, 0, w, h, 4);
-        ctx.fill();
-        ctx.stroke();
-      },
-      this.isMobile ? (this.isTablet ? 16 : 12) : 20, // Tablet uses medium size
-      this.isMobile ? (this.isTablet ? 24 : 17) : 30,
-    );
-
-    // Engine Texture
-    this.textures['engine'] = createTexture(
-      (ctx, w, h) => {
-        const topOffset = this.isMobile ? 20 : 40; // 恢复到接近原始的topOffset
-
-        // 根据黑暗模式调整颜色
-        const isDarkMode = this.appStore.isDarkMode();
-        const lightFactor = isDarkMode ? 0.7 : 1; // 黑暗模式下调亮颜色
-
-        // 调整颜色亮度的辅助函数
-        const adjustColor = (color: string) => {
-          if (!isDarkMode) return color;
-          // 在黑暗模式下将颜色调亮一些
-          const hex = color.replace('#', '');
-          const r = parseInt(hex.substring(0, 2), 16);
-          const g = parseInt(hex.substring(2, 4), 16);
-          const b = parseInt(hex.substring(4, 6), 16);
-
-          // 提高亮度
-          const newR = Math.min(255, Math.floor(r * lightFactor));
-          const newG = Math.min(255, Math.floor(g * lightFactor));
-          const newB = Math.min(255, Math.floor(b * lightFactor));
-
-          return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
-        };
-
-        // Chimney - 调整大小以适应新的高度
-        ctx.fillStyle = adjustColor('#424242');
-        ctx.strokeStyle = adjustColor('#212121');
-        ctx.lineWidth = 2;
-
-        // Chimney Rect - 根据设备类型调整尺寸
-        const chimneyW = this.isMobile ? (this.isTablet ? 27 : 24) : 30;
-        const chimneyH = this.isMobile ? (this.isTablet ? 35 : 24) : 30; // 加大平板上烟囱高度
-        const chimneyX = this.isMobile ? (this.isTablet ? 35 : 30) : 40;
-        const chimneyY = this.isMobile ? 10 : 10; // 调整烟囱位置
-        ctx.fillRect(chimneyX, chimneyY, chimneyW, chimneyH);
-        ctx.strokeRect(chimneyX, chimneyY, chimneyW, chimneyH);
-
-        // Chimney Top (Flared) - 根据设备类型调整尺寸
-        ctx.beginPath();
-        const chimneyTopX = chimneyX + chimneyW / 2;
-        const chimneyTopY = chimneyY;
-        const chimneyTopRx = this.isMobile ? (this.isTablet ? 14 : 12) : 15;
-        const chimneyTopRy = this.isMobile ? (this.isTablet ? 6 : 4) : 5; // 加大平板上烟囱顶部高度
-        ctx.ellipse(chimneyTopX, chimneyTopY, chimneyTopRx, chimneyTopRy, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-
-        // Body Gradient
-        const grad = ctx.createLinearGradient(0, topOffset, w, h);
-        if (isDarkMode) {
-          // 黑暗模式下使用较浅的颜色
-          grad.addColorStop(0, adjustColor('#81c784'));
-          grad.addColorStop(0.5, adjustColor('#66bb6a'));
-          grad.addColorStop(1, adjustColor('#4caf50'));
-        } else {
-          grad.addColorStop(0, '#66bb6a');
-          grad.addColorStop(0.5, '#4caf50');
-          grad.addColorStop(1, '#388e3c');
-        }
-
-        ctx.fillStyle = grad;
-        ctx.strokeStyle = adjustColor('#2e7d32');
-        ctx.lineWidth = 2;
-
-        // Draw Engine Shape (Rounded Rect with some custom shape)
-        ctx.beginPath();
-        ctx.moveTo(25, topOffset);
-        ctx.lineTo(w - 10, topOffset);
-        ctx.quadraticCurveTo(w, topOffset, w, topOffset + 10);
-        ctx.lineTo(w, h - 10);
-        ctx.quadraticCurveTo(w, h, w - 10, h);
-        ctx.lineTo(25, h);
-        ctx.quadraticCurveTo(0, h, 0, h - 25);
-        ctx.lineTo(0, 25 + topOffset);
-        ctx.quadraticCurveTo(0, topOffset, 25, topOffset);
-        ctx.fill();
-        ctx.stroke();
-
-        // Window
-        ctx.fillStyle = isDarkMode ? 'rgba(200, 230, 200, 0.9)' : '#e8f5e8';
-        const windowX = this.isMobile ? (this.isTablet ? 25 : 20) : 30; // 根据设备类型调整车窗位置
-        // 调整窗口位置，使其更居中
-        const engineHeight = this.isMobile ? (this.isTablet ? 100 : 75) : 140;
-        // 调整车窗大小，使其与车厢车窗比例协调
-        const windowH = this.isMobile ? (this.isTablet ? 30 : 20) : 40; // 根据设备类型调整车窗高度
-        const windowY = topOffset + (this.isMobile ? (this.isTablet ? 25 : 20) : 25); // 根据设备类型调整车窗位置
-        const windowW = this.isMobile ? (this.isTablet ? 35 : 25) : 60; // 根据设备类型调整车窗宽度
-        ctx.fillRect(windowX, windowY, windowW, windowH);
-        ctx.strokeRect(windowX, windowY, windowW, windowH);
-
-        // Light
-        ctx.beginPath();
-        const lightX = w - (this.isMobile ? (this.isTablet ? 25 : 20) : 20);
-        const lightY = topOffset + (this.isMobile ? (this.isTablet ? 22 : 20) : 30); // 根据设备类型调整车灯位置
-        const lightR = this.isMobile ? (this.isTablet ? 14 : 12) : 15;
-        ctx.arc(lightX, lightY, lightR, 0, Math.PI * 2);
-        ctx.fillStyle = adjustColor('#ffeb3b');
-        ctx.fill();
-        ctx.shadowColor = adjustColor('#ffeb3b');
-        ctx.shadowBlur = this.isMobile ? (this.isTablet ? 9 : 8) : 10;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-      },
-      this.isMobile ? (this.isTablet ? 140 : 100) : 180, // 根据设备类型调整宽度
-      this.isMobile ? (this.isTablet ? 100 : 75) : 140, // 平板设备上车头高度调整为100
-    );
-
-    // Car Texture
-    this.textures['car'] = createTexture(
-      (ctx, w, h) => {
-        // 根据黑暗模式调整颜色
-        const isDarkMode = this.appStore.isDarkMode();
-        const lightFactor = isDarkMode ? 0.7 : 1;
-
-        // 调整颜色亮度的辅助函数
-        const adjustColor = (color: string) => {
-          if (!isDarkMode) return color;
-          const hex = color.replace('#', '');
-          const r = parseInt(hex.substring(0, 2), 16);
-          const g = parseInt(hex.substring(2, 4), 16);
-          const b = parseInt(hex.substring(4, 6), 16);
-
-          const newR = Math.min(255, Math.floor(r * lightFactor));
-          const newG = Math.min(255, Math.floor(g * lightFactor));
-          const newB = Math.min(255, Math.floor(b * lightFactor));
-
-          return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
-        };
-
-        const grad = ctx.createLinearGradient(0, 0, w, h);
-        if (isDarkMode) {
-          // 黑暗模式下使用较浅的颜色
-          grad.addColorStop(0, adjustColor('#a5d6a7'));
-          grad.addColorStop(0.5, adjustColor('#81c784'));
-          grad.addColorStop(1, adjustColor('#66bb6a'));
-        } else {
-          grad.addColorStop(0, '#81c784');
-          grad.addColorStop(0.5, '#66bb6a');
-          grad.addColorStop(1, '#4caf50');
-        }
-
-        ctx.fillStyle = grad;
-        ctx.strokeStyle = adjustColor('#43a047');
-        ctx.lineWidth = 2;
-
-        // Rounded Rect
-        ctx.beginPath();
-        ctx.roundRect(0, 0, w, h, 10);
-        ctx.fill();
-        ctx.stroke();
-
-        // Inner Panel
-        ctx.fillStyle = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.2)';
-        ctx.beginPath();
-        ctx.roundRect(15, 15, w - 30, h - 30, 8);
-        ctx.fill();
-
-        // Windows
-        ctx.fillStyle = isDarkMode ? '#f0f0f0' : '#fff';
-        const winW = this.isMobile ? (this.isTablet ? 16 : 11) : 20;
-        const winH = this.isMobile ? (this.isTablet ? 20 : 14) : 25;
-        const startX = this.isMobile ? (this.isTablet ? 20 : 14) : 25;
-        const startY = this.isMobile ? (this.isTablet ? 20 : 14) : 25;
-        const doorOffset = this.isMobile ? (this.isTablet ? 40 : 28) : 50;
-        const gap = (w - doorOffset - 3 * winW) / 2;
-        for (let i = 0; i < 3; i++) {
-          ctx.fillRect(startX + i * (winW + gap), startY, winW, winH);
-        }
-
-        // Door
-        ctx.fillStyle = isDarkMode ? adjustColor('#2e7d32') : '#1b5e20';
-        const doorW = this.isMobile ? (this.isTablet ? 24 : 17) : 30;
-        const doorH = this.isMobile ? (this.isTablet ? 16 : 11) : 20;
-        ctx.fillRect(w / 2 - doorW / 2, h - doorH, doorW, doorH);
-      },
-      this.isMobile ? (this.isTablet ? 125 : 90) : 160,
-      this.isMobile ? (this.isTablet ? 78 : 56) : 100,
-    );
-
-    // Caboose Texture
-    this.textures['caboose'] = createTexture(
-      (ctx, w, h) => {
-        // 根据黑暗模式调整颜色
-        const isDarkMode = this.appStore.isDarkMode();
-        const lightFactor = isDarkMode ? 0.7 : 1;
-
-        // 调整颜色亮度的辅助函数
-        const adjustColor = (color: string) => {
-          if (!isDarkMode) return color;
-          const hex = color.replace('#', '');
-          const r = parseInt(hex.substring(0, 2), 16);
-          const g = parseInt(hex.substring(2, 4), 16);
-          const b = parseInt(hex.substring(4, 6), 16);
-
-          const newR = Math.min(255, Math.floor(r * lightFactor));
-          const newG = Math.min(255, Math.floor(g * lightFactor));
-          const newB = Math.min(255, Math.floor(b * lightFactor));
-
-          return `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
-        };
-
-        // 主体渐变
-        const grad = ctx.createLinearGradient(0, 0, w, h);
-        if (isDarkMode) {
-          // 黑暗模式下使用较浅的颜色
-          grad.addColorStop(0, adjustColor('#c8e6c9'));
-          grad.addColorStop(0.5, adjustColor('#a5d6a7'));
-          grad.addColorStop(1, adjustColor('#81c784'));
-        } else {
-          grad.addColorStop(0, '#a5d6a7');
-          grad.addColorStop(0.5, '#81c784');
-          grad.addColorStop(1, '#66bb6a');
-        }
-
-        ctx.fillStyle = grad;
-        ctx.strokeStyle = adjustColor('#4caf50');
-        ctx.lineWidth = 2;
-
-        // 绘制主体形状（保持与其他车厢相同的高度）
-        ctx.beginPath();
-        ctx.moveTo(10, 0);
-        ctx.lineTo(w - 25, 0);
-        ctx.quadraticCurveTo(w, 0, w, 25);
-        ctx.lineTo(w, h - 10);
-        ctx.quadraticCurveTo(w, h, w - 10, h);
-        ctx.lineTo(10, h);
-        ctx.quadraticCurveTo(0, h, 0, h - 10);
-        ctx.lineTo(0, 10);
-        ctx.quadraticCurveTo(0, 0, 10, 0);
-        ctx.fill();
-        ctx.stroke();
-
-        // 尾部特色装饰（在保持高度的前提下添加）
-        // 轻微凸起的尾部平台
-        const platformGrad = ctx.createLinearGradient(0, h - 25, w, h);
-        if (isDarkMode) {
-          platformGrad.addColorStop(0, adjustColor('#81c784'));
-          platformGrad.addColorStop(1, adjustColor('#66bb6a'));
-        } else {
-          platformGrad.addColorStop(0, '#81c784');
-          platformGrad.addColorStop(1, '#4caf50');
-        }
-
-        ctx.fillStyle = platformGrad;
-        ctx.beginPath();
-        ctx.moveTo(20, h - 20);
-        ctx.lineTo(w - 30, h - 20);
-        ctx.lineTo(w - 35, h - 5);
-        ctx.lineTo(15, h - 5);
-        ctx.closePath();
-        ctx.fill();
-
-        // 主要窗户
-        ctx.fillStyle = isDarkMode ? '#f5f5f5' : '#fff';
-        const mainWinX = this.isMobile ? (this.isTablet ? 20 : 14) : 25;
-        const mainWinY = this.isMobile ? (this.isTablet ? 20 : 14) : 25;
-        const mainWinW = this.isMobile ? (this.isTablet ? 32 : 22) : 40;
-        const mainWinH = this.isMobile ? (this.isTablet ? 24 : 17) : 30;
-        ctx.fillRect(mainWinX, mainWinY, mainWinW, mainWinH);
-
-        // 观察窗（侧面的小窗户）
-        const obsWinX = this.isMobile ? w - (this.isTablet ? 48 : 33) : w - 60;
-        const obsWinY = this.isMobile ? (this.isTablet ? 20 : 14) : 25;
-        const obsWinW = this.isMobile ? (this.isTablet ? 16 : 11) : 20;
-        const obsWinH = this.isMobile ? (this.isTablet ? 16 : 11) : 20;
-        ctx.fillRect(obsWinX, obsWinY, obsWinW, obsWinH);
-
-        // 小型通风口
-        ctx.fillStyle = adjustColor('#5d4037'); // 深棕色
-        const ventX = w - (this.isMobile ? (this.isTablet ? 16 : 11) : 20);
-        const ventY = this.isMobile ? (this.isTablet ? 12 : 8) : 15;
-        const ventW = this.isMobile ? (this.isTablet ? 6 : 4) : 8;
-        const ventH = this.isMobile ? (this.isTablet ? 12 : 8) : 15;
-        ctx.fillRect(ventX, ventY, ventW, ventH); // 竖直的通风管
-
-        // 通风口顶部装饰
-        ctx.beginPath();
-        const ventTopX = w - (this.isMobile ? (this.isTablet ? 14 : 9) : 16);
-        const ventTopY = this.isMobile ? (this.isTablet ? 12 : 8) : 15;
-        const ventTopR = this.isMobile ? (this.isTablet ? 4 : 3) : 5;
-        ctx.arc(ventTopX, ventTopY, ventTopR, 0, Math.PI, true); // 半圆顶部
-        ctx.fill();
-
-        // 尾部标识文字
-        ctx.fillStyle = isDarkMode ? '#1b5e20' : '#000';
-        ctx.font = `bold ${this.isMobile ? (this.isTablet ? 8 : 6) : 10}px Arial`;
-        ctx.fillText('CABOOSE', this.isMobile ? (this.isTablet ? 28 : 19) : 35, h - (this.isMobile ? (this.isTablet ? 8 : 6) : 10));
-
-        // 侧边装饰条纹
-        ctx.fillStyle = adjustColor('#4caf50');
-        const stripeY1 = h - (this.isMobile ? (this.isTablet ? 20 : 14) : 25);
-        const stripeY2 = h - (this.isMobile ? (this.isTablet ? 12 : 8) : 15);
-        const stripeH = this.isMobile ? (this.isTablet ? 2 : 1) : 2;
-        const stripeX = this.isMobile ? (this.isTablet ? 12 : 8) : 15;
-        const stripeW = w - (this.isMobile ? (this.isTablet ? 24 : 16) : 30);
-        ctx.fillRect(stripeX, stripeY1, stripeW, stripeH);
-        ctx.fillRect(stripeX, stripeY2, stripeW, stripeH);
-
-        // 尾部旗帜
-        ctx.fillStyle = isDarkMode ? adjustColor('#66bb6a') : '#4caf50';
-        ctx.save();
-        ctx.translate(w - (this.isMobile ? (this.isTablet ? 28 : 19) : 35), this.isMobile ? (this.isTablet ? 6 : 4) : 8);
-        ctx.rotate(Math.PI / 4);
-        ctx.fillRect(0, this.isMobile ? (this.isTablet ? -8 : -5) : -10, this.isMobile ? (this.isTablet ? 16 : 11) : 20, this.isMobile ? (this.isTablet ? 12 : 8) : 15);
-        ctx.restore();
-      },
-      this.isMobile ? (this.isTablet ? 140 : 100) : 180,
-      this.isMobile ? (this.isTablet ? 78 : 56) : 100,
-    );
-
-    // Wheel Texture
-    this.textures['wheel'] = createTexture(
-      (ctx, w, h) => {
-        // 根据黑暗模式调整颜色
-        const isDarkMode = this.appStore.isDarkMode();
-
-        const grad = ctx.createRadialGradient(
-          w / 2,
-          h / 2,
-          5,
-          w / 2,
-          h / 2,
-          w / 2,
-        );
-
-        if (isDarkMode) {
-          // 黑暗模式下使用较浅的颜色
-          grad.addColorStop(0, '#424242');
-          grad.addColorStop(0.5, '#212121');
-          grad.addColorStop(1, '#424242');
-        } else {
-          grad.addColorStop(0, '#212121');
-          grad.addColorStop(0.5, '#000000');
-          grad.addColorStop(1, '#212121');
-        }
-
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(w / 2, h / 2, w / 2 - 2, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = isDarkMode ? '#9e9e9e' : '#616161';
-        ctx.lineWidth = 4;
-        ctx.stroke();
-
-        // Inner hub
-        ctx.fillStyle = isDarkMode ? '#bdbdbd' : '#e0e0e0';
-        ctx.beginPath();
-        ctx.arc(w / 2, h / 2, this.isMobile ? (this.isTablet ? 10 : 6) : 8, 0, Math.PI * 2);
-        ctx.fill();
-      },
-      this.isMobile ? (this.isTablet ? 35 : 28) : 50,
-      this.isMobile ? (this.isTablet ? 35 : 28) : 50,
-    );
+    // 不再需要生成纹理，所有纹理都从图片加载
   }
 
   createBackground() {
@@ -791,7 +431,9 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
       // 车轮位置：车厢高度/2 - 车轮高度/4
       // 车轮底部位置：trainY + 车厢高度/2 + 车轮高度/4
       // 轨道应该与车轮底部对齐
-      const trainY = this.bottomZone ? this.bottomZone.y : this.app.screen.height - (this.isMobile ? 90 : 200);
+      const trainY = this.bottomZone
+        ? this.bottomZone.y
+        : this.app.screen.height - (this.isMobile ? 90 : 200);
       const carHeight = this.isMobile ? (this.isTablet ? 78 : 56) : 100; // 根据设备类型调整车厢高度
       const wheelSize = this.isMobile ? (this.isTablet ? 28 : 22) : 40;
       const wheelBottom = carHeight / 2 + wheelSize / 4; // 车轮底部相对于车厢中心的位置
@@ -828,33 +470,18 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
     const container = new Container();
     container.label = train.id;
 
-    // Couplers (Behind body)
-    // We add them first so they are behind the body sprite
-    if (train.type === 'engine' || train.type === 'car') {
-      // Right coupler (connects to next car)
-      const cRight = new Sprite(this.textures['coupler']);
-      cRight.anchor.set(0.5);
-      cRight.x = train.type === 'engine' 
-        ? (this.isMobile ? (this.isTablet ? 70 : 50) : 90) // Half width of engine
-        : (this.isMobile ? (this.isTablet ? 62 : 45) : 80); // Half width of car
-      container.addChild(cRight);
-    }
-    if (train.type === 'caboose' || train.type === 'car') {
-      // Left coupler (connects to previous car)
-      const cLeft = new Sprite(this.textures['coupler']);
-      cLeft.anchor.set(0.5);
-      cLeft.x = train.type === 'caboose'
-        ? (this.isMobile ? (this.isTablet ? -70 : -50) : -90) // Half width of caboose
-        : (this.isMobile ? (this.isTablet ? -62 : -45) : -80); // Half width of car
-      container.addChild(cLeft);
-    }
-
     // Body
     const body = new Sprite(this.textures[train.type]);
     body.anchor.set(0.5);
-    if (train.type === 'engine') {
-      body.y = this.isMobile ? -10 : -20; // 恢复原始的车头偏移
-    }
+    
+    // 统一设置所有车厢的尺寸为相同值
+    const uniformSize = this.isMobile ? (this.isTablet ? 140 : 100) : 180;
+    
+    // 使用scale而不是width/height来确保比例一致
+    body.scale.set(uniformSize / 180); // 原始图片是180x180
+    
+    // 所有车厢保持在同一水平线上
+    body.y = 0;
     container.addChild(body);
 
     // Number Text
@@ -876,37 +503,6 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
     text.anchor.set(0.5);
     container.addChild(text);
 
-    // Wheels
-    const wheelSize = this.isMobile ? (this.isTablet ? 35 : 28) : 40;
-    // 所有车厢的车轮应该在同一水平线上
-    // 使用标准的车厢高度来计算车轮位置，确保所有车轮对齐
-    const standardCarHeight = this.isMobile ? (this.isTablet ? 78 : 56) : 100;
-    const wheelY = standardCarHeight / 2; // 车轮应该在车厢底部
-    const wheelX = this.isMobile ? (this.isTablet ? -35 : -30) : -40;
-
-    const w1 = new Sprite(this.textures['wheel']);
-    w1.anchor.set(0.5);
-    w1.y = wheelY;
-    w1.x = wheelX;
-    w1.width = wheelSize;
-    w1.height = wheelSize;
-    container.addChild(w1);
-
-    const w2 = new Sprite(this.textures['wheel']);
-    w2.anchor.set(0.5);
-    w2.y = wheelY;
-    w2.x = -wheelX;
-    w2.width = wheelSize;
-    w2.height = wheelSize;
-    container.addChild(w2);
-
-    // Animate Wheels
-    const wheelUpdate = () => {
-      w1.rotation += 0.05;
-      w2.rotation += 0.05;
-    };
-    this.app.ticker.add(wheelUpdate);
-
     // Smoke for Engine
     let smokeUpdate: (() => void) | null = null;
     if (train.type === 'engine') {
@@ -923,7 +519,6 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
 
     // Cleanup
     container.on('destroyed', () => {
-      this.app.ticker.remove(wheelUpdate);
       if (smokeUpdate) {
         this.app.ticker.remove(smokeUpdate);
       }
@@ -946,10 +541,13 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
     const size = Math.random() * baseSize + baseSize; // Random size
     smoke.circle(0, 0, size);
     smoke.fill({ color: 0xeeeeee, alpha: 0.6 }); // Lighter smoke
-    smoke.x = (this.isMobile ? (this.isTablet ? -30 : -25) : -35) + (Math.random() * 10 - 5); // Stack pos with jitter
-    // 调整烟雾位置，考虑车头高度
-    const engineHeight = this.isMobile ? (this.isTablet ? 100 : 75) : 140;
-    smoke.y = -engineHeight / 2 - 10; // 从车头顶部冒出
+
+    // 根据缩放比例调整烟雾位置
+    const chimneyOffsetX = -30 * this.scaleFactor;
+    const chimneyOffsetY = -50 * this.scaleFactor;
+
+    smoke.x = chimneyOffsetX + (Math.random() * 10 - 5); // Stack pos with jitter
+    smoke.y = chimneyOffsetY; // 从车头顶部冒出
     parent.addChild(smoke);
 
     // Random velocity
@@ -992,7 +590,8 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
 
     // Render Bottom Trains (Current Sequence)
     const bottomTrains = this.bottomTrains();
-    const bottomSpacing = this.isMobile ? (this.isTablet ? this.tabletTrainWidth : this.mobileTrainWidth) : 180;
+    const uniformSize = this.isMobile ? (this.isTablet ? 140 : 100) : 180;
+    const bottomSpacing = uniformSize; // 间距等于车厢宽度，避免重叠
     const bottomOffset = this.isMobile ? (this.isTablet ? 70 : 50) : 90;
     const startXBottom =
       (this.app.screen.width - bottomTrains.length * bottomSpacing) / 2 + bottomOffset;
@@ -1076,7 +675,8 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
 
         // 重新设计拖拽响应位置算法，通过计算实际车厢位置来确定插入点
         const currentBottomLen = this.bottomTrains().length;
-        const trainWidth = this.isMobile ? (this.isTablet ? this.tabletTrainWidth : this.mobileTrainWidth) : this.TRAIN_WIDTH;
+        const uniformSize = this.isMobile ? (this.isTablet ? 140 : 100) : 180;
+        const trainWidth = uniformSize; // 间距等于车厢宽度，避免重叠
         const startXBottom = (this.app.screen.width - currentBottomLen * trainWidth) / 2 + (this.isMobile ? (this.isTablet ? 70 : 50) : 90);
 
         // 计算相对于第一个车厢的位置
@@ -1119,7 +719,8 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
   updateBottomTrainPositions(gapIndex: number | null) {
     const bottomTrains = this.bottomTrains();
     // Calculate new startX based on whether there is a gap (simulating +1 item)
-    const trainWidth = this.isMobile ? (this.isTablet ? this.tabletTrainWidth : this.mobileTrainWidth) : this.TRAIN_WIDTH;
+    const uniformSize = this.isMobile ? (this.isTablet ? 140 : 100) : 180;
+    const trainWidth = uniformSize; // 间距等于车厢宽度，避免重叠
     const count = bottomTrains.length + (gapIndex !== null ? 1 : 0);
     const startX = (this.app.screen.width - count * trainWidth) / 2 + (this.isMobile ? (this.isTablet ? 70 : 50) : 90); // 90 is half width offset
 
@@ -1275,7 +876,10 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
     // 并行执行音效播放和抖动效果
     const playAudio = async () => {
       try {
-        await this.audioService.preload('wrong-answer', 'assets/audio/number-train/wrong-answer.mp3');
+        await this.audioService.preload(
+          'wrong-answer',
+          'assets/audio/number-train/wrong-answer.mp3',
+        );
         await this.audioService.play('wrong-answer', { volume: 0.4 });
       } catch (e) {
         console.error('Error audio play failed', e);
@@ -1335,8 +939,14 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
 
     // Play Sounds
     try {
-      await this.audioService.preload('train-whistle', 'assets/audio/number-train/train-whistle.mp3');
-      await this.audioService.preload('train-move', 'assets/audio/number-train/train-move.m4a');
+      await this.audioService.preload(
+        'train-whistle',
+        'assets/audio/number-train/train-whistle.mp3',
+      );
+      await this.audioService.preload(
+        'train-move',
+        'assets/audio/number-train/train-move.m4a',
+      );
 
       this.audioService.play('train-whistle');
       setTimeout(() => {
@@ -1394,7 +1004,11 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
           'assets/audio/number-train/number-train-welcome3.mp3',
         ),
       ]);
-      await this.audioService.playSequence(['welcome1', 'welcome2', 'welcome3']);
+      await this.audioService.playSequence([
+        'welcome1',
+        'welcome2',
+        'welcome3',
+      ]);
     } catch (e) {
       console.warn('Welcome audio failed', e);
     }
