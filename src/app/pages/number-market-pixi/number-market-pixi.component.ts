@@ -199,83 +199,40 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     this.cartContainer.removeChildren();
     this.goodsContainer.removeChildren();
 
-    // 参考DOM版本: 左右布局 (手机端上下,平板/电脑端左右)
-    // 这里简化为上下布局,货架区在上,购物车区在下
-    const GOODS_HEIGHT_RATIO = 0.4; // 商品区占40% (从50%减小)
-    const CART_HEIGHT_RATIO = 0.35; // 购物车区占35% (从45%减小)
+    const GOODS_HEIGHT_RATIO = 0.4;
+    const CART_HEIGHT_RATIO = 0.35;
     const PADDING = 20;
-    const GAP = 5; // 货架和购物车之间的间隙
+    const GAP = 5;
 
     const goodsHeight = height * GOODS_HEIGHT_RATIO;
     const cartHeight = height * CART_HEIGHT_RATIO;
 
-    // 重新计算位置,让两者更紧凑
-    const goodsY = 60; // 货架区从顶部60px开始(为提示框留出足够空间)
-    const cartY = goodsY + goodsHeight + GAP; // 购物车紧跟货架区
+    const goodsY = 60;
+    const cartY = goodsY + goodsHeight + GAP;
 
-    // ===== 绘制商品区背景 =====
-    const goodsBg = new Graphics();
-    goodsBg.roundRect(
+    // ===== 绘制卡通货架 =====
+    this.drawCartoonShelf(
       PADDING,
       goodsY,
       width - PADDING * 2,
       goodsHeight - PADDING,
-      15,
     );
-    goodsBg.fill({ color: 0x2dd4bf, alpha: 0.1 }); // 青色背景
-    goodsBg.stroke({ width: 3, color: 0x14b8a6, alpha: 0.3 });
-    goodsBg.label = 'goods-bg'; // 标记为背景,不会被清除
-    this.goodsContainer.addChild(goodsBg);
 
-    // ===== 绘制购物车区 =====
-    this.cartZone = new Graphics();
-
-    const cartBgY = cartY;
-    const cartBgHeight = cartHeight - PADDING;
-
-    // 购物车主体
-    this.cartZone.roundRect(
+    // ===== 绘制卡通购物车 =====
+    this.drawCartoonCart(
       PADDING,
-      cartBgY,
+      cartY,
       width - PADDING * 2,
-      cartBgHeight,
-      20,
+      cartHeight - PADDING,
     );
-    this.cartZone.fill({ color: 0x2dd4bf, alpha: 0.1 });
-    this.cartZone.stroke({ width: 4, color: 0x14b8a6, alpha: 0.3 });
-
-    // 购物车图标和标签
-    const cartIcon = new Text({
-      text: '🛒',
-      style: new TextStyle({
-        fontSize: 32,
-      }),
-    });
-    cartIcon.x = PADDING + 15;
-    cartIcon.y = cartBgY + 10;
-    this.cartZone.addChild(cartIcon);
-
-    const cartLabel = new Text({
-      text: '购物车',
-      style: new TextStyle({
-        fontSize: 20,
-        fill: 0x0f766e,
-        fontWeight: 'bold',
-      }),
-    });
-    cartLabel.x = PADDING + 60;
-    cartLabel.y = cartBgY + 18;
-    this.cartZone.addChild(cartLabel);
-
-    this.cartContainer.addChild(this.cartZone);
 
     // 存储购物车碰撞区域
     this.cartZone.label = 'cart';
     (this.cartZone as any).hitAreaBounds = {
-      x: PADDING,
-      y: cartBgY + 50, // 留出标题空间
-      width: width - PADDING * 2,
-      height: cartBgHeight - 50,
+      x: PADDING + 20,
+      y: cartY + 80, // 留出购物车顶部装饰空间
+      width: width - PADDING * 2 - 40,
+      height: cartHeight - PADDING - 80,
     };
 
     // 重新渲染商品
@@ -283,6 +240,183 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
       this.renderGoods();
     }
     this.renderCartItems();
+  }
+
+  private drawCartoonShelf(x: number, y: number, w: number, h: number) {
+    const shelfBg = new Graphics();
+
+    // 货架背景 - 木质纹理效果
+    shelfBg.roundRect(x, y, w, h, 15);
+    shelfBg.fill({ color: 0xfef3c7, alpha: 0.3 }); // 浅黄色背景
+
+    // 货架边框 - 橙色边框
+    shelfBg.roundRect(x, y, w, h, 15);
+    shelfBg.stroke({ width: 6, color: 0xea580c });
+
+    // 绘制货架层板 (两层)
+    const shelfCount = 2;
+    const shelfHeight = h / shelfCount;
+
+    for (let i = 0; i < shelfCount; i++) {
+      const shelfY = y + i * shelfHeight;
+
+      // 货架板 - 木板效果
+      const shelf = new Graphics();
+      shelf.roundRect(x + 10, shelfY + 5, w - 20, 12, 6);
+      shelf.fill({ color: 0x78350f }); // 深棕色
+
+      // 货架板高光
+      shelf.roundRect(x + 10, shelfY + 5, w - 20, 4, 6);
+      shelf.fill({ color: 0x92400e, alpha: 0.5 });
+
+      shelfBg.addChild(shelf);
+
+      // 货架支撑柱
+      if (i < shelfCount - 1) {
+        const pillarLeft = new Graphics();
+        pillarLeft.roundRect(x + 15, shelfY + 17, 8, shelfHeight - 22, 4);
+        pillarLeft.fill({ color: 0x78350f });
+        shelfBg.addChild(pillarLeft);
+
+        const pillarRight = new Graphics();
+        pillarRight.roundRect(x + w - 23, shelfY + 17, 8, shelfHeight - 22, 4);
+        pillarRight.fill({ color: 0x78350f });
+        shelfBg.addChild(pillarRight);
+      }
+    }
+
+    // 添加装饰性标签
+    const signBg = new Graphics();
+    signBg.roundRect(x + w / 2 - 60, y - 15, 120, 30, 15);
+    signBg.fill({ color: 0xfb923c }); // 橙色
+    signBg.stroke({ width: 3, color: 0xea580c });
+
+    const signText = new Text({
+      text: '🍎 货架 🍊',
+      style: new TextStyle({
+        fontSize: 18,
+        fill: 0xffffff,
+        fontWeight: 'bold',
+      }),
+    });
+    signText.anchor.set(0.5);
+    signText.x = x + w / 2;
+    signText.y = y;
+
+    shelfBg.addChild(signBg);
+    shelfBg.addChild(signText);
+
+    shelfBg.label = 'goods-bg';
+    this.goodsContainer.addChild(shelfBg);
+  }
+
+  private drawCartoonCart(x: number, y: number, w: number, h: number) {
+    this.cartZone = new Graphics();
+
+    // 购物车主体 - 3D效果
+    const cartMainY = y + 50;
+    const cartMainH = h - 50;
+
+    // 购物车背景阴影
+    this.cartZone.roundRect(x + 5, cartMainY + 5, w - 10, cartMainH - 10, 20);
+    this.cartZone.fill({ color: 0x000000, alpha: 0.1 });
+
+    // 购物车主体
+    this.cartZone.roundRect(x, cartMainY, w, cartMainH, 20);
+    this.cartZone.fill({ color: 0xfb923c }); // 橙色购物车
+
+    // 购物车内部
+    this.cartZone.roundRect(x + 10, cartMainY + 10, w - 20, cartMainH - 20, 15);
+    this.cartZone.fill({ color: 0xffedd5 }); // 浅橙色内部
+
+    // 购物车边框装饰
+    this.cartZone.roundRect(x, cartMainY, w, cartMainH, 20);
+    this.cartZone.stroke({ width: 4, color: 0xc2410c });
+
+    // 购物车网格装饰
+    const gridSize = 20;
+    for (let gx = x + 20; gx < x + w - 20; gx += gridSize) {
+      this.cartZone.moveTo(gx, cartMainY + 15);
+      this.cartZone.lineTo(gx, cartMainY + cartMainH - 15);
+      this.cartZone.stroke({ width: 1, color: 0xfed7aa, alpha: 0.3 });
+    }
+    for (
+      let gy = cartMainY + 20;
+      gy < cartMainY + cartMainH - 20;
+      gy += gridSize
+    ) {
+      this.cartZone.moveTo(x + 15, gy);
+      this.cartZone.lineTo(x + w - 15, gy);
+      this.cartZone.stroke({ width: 1, color: 0xfed7aa, alpha: 0.3 });
+    }
+
+    // 购物车把手
+    const handleY = y + 10;
+    const handlePath = new Graphics();
+    handlePath.moveTo(x + w / 2 - 40, handleY);
+    handlePath.bezierCurveTo(
+      x + w / 2 - 40,
+      handleY - 20,
+      x + w / 2 + 40,
+      handleY - 20,
+      x + w / 2 + 40,
+      handleY,
+    );
+    handlePath.stroke({ width: 8, color: 0xc2410c });
+    handlePath.bezierCurveTo(
+      x + w / 2 + 40,
+      handleY - 20,
+      x + w / 2 - 40,
+      handleY - 20,
+      x + w / 2 - 40,
+      handleY,
+    );
+    handlePath.stroke({ width: 6, color: 0xfb923c });
+    this.cartZone.addChild(handlePath);
+
+    // 购物车轮子
+    const wheelY = cartMainY + cartMainH - 5;
+    const wheelPositions = [x + 30, x + w - 30];
+
+    wheelPositions.forEach((wheelX) => {
+      // 轮子阴影
+      const wheelShadow = new Graphics();
+      wheelShadow.circle(wheelX + 2, wheelY + 2, 12);
+      wheelShadow.fill({ color: 0x000000, alpha: 0.2 });
+      this.cartZone.addChild(wheelShadow);
+
+      // 轮子外圈
+      const wheel = new Graphics();
+      wheel.circle(wheelX, wheelY, 12);
+      wheel.fill({ color: 0x1f2937 }); // 深灰色
+
+      // 轮子内圈
+      wheel.circle(wheelX, wheelY, 8);
+      wheel.fill({ color: 0x4b5563 }); // 灰色
+
+      // 轮子中心
+      wheel.circle(wheelX, wheelY, 4);
+      wheel.fill({ color: 0x9ca3af }); // 浅灰色
+
+      this.cartZone.addChild(wheel);
+    });
+
+    // 购物车标签
+    const cartLabel = new Text({
+      text: '🛒 购物车',
+      style: new TextStyle({
+        fontSize: 24,
+        fill: 0xc2410c,
+        fontWeight: 'bold',
+        stroke: { color: 0xffffff, width: 3 },
+      }),
+    });
+    cartLabel.anchor.set(0.5);
+    cartLabel.x = x + w / 2;
+    cartLabel.y = y + 30;
+    this.cartZone.addChild(cartLabel);
+
+    this.cartContainer.addChild(this.cartZone);
   }
 
   private onResize() {
@@ -371,14 +505,21 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     container.y = y;
     container.label = item.id;
 
-    // Background Circle
+    // Shadow (deeper and more realistic)
+    const shadow = new Graphics();
+    shadow.circle(0, 6, size / 2);
+    shadow.fill({ color: 0x000000, alpha: 0.15 });
+
+    // Background Circle with gradient effect
     const bg = new Graphics();
     bg.circle(0, 0, size / 2);
-    bg.fill({ color: 0xffffff, alpha: 0.9 });
-    bg.stroke({ width: 2, color: 0xcccccc });
-    // Shadow
-    bg.circle(4, 4, size / 2);
-    bg.fill({ color: 0x000000, alpha: 0.1 });
+    bg.fill({ color: 0xffffff, alpha: 1 });
+    bg.stroke({ width: 3, color: 0xfb923c }); // Orange border
+
+    // Inner glow effect
+    const glow = new Graphics();
+    glow.circle(0, 0, size / 2 - 5);
+    glow.fill({ color: 0xffedd5, alpha: 0.5 });
 
     // Emoji Text
     const text = new Text({
@@ -390,7 +531,9 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     });
     text.anchor.set(0.5);
 
-    container.addChild(bg); // Add shadow/bg first
+    container.addChild(shadow);
+    container.addChild(bg);
+    container.addChild(glow);
     container.addChild(text);
 
     // Interactivity
@@ -401,30 +544,61 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     let startPosition = { x: 0, y: 0 };
     let dragOffset = { x: 0, y: 0 };
     let isDragging = false;
+    let hoverAnimation: any = null;
+
+    // Hover effect
+    container.on('pointerover', () => {
+      if (!isDragging) {
+        container.scale.set(1.1);
+        // Add bounce animation
+        let bounce = 0;
+        hoverAnimation = setInterval(() => {
+          bounce += 0.1;
+          container.y = y + Math.sin(bounce) * 3;
+        }, 16);
+      }
+    });
+
+    container.on('pointerout', () => {
+      if (!isDragging) {
+        container.scale.set(1);
+        container.y = y;
+        if (hoverAnimation) {
+          clearInterval(hoverAnimation);
+          hoverAnimation = null;
+        }
+      }
+    });
 
     container.on('pointerdown', (event) => {
+      if (hoverAnimation) {
+        clearInterval(hoverAnimation);
+        hoverAnimation = null;
+      }
+
       dragData = event;
       startPosition = { x: container.x, y: container.y };
       const localPos = container.toLocal(event.global);
       dragOffset = { x: localPos.x, y: localPos.y };
 
       isDragging = true;
-      container.alpha = 0.8;
-      container.scale.set(1.2);
+      container.alpha = 0.9;
+      container.scale.set(1.3);
+      shadow.alpha = 0.3; // Stronger shadow when dragging
 
       // Move to drag layer to be on top
       const globalPos = container.getGlobalPosition();
       this.dragContainer.addChild(container);
       container.position.set(globalPos.x, globalPos.y);
 
-      this.audioService.play('click'); // Optional click sound
+      this.audioService.play('click');
     });
 
     container.on('globalpointermove', (event) => {
       if (isDragging) {
         const newPosition = dragData.getLocalPosition(this.dragContainer);
-        container.x = newPosition.x; // - dragOffset.x; // Simplified centering
-        container.y = newPosition.y; // - dragOffset.y;
+        container.x = newPosition.x;
+        container.y = newPosition.y;
       }
     });
 
@@ -433,6 +607,7 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
       isDragging = false;
       container.alpha = 1;
       container.scale.set(1);
+      shadow.alpha = 0.15;
       dragData = null;
 
       // Check Hit with Cart
@@ -543,38 +718,72 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     const cartItems = this.cartGoods();
     const width = this.app.screen.width;
     const height = this.app.screen.height;
-    const cartHeight = height * 0.35; // 更新为35%
+    const cartHeight = height * 0.35;
 
-    // 使用新的购物车边界
     const bounds = (this.cartZone as any).hitAreaBounds;
     const padding = 15;
-    const itemSize = 50; // 购物车内商品尺寸
-    const cols = Math.floor((bounds.width - padding * 2) / itemSize);
+    const itemSize = 55;
+    const cols = Math.floor((bounds.width - padding * 2) / (itemSize + 5));
 
     cartItems.forEach((item, index) => {
       const col = index % cols;
       const row = Math.floor(index / cols);
 
-      const x = bounds.x + padding + col * itemSize + itemSize / 2;
-      const y = bounds.y + padding + row * itemSize + itemSize / 2;
+      const x = bounds.x + padding + col * (itemSize + 5) + itemSize / 2;
+      const y = bounds.y + padding + row * (itemSize + 5) + itemSize / 2;
 
       const container = new Container();
       container.x = x;
       container.y = y;
 
+      // Shadow
+      const shadow = new Graphics();
+      shadow.circle(0, 4, itemSize / 2 - 2);
+      shadow.fill({ color: 0x000000, alpha: 0.1 });
+
+      // Background with border
+      const bg = new Graphics();
+      bg.circle(0, 0, itemSize / 2 - 2);
+      bg.fill({ color: 0xffedd5 });
+      bg.stroke({ width: 2, color: 0xfed7aa });
+
+      // Emoji
       const text = new Text({
         text: item.image,
-        style: new TextStyle({ fontSize: itemSize * 0.6 }),
+        style: new TextStyle({ fontSize: itemSize * 0.5 }),
       });
       text.anchor.set(0.5);
 
+      container.addChild(shadow);
+      container.addChild(bg);
       container.addChild(text);
 
-      // Click to remove
+      // Click to remove with visual feedback
       container.eventMode = 'static';
       container.cursor = 'pointer';
+
+      // Pulse animation to indicate clickable
+      let pulsePhase = Math.random() * Math.PI * 2;
+      const pulseAnimation = () => {
+        pulsePhase += 0.05;
+        container.scale.set(1 + Math.sin(pulsePhase) * 0.05);
+        requestAnimationFrame(pulseAnimation);
+      };
+      pulseAnimation();
+
+      container.on('pointerover', () => {
+        container.scale.set(1.15);
+        bg.tint = 0xfed7aa; // Lighter orange on hover
+      });
+
+      container.on('pointerout', () => {
+        container.scale.set(1);
+        bg.tint = 0xffffff;
+      });
+
       container.on('pointerdown', () => {
         this.removeFromCart(index);
+        this.audioService.play('click');
       });
 
       this.cartContainer.addChild(container);
