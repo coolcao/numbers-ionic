@@ -1,6 +1,4 @@
-<div
-  class="relative h-full w-full flex-1 select-none overflow-hidden bg-gradient-to-br from-teal-50 to-cyan-50 dark:from-gray-900 dark:to-gray-800"
->
+<div class="relative h-full w-full flex-1 select-none overflow-hidden">
   <!-- Pixi Container -->
   <div #pixiContainer class="absolute inset-0 z-0 h-full w-full"></div>
 
@@ -83,6 +81,45 @@
         <div class="w-12"></div>
         <!-- Spacer for balance -->
       </div>
+
+      <!-- Quick Actions Buttons (Advanced Mode Only) - Positioned around cart -->
+      @if (learnMode() === LearnMode.Advanced) {
+        <!-- Left side buttons (x5, x10) -->
+        <div class="pointer-events-auto absolute" [style]="getLeftButtonsStyle()">
+          <div class="flex space-x-1">
+            <button
+              (click)="multiTimes(5)"
+              class="flex h-8 w-10 items-center justify-center rounded-full bg-teal-400 text-xs font-bold text-white transition-all hover:scale-110 hover:bg-teal-500 active:scale-95 dark:bg-teal-600 dark:hover:bg-teal-700 sm:h-10 sm:w-12 sm:text-sm"
+            >
+              x5
+            </button>
+            <button
+              (click)="multiTimes(10)"
+              class="flex h-8 w-10 items-center justify-center rounded-full bg-teal-400 text-xs font-bold text-white transition-all hover:scale-110 hover:bg-teal-500 active:scale-95 dark:bg-teal-600 dark:hover:bg-teal-700 sm:h-10 sm:w-12 sm:text-sm"
+            >
+              x10
+            </button>
+          </div>
+        </div>
+
+        <!-- Right side buttons (x25, x50) -->
+        <div class="pointer-events-auto absolute" [style]="getRightButtonsStyle()">
+          <div class="flex space-x-1">
+            <button
+              (click)="multiTimes(25)"
+              class="flex h-8 w-10 items-center justify-center rounded-full bg-teal-400 text-xs font-bold text-white transition-all hover:scale-110 hover:bg-teal-500 active:scale-95 dark:bg-teal-600 dark:hover:bg-teal-700 sm:h-10 sm:w-12 sm:text-sm"
+            >
+              x25
+            </button>
+            <button
+              (click)="multiTimes(50)"
+              class="flex h-8 w-10 items-center justify-center rounded-full bg-teal-400 text-xs font-bold text-white transition-all hover:scale-110 hover:bg-teal-500 active:scale-95 dark:bg-teal-600 dark:hover:bg-teal-700 sm:h-10 sm:w-12 sm:text-sm"
+            >
+              x50
+            </button>
+          </div>
+        </div>
+      }
 
       <!-- Bottom Bar -->
       <div class="pointer-events-auto flex items-end justify-center pb-2">

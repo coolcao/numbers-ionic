@@ -367,12 +367,10 @@ export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterC
       alpha: 0.6
     });
 
-    // 设置交互
+    // 移除单个泡泡的点击事件，改为只设置cursor样式
+    // 所有点击检测都通过全局Canvas点击处理
     graphics.eventMode = 'static';
     graphics.cursor = 'pointer';
-    graphics.on('pointerdown', () => {
-      this.onBubbleClick(bubble);
-    });
 
     // 添加图形到容器（先添加，显示在最底层）
     container.addChild(graphics);
@@ -421,6 +419,13 @@ export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterC
     container.addChild(text);
 
     this.bubbleContainer.addChild(container);
+
+    // 确保新添加的泡泡显示在最上层
+    // 通过设置zIndex或者重新排序来保证层级
+    container.zIndex = bubble.index;
+    if (this.bubbleContainer.sortableChildren !== true) {
+      this.bubbleContainer.sortableChildren = true;
+    }
 
     // 保存引用
     bubble.container = container;
@@ -841,20 +846,27 @@ export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterC
     if (!this.pixiApp) return;
 
     const rect = this.pixiApp.canvas.getBoundingClientRect();
-    const clickX = event.clientX - rect.left;
-    const clickY = event.clientY - rect.top;
+    const clickX = (event.clientX - rect.left) * (this.pixiApp.renderer.width / rect.width);
+    const clickY = (event.clientY - rect.top) * (this.pixiApp.renderer.height / rect.height);
 
-    // 查找被点击的泡泡
-    const clickedBubble = this.bubbles().find(bubble => {
-      if (bubble.isExploding) return false;
-      const distance = Math.sqrt(
-        Math.pow(clickX - bubble.x, 2) + Math.pow(clickY - bubble.y, 2)
-      );
-      return distance <= bubble.size / 2;
-    });
+    // 查找所有被点击位置覆盖的泡泡，按照添加顺序排序
+    const overlappingBubbles = this.bubbles()
+      .filter(bubble => {
+        if (bubble.isExploding || !bubble.container) return false;
+        const distance = Math.sqrt(
+          Math.pow(clickX - bubble.x, 2) + Math.pow(clickY - bubble.y, 2)
+        );
+        return distance <= bubble.size / 2;
+      })
+      .sort((a, b) => a.index - b.index); // 按添加顺序排序，确保最后添加的在最后
 
-    if (clickedBubble) {
-      this.onBubbleClick(clickedBubble);
+    if (overlappingBubbles.length > 0) {
+      // 选择最后添加的（最上层的）泡泡
+      const topMostBubble = overlappingBubbles[overlappingBubbles.length - 1];
+      
+      // console.log(`点击检测: 找到${overlappingBubbles.length}个重叠泡泡，选择泡泡${topMostBubble.index}(数字${topMostBubble.number})`);
+      
+      this.onBubbleClick(topMostBubble);
     }
   }
 
