@@ -468,15 +468,22 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     handlePath.stroke({ width: 6, color: cartMainColor });
     this.cartZone.addChild(handlePath);
 
-    // 购物车轮子 - 响应式大小
-    // 根据屏幕大小调整轮子尺寸
-    const wheelRadius = isMobile ? 12 : isTablet ? 16 : 20; // 手机12px，平板16px，桌面20px
+    // 购物车轮子 - 响应式大小，根据购物车宽度动态计算
+    // 基础轮子大小：购物车宽度的比例，确保与购物车大小协调
+    const baseWheelRatio = isMobile ? 0.08 : isTablet ? 0.09 : 0.10; // 手机8%，平板9%，桌面10%
+    let wheelRadius = Math.floor(w * baseWheelRatio);
+    
+    // 设置最小和最大值，确保在各种屏幕上都合适且清晰可见
+    const minWheelRadius = isMobile ? 20 : isTablet ? 28 : 35; // 最小：手机20px，平板28px，桌面35px
+    const maxWheelRadius = isMobile ? 40 : isTablet ? 50 : 65; // 最大：手机40px，平板50px，桌面65px
+    wheelRadius = Math.max(minWheelRadius, Math.min(maxWheelRadius, wheelRadius));
+    
     const wheelInnerRadius = wheelRadius * 0.65; // 内圈约65%
     const wheelCenterRadius = wheelRadius * 0.3; // 中心约30%
-    const shadowOffset = isMobile ? 2 : 3; // 阴影偏移
+    const shadowOffset = Math.floor(wheelRadius * 0.15); // 阴影偏移随轮子大小缩放
 
-    const wheelY = cartMainY + cartMainH - Math.floor(wheelRadius * 0.4); // 根据轮子大小调整位置
-    const wheelOffset = Math.max(30, wheelRadius + 10); // 轮子距离边缘的距离
+    const wheelY = cartMainY + cartMainH - Math.floor(wheelRadius * 0.35); // 根据轮子大小调整位置，让轮子稍微突出
+    const wheelOffset = Math.max(wheelRadius * 1.8, 45); // 轮子距离边缘的距离，确保不会太靠边
     const wheelPositions = [x + wheelOffset, x + w - wheelOffset];
 
     wheelPositions.forEach((wheelX) => {

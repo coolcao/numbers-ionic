@@ -64,9 +64,34 @@ export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterC
 
   bubbleInterval = signal(900); // 恢复到900毫秒生成一个泡泡，与canvas版本一致
 
-  // 泡泡尺寸范围
+  // 泡泡尺寸范围 - 响应式设置
   bubbleSizeMin = signal(90);
   bubbleSizeMax = signal(110);
+
+  // 根据屏幕宽度获取响应式泡泡大小
+  private getResponsiveBubbleSize(): { min: number; max: number } {
+    const width = window.innerWidth;
+    
+    // 手机端 (< 768px)
+    if (width < 768) {
+      return { min: 60, max: 80 };
+    }
+    // 平板端 (768px - 1024px)
+    else if (width < 1024) {
+      return { min: 75, max: 95 };
+    }
+    // PC端 (>= 1024px)
+    else {
+      return { min: 90, max: 110 };
+    }
+  }
+
+  // 更新泡泡大小
+  private updateBubbleSize() {
+    const { min, max } = this.getResponsiveBubbleSize();
+    this.bubbleSizeMin.set(min);
+    this.bubbleSizeMax.set(max);
+  }
 
   // 泡泡持续时间范围，扩大范围以实现错落有致的效果
   bubbleDurationStart = signal(8);
@@ -128,6 +153,8 @@ export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterC
 
   async ngOnInit(): Promise<void> {
     await this.appService.lockPortrait();
+    // 初始化时设置响应式泡泡大小
+    this.updateBubbleSize();
     await this.numberBubblesAudioService.playWelcomeAndRules();
     this.generateTargetNumbers();
   }
@@ -228,6 +255,9 @@ export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterC
     const height = containerElement.clientHeight;
 
     this.pixiApp.renderer.resize(width, height);
+    
+    // 窗口大小改变时更新泡泡大小
+    this.updateBubbleSize();
   }
 
   private startGameLoop() {
@@ -272,11 +302,11 @@ export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterC
               // 减少生命值
               particle.life--;
 
-              // 更新透明度和大小
+              // 让粒子逐渐缩小
               const lifeRatio = particle.life / particle.maxLife;
               particle.sprite.alpha = lifeRatio;
-              const currentSize = particle.initialSize * lifeRatio;
-              particle.sprite.scale.set(currentSize / particle.initialSize);
+              const scale = lifeRatio * 0.99;
+              particle.sprite.scale.set(scale);
             });
 
             bubble.particles = bubble.particles.filter(p => p.life > 0);
@@ -448,49 +478,62 @@ export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterC
   private createExplosion(bubble: Bubble) {
     if (!this.particleContainer || !bubble.container) return;
 
-    const particleCount = 60;
+    const particleCount = 60; // 增加粒子数量
     const particles: Particle[] = [];
 
     // 解析泡泡颜色
-    const color = parseInt(bubble.color.slice(1), 16);
+    const colorNum = parseInt(bubble.color.slice(1), 16);
+    const r = (colorNum >> 16) & 0xFF;
+    const g = (colorNum >> 8) & 0xFF;
+    const b = colorNum & 0xFF;
 
     for (let i = 0; i < particleCount; i++) {
+      // 创建更随机的角度分布
       const angle = Math.random() * Math.PI * 2;
+
+      // 创建不同层次的速度
       const speedLayer = Math.random();
       let speed;
-
       if (speedLayer < 0.3) {
-        speed = Math.random() * 3 + 8;
+        speed = Math.random() * 3 + 8; // 快速粒子
       } else if (speedLayer < 0.7) {
-        speed = Math.random() * 4 + 4;
+        speed = Math.random() * 4 + 4; // 中速粒子
       } else {
-        speed = Math.random() * 3 + 1;
+        speed = Math.random() * 3 + 1; // 慢速粒子
       }
 
+      // 创建不同大小的粒子
       const size = Math.random() * 6 + 1;
-      const lifeVariation = Math.random() * 20 + 25;
 
-      // 创建粒子图形
-      const particleGraphics = new Graphics();
-      particleGraphics.circle(0, 0, size);
+      // 创建颜色变化
+      const colorVariation = Math.random() * 0.3 - 0.15;
+      const newR = Math.max(0, Math.min(255, r + colorVariation * 255));
+      const newG = Math.max(0, Math.min(255, g + colorVariation * 255));
+      const newB = Math.max(0, Math.min(255, b + colorVariation * 255));
 
-      // 随机颜色变化
-      const colorType = Math.random();
+      // 有些粒子使用原色，有些使用白色或金色增加闪烁效果
       let particleColor;
+      const colorType = Math.random();
       if (colorType < 0.7) {
-        particleColor = color;
+        particleColor = (Math.floor(newR) << 16) | (Math.floor(newG) << 8) | Math.floor(newB);
       } else if (colorType < 0.85) {
         particleColor = 0xFFD700; // 金色
       } else {
         particleColor = 0xFFFFFF; // 白色
       }
 
+      // 创建不同生命周期的粒子
+      const lifeVariation = Math.random() * 20 + 25; // 25-45 帧
+
+      // 创建粒子图形
+      const particleGraphics = new Graphics();
+      particleGraphics.circle(0, 0, size);
       particleGraphics.fill({
         color: particleColor,
         alpha: 1
       });
 
-      // 设置粒子位置
+      // 设置粒子初始位置
       particleGraphics.position.set(
         bubble.x + (Math.random() - 0.5) * 10,
         bubble.y + (Math.random() - 0.5) * 10
@@ -501,7 +544,7 @@ export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterC
       particles.push({
         sprite: particleGraphics,
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - Math.random() * 2,
+        vy: Math.sin(angle) * speed - Math.random() * 2, // 添加向上的初始速度
         life: lifeVariation,
         maxLife: lifeVariation,
         initialSize: size

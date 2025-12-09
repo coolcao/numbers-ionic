@@ -4,7 +4,7 @@
   @if (gameStatus() === "playing") {
     <!-- 目标数字显示层 -->
     @if (playTargets()) {
-      <div class="flex h-full w-full items-center justify-center z-10">
+      <div class="z-10 flex h-full w-full items-center justify-center">
         @for (num of targetNumbers(); track $index) {
           <div
             class="mx-10 select-none font-sans text-4xl font-bold text-yellow-800 md:text-6xl lg:text-8xl"
@@ -14,7 +14,7 @@
         }
       </div>
     }
-    
+
     <!-- 游戏容器层 - 始终存在，通过opacity控制显示 -->
     <div
       #gameContainer
@@ -47,7 +47,7 @@
           <div class="animate-slide-in-down text-3xl font-bold leading-relaxed">
             🫧<span
               class="ml-2 mr-2 text-3xl text-yellow-500 dark:text-yellow-300"
-              >数字泡泡游戏 (PixiJS版)</span
+              >数字泡泡</span
             >🫧
           </div>
 
@@ -56,7 +56,6 @@
           >
             <p class="mb-3">🎧 游戏开始时我会随机播报一组数字</p>
             <p>👆 你要戳破对应下落的泡泡哦！</p>
-            <p class="mt-2 text-sm text-purple-600">🚀 使用PixiJS渲染，性能更佳！</p>
           </div>
 
           <div
@@ -155,7 +154,7 @@
           <!-- 动态评语 -->
           <div class="font-comic space-y-3 text-xl">
             <div
-              class="text-3xl"
+              class="text-2xl"
               [ngClass]="{
                 'text-red-500': accuracy() < 50,
                 'text-amber-500': accuracy() >= 50 && accuracy() < 80,
