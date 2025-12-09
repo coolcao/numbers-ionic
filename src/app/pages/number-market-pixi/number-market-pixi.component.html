@@ -5,7 +5,7 @@
   <!-- Init State Overlay -->
   @if (gameState() === "init") {
     <div
-      class="absolute inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm dark:bg-black/80"
+      class="absolute inset-0 z-50 flex items-center justify-center bg-cyan-50/90 backdrop-blur-sm dark:bg-sky-950/90"
     >
       <div class="animate-fade-in flex flex-col items-center justify-center">
         <h1
@@ -39,14 +39,8 @@
       class="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between"
     >
       <!-- Top Bar -->
-      <div class="flex w-full items-start justify-between">
-        <button
-          (click)="backHome()"
-          class="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full bg-white/80 text-teal-600 shadow-md backdrop-blur transition-colors hover:bg-white dark:bg-gray-800/80 dark:text-teal-400 dark:hover:bg-gray-700"
-        >
-          <i class="fa-solid fa-house text-xl"></i>
-        </button>
-
+      <div class="flex w-full items-center justify-between">
+        <div class="w-12"></div>
         <!-- Objective Panel -->
         <div
           class="pointer-events-auto flex transform items-center space-x-2 rounded-lg border border-teal-200 bg-white/80 px-2 py-1 shadow-md backdrop-blur-sm dark:border-teal-800 dark:bg-gray-800/80"
@@ -85,7 +79,10 @@
       <!-- Quick Actions Buttons (Advanced Mode Only) - Positioned around cart -->
       @if (learnMode() === LearnMode.Advanced) {
         <!-- Left side buttons (x5, x10) -->
-        <div class="pointer-events-auto absolute" [style]="getLeftButtonsStyle()">
+        <div
+          class="pointer-events-auto absolute"
+          [style]="getLeftButtonsStyle()"
+        >
           <div class="flex space-x-1">
             <button
               (click)="multiTimes(5)"
@@ -103,7 +100,10 @@
         </div>
 
         <!-- Right side buttons (x25, x50) -->
-        <div class="pointer-events-auto absolute" [style]="getRightButtonsStyle()">
+        <div
+          class="pointer-events-auto absolute"
+          [style]="getRightButtonsStyle()"
+        >
           <div class="flex space-x-1">
             <button
               (click)="multiTimes(25)"

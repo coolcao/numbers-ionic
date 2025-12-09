@@ -241,13 +241,16 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
       cartHeight - PADDING,
     );
 
-    // 存储购物车碰撞区域
+    // 存储购物车碰撞区域 - 响应式调整顶部偏移量
+    // 根据购物车高度动态调整顶部偏移，小屏幕使用更小的偏移量
+    const cartTopOffset = cartHeight < 200 ? 50 : cartHeight < 250 ? 60 : 80;
+
     this.cartZone.label = 'cart';
     (this.cartZone as any).hitAreaBounds = {
       x: PADDING + 20,
-      y: cartY + 80, // 留出购物车顶部装饰空间
+      y: cartY + cartTopOffset, // 响应式留出购物车顶部装饰空间
       width: width - PADDING * 2 - 40,
-      height: cartHeight - PADDING - 80,
+      height: cartHeight - PADDING - cartTopOffset,
     };
 
     // 重新渲染商品
@@ -332,14 +335,25 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     // 最后添加主支撑柱，确保在最上层
     shelfBg.addChild(framework);
 
-    // 添加木纹装饰效果
-    for (let i = 0; i < 3; i++) {
-      const woodGrain = new Graphics();
-      const grainY = y + 20 + i * 30;
-      woodGrain.moveTo(x + 15, grainY);
-      woodGrain.lineTo(x + w - 15, grainY);
-      woodGrain.stroke({ width: 1, color: 0x65260f, alpha: 0.3 });
-      shelfBg.addChild(woodGrain);
+    // 添加木纹装饰效果 - 每一层都添加
+    for (let s = 0; s < shelfCount; s++) {
+      const levelStartY = y + s * shelfHeight;
+      const levelEndY = levelStartY + shelfHeight;
+
+      for (let i = 0; i < 3; i++) {
+        const woodGrain = new Graphics();
+        // 每一层的纹理位置优化：更紧凑且更靠下
+        // 从底部向上计算：起始偏移减少到25，间距减少到20
+        const grainY = levelEndY - 20 - i * 20;
+
+        // 确保不会画到这一层的顶部板子上 (留出20px缓冲)
+        if (grainY > levelStartY + 20) {
+          woodGrain.moveTo(x + 15, grainY);
+          woodGrain.lineTo(x + w - 15, grainY);
+          woodGrain.stroke({ width: 1, color: 0x65260f, alpha: 0.2 });
+          shelfBg.addChild(woodGrain);
+        }
+      }
     }
 
     // 响应式字体大小和标签尺寸
@@ -378,15 +392,18 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
 
     // 响应式参数 - 统一计算，避免重复声明
     const screenWidth = this.app.screen.width;
+    const screenHeight = this.app.screen.height;
     const isMobile = screenWidth < 768;
     const isTablet = screenWidth >= 768 && screenWidth < 1024;
+    const isSmallHeight = h < 200; // 检测购物车高度是否较小
 
     // 暗黑模式检测
     const isDarkMode = this.store.isDarkMode();
 
-    // 购物车主体 - 3D效果
-    const cartMainY = y + 50;
-    const cartMainH = h - 50;
+    // 购物车主体 - 3D效果，根据高度调整顶部偏移
+    const cartTopOffset = isSmallHeight ? 30 : 50; // 小高度时减少顶部偏移
+    const cartMainY = y + cartTopOffset;
+    const cartMainH = h - cartTopOffset;
 
     // 根据暗黑模式调整颜色
     const cartMainColor = isDarkMode ? 0x7c2d12 : 0xfb923c; // 暗黑模式用深橙色，亮模式用亮橙色
@@ -427,8 +444,8 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
       this.cartZone.stroke({ width: 1, color: gridColor, alpha: isDarkMode ? 0.5 : 0.3 });
     }
 
-    // 购物车把手 - 根据暗黑模式调整颜色
-    const handleY = y + 10;
+    // 购物车把手 - 根据暗黑模式调整颜色，小高度时调整位置
+    const handleY = y + (isSmallHeight ? 5 : 10);
     const handlePath = new Graphics();
     handlePath.moveTo(x + w / 2 - 40, handleY);
     handlePath.bezierCurveTo(
@@ -504,11 +521,12 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
       this.cartZone.addChild(wheel);
     });
 
-    // 购物车标签 - 响应式字体大小和暗黑模式颜色
+    // 购物车标签 - 响应式字体大小、位置和暗黑模式颜色
     const cartFontSize = isMobile ? 18 : 24; // 手机端使用18px，桌面端使用24px
     const strokeWidth = isMobile ? 2 : 3; // 手机端使用较细的描边
     const labelTextColor = isDarkMode ? 0xfed7aa : 0xc2410c; // 暗黑模式用浅橙色，亮模式用深橙色
     const labelStrokeColor = isDarkMode ? 0x000000 : 0xffffff; // 暗黑模式用黑色描边，亮模式用白色描边
+    const labelY = y + (isSmallHeight ? 20 : 30); // 小高度时调整标签位置
 
     const cartLabel = new Text({
       text: '🛒 购物车',
@@ -521,7 +539,7 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     });
     cartLabel.anchor.set(0.5);
     cartLabel.x = x + w / 2;
-    cartLabel.y = y + 30;
+    cartLabel.y = labelY;
     this.cartZone.addChild(cartLabel);
 
     this.cartContainer.addChild(this.cartZone);
@@ -615,7 +633,7 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     const { targetGoods, targetNumber, goods } = this.service.init(8); // 8个商品
     this.targetGoods.set(targetGoods);
     this.targetNumber.set(targetNumber);
-    
+
     // 确保所有商品都没有选中状态，并设置默认amount
     const cleanGoods = goods.map(g => ({
       ...g,
@@ -711,7 +729,7 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
       const selectionBorder = new Graphics();
       selectionBorder.circle(0, 0, size / 2 + 8);
       selectionBorder.stroke({ width: 6, color: 0x22c55e, alpha: 0.8 }); // 绿色选中边框
-      
+
       // 添加闪烁效果
       let pulsePhase = 0;
       const pulseAnimation = () => {
@@ -722,7 +740,7 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
         }
       };
       pulseAnimation();
-      
+
       container.addChild(selectionBorder);
     }
 
@@ -776,7 +794,7 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     });
 
     // 简化的拖拽和点击逻辑
-    let clickStartPos: {x: number, y: number} | null = null;
+    let clickStartPos: { x: number, y: number } | null = null;
 
     container.on('pointerdown', (event) => {
       if (hoverAnimation) {
@@ -799,10 +817,10 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     container.on('globalpointermove', (event) => {
       if (dragData && !isDragging && clickStartPos) {
         const moveDistance = Math.sqrt(
-          Math.pow(event.global.x - clickStartPos.x, 2) + 
+          Math.pow(event.global.x - clickStartPos.x, 2) +
           Math.pow(event.global.y - clickStartPos.y, 2)
         );
-        
+
         // 如果移动距离超过5px，开始拖拽
         if (moveDistance > 5) {
           isDragging = true;
@@ -869,7 +887,7 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
       } else if (this.learnMode() === LearnMode.Advanced && clickStartPos) {
         // 进阶模式下的点击选中逻辑（没有拖拽时）
         this.selectGoods(item);
-        
+
         // 添加选中效果
         container.scale.set(1.2);
         setTimeout(() => {
@@ -965,21 +983,38 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     const screenWidth = this.app.screen.width;
     const isMobile = screenWidth < 768;
     const isTablet = screenWidth >= 768 && screenWidth < 1024;
-    
-    // 根据设备类型调整内边距
-    const padding = isMobile ? 8 : 15; // 手机端减少内边距，让商品更贴近边框
+    const isSmallHeight = cartHeight < 200; // 检测购物车高度是否较小
+
+    // 根据设备类型和购物车高度调整内边距
+    let padding: number;
+    let topPadding: number;
+
+    if (isSmallHeight) {
+      // 小高度购物车：极小的内边距，让水果垂直居中
+      padding = isMobile ? 5 : 10;
+      topPadding = 3; // 极小的顶部边距
+    } else if (isMobile) {
+      // 普通手机端：减少内边距
+      padding = 8;
+      topPadding = 5;
+    } else {
+      // 平板和桌面端：正常内边距
+      padding = 15;
+      topPadding = 15;
+    }
+
     const availableWidth = bounds.width - padding * 2;
-    
+
     // 根据设备类型和屏幕大小计算商品尺寸
     let baseItemSize: number;
     let maxItemSize: number;
     let itemSpacing: number;
-    
+
     if (isMobile) {
       // 手机端：非常小的商品尺寸
       baseItemSize = 32;
       maxItemSize = Math.min(45, availableWidth / 6); // 最大45px，确保能放下6个
-      itemSpacing = 5;
+      itemSpacing = isSmallHeight ? 3 : 5; // 小高度时进一步减少间距
     } else if (isTablet) {
       // 平板端：中等商品尺寸
       baseItemSize = 65;
@@ -991,7 +1026,7 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
       maxItemSize = Math.min(100, availableWidth / 3.5); // 最大100px
       itemSpacing = 10;
     }
-    
+
     const itemSize = Math.max(baseItemSize, maxItemSize); // 确保不小于基础尺寸
     const cols = Math.floor(availableWidth / (itemSize + itemSpacing));
 
@@ -1000,8 +1035,6 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
       const row = Math.floor(index / cols);
 
       const x = bounds.x + padding + col * (itemSize + itemSpacing) + itemSize / 2;
-      // 手机端进一步减少顶部边距，让水果更贴近上边框
-      const topPadding = isMobile ? 5 : padding;
       const y = bounds.y + topPadding + row * (itemSize + itemSpacing) + itemSize / 2;
 
       const container = new Container();
@@ -1085,7 +1118,7 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     if (cartGoods.length === 0) {
       return false;
     }
-    
+
     // 计算总数量，考虑每个商品的倍数
     const totalAmount = cartGoods.reduce((sum, item) => {
       return sum + (item.amount || 1); // 如果没有amount属性，默认为1
@@ -1137,36 +1170,36 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
   // 计算左侧按钮位置（x5, x10）
   getLeftButtonsStyle() {
     if (!this.app) return '';
-    
+
     const width = this.app.screen.width;
     const height = this.app.screen.height;
     const goodsHeight = height * 0.4;
     const goodsY = 80;
     const cartY = goodsY + goodsHeight + 5;
     const PADDING = 20;
-    
+
     // 购物车左侧位置
     const leftX = PADDING + 10; // 紧贴购物车左边框
     const topY = cartY + 5; // 紧贴购物车上边框
-    
+
     return `left: ${leftX}px; top: ${topY}px; z-index: 20;`;
   }
 
   // 计算右侧按钮位置（x25, x50）
   getRightButtonsStyle() {
     if (!this.app) return '';
-    
+
     const width = this.app.screen.width;
     const height = this.app.screen.height;
     const goodsHeight = height * 0.4;
     const goodsY = 80;
     const cartY = goodsY + goodsHeight + 5;
     const PADDING = 20;
-    
+
     // 购物车右侧位置
     const rightX = width - PADDING - 90; // 紧贴购物车右边框，预留按钮宽度
     const topY = cartY + 5; // 紧贴购物车上边框
-    
+
     return `left: ${rightX}px; top: ${topY}px; z-index: 20;`;
   }
 
@@ -1182,7 +1215,7 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     });
     this.goods.set([...goods]);
     this.selectedGoods.set(item);
-    
+
     // 重新渲染商品以显示选中状态
     this.renderGoods();
   }
@@ -1192,7 +1225,7 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
     // 先从商品列表中找到选中的商品
     const goods = this.goods();
     const currentSelectedGoods = goods.find(g => g.selected);
-    
+
     if (!currentSelectedGoods) {
       // 没有选中商品，播放错误音效
       this.playError();
@@ -1210,11 +1243,11 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
       ...currentSelectedGoods,
       amount: times // 设置倍数
     };
-    
+
     this.cartGoods.update(current => [...current, itemToAdd]);
     this.renderCartItems();
     this.playRight();
-    
+
     // 注意：不清除选中状态，保持绿色高亮环，允许继续点击其他倍数
   }
 
