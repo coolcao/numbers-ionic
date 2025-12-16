@@ -194,4 +194,87 @@
       </div>
     </div>
   }
+
+  <!-- Tutorial Overlay -->
+  @if (tutorialService.isPlaying()) {
+    <div class="pointer-events-none absolute inset-0 z-[100] overflow-hidden">
+      <!-- Spotlight / Dimmer -->
+      <div
+        class="absolute inset-0 bg-black/60 transition-all duration-300"
+        [ngStyle]="{
+          'mask-image': tutorialService.spotlight()
+            ? 'radial-gradient(circle ' +
+              tutorialService.spotlight()?.r +
+              'px at ' +
+              tutorialService.spotlight()?.x +
+              'px ' +
+              tutorialService.spotlight()?.y +
+              'px, transparent 0%, black 100%)'
+            : 'none',
+          '-webkit-mask-image': tutorialService.spotlight()
+            ? 'radial-gradient(circle ' +
+              tutorialService.spotlight()?.r +
+              'px at ' +
+              tutorialService.spotlight()?.x +
+              'px ' +
+              tutorialService.spotlight()?.y +
+              'px, transparent 0%, black 100%)'
+            : 'none',
+        }"
+      ></div>
+
+      <!-- Instruction Bubble (Top Bar Style) -->
+      @if (tutorialService.instruction(); as text) {
+        <div
+          class="absolute left-0 top-0 z-[120] flex min-h-[100px] w-full items-center justify-center border-b-4 border-yellow-400 bg-white/95 p-4 shadow-xl"
+        >
+          <p
+            class="animate-bounce whitespace-pre-line text-center text-xl font-bold text-teal-900 md:text-3xl"
+          >
+            {{ text }}
+          </p>
+        </div>
+      }
+
+      <!-- Target Highlight Ring -->
+      @if (tutorialService.spotlight(); as spot) {
+        <div
+          class="absolute animate-ping rounded-full border-4 border-yellow-400 opacity-75"
+          [style.left.px]="spot.x - spot.r"
+          [style.top.px]="spot.y - spot.r"
+          [style.width.px]="spot.r * 2"
+          [style.height.px]="spot.r * 2"
+        ></div>
+      }
+
+      <!-- Hand Cursor -->
+      @if (tutorialService.handPosition(); as hand) {
+        <div
+          class="absolute z-[101] transition-all duration-100 ease-linear"
+          [style.left.px]="hand.x"
+          [style.top.px]="hand.y"
+        >
+          <div class="drop-shadow-2xl filter">
+            <i
+              class="fa-solid fa-hand-pointer stroke-black text-5xl text-white outline-black md:text-7xl"
+              [class.scale-90]="tutorialService.handAction() === 'click'"
+              [class.-rotate-12]="tutorialService.handAction() === 'idle'"
+              style="
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+                -webkit-text-stroke: 2px black;
+              "
+            ></i>
+          </div>
+        </div>
+      }
+
+      <!-- Controls -->
+      <button
+        (click)="tutorialService.skip()"
+        class="pointer-events-auto absolute right-4 top-4 rounded-full bg-white/20 px-4 py-2 text-sm font-bold text-white backdrop-blur-md hover:bg-white/30"
+      >
+        跳过教程
+      </button>
+    </div>
+  }
 </div>

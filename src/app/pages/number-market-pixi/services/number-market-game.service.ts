@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { Container } from 'pixi.js';
+import { Subject } from 'rxjs';
 import { LearnMode } from 'src/app/app.types';
 import { AppService } from 'src/app/service/app.service';
 import { AppStore } from 'src/app/store/app.store';
@@ -58,6 +59,8 @@ export class NumberMarketGameService implements OnDestroy {
   totalRound = signal(6);
   currentRound = signal(0);
   correctRound = signal(0);
+
+  public event$ = new Subject<{ type: 'drop_success' | 'select_goods' | 'multi_times' | 'checkout', payload?: any }>();
 
   private effects: EffectRef[] = [];
   private resizeSubscription: any;
@@ -176,19 +179,24 @@ export class NumberMarketGameService implements OnDestroy {
     }
   }
 
-  startGame() {
+  startGame(forceTargetNumber?: number) {
     this.audioService.stopAll();
     this.gameState.set('playing');
-    this.playNextRound();
+    this.playNextRound(forceTargetNumber);
   }
 
-  playNextRound() {
+  playNextRound(forceTargetNumber?: number) {
     this.gameState.set('playing');
     this.cartGoods.set([]);
 
     const { targetGoods, targetNumber, goods } = this.service.init(8);
     this.targetGoods.set(targetGoods);
-    this.targetNumber.set(targetNumber);
+
+    if (forceTargetNumber !== undefined) {
+      this.targetNumber.set(forceTargetNumber);
+    } else {
+      this.targetNumber.set(targetNumber);
+    }
 
     const cleanGoods = goods.map(g => ({
       ...g,
@@ -269,6 +277,8 @@ export class NumberMarketGameService implements OnDestroy {
     // Add to cart with amount 1 (simple drag is always 1)
     this.cartGoods.update(curr => [...curr, { ...item, amount: 1 }]);
 
+    this.event$.next({ type: 'drop_success', payload: item });
+
     // Delayed re-render of goods (original logic had this)
     setTimeout(() => {
       this.renderGoods();
@@ -288,6 +298,7 @@ export class NumberMarketGameService implements OnDestroy {
     });
     this.goods.set([...goods]);
     this.selectedGoods.set(item);
+    this.event$.next({ type: 'select_goods', payload: item });
     this.renderGoods();
   }
 
@@ -316,6 +327,7 @@ export class NumberMarketGameService implements OnDestroy {
 
     // Add to cart
     this.cartGoods.update(curr => [...curr, { ...currentSelected, amount: times }]);
+    this.event$.next({ type: 'multi_times', payload: times });
     this.renderCartItems();
     this.audioService.playRight();
   }
@@ -330,6 +342,7 @@ export class NumberMarketGameService implements OnDestroy {
 
   async checkRound() {
     const result = this.check();
+    this.event$.next({ type: 'checkout', payload: result });
     this.currentRound.update((round) => round + 1);
 
     if (result) {
@@ -385,5 +398,58 @@ export class NumberMarketGameService implements OnDestroy {
     const rightMargin = PADDING + 10;
     const topY = cartY + 5;
     return `right: ${rightMargin}px; top: ${topY}px; z-index: 20;`;
+  }
+
+  // --- Tutorial Helpers ---
+  getGoodsPosition(id: string): { x: number, y: number } | null {
+    if (!this.pixiEngine.goodsContainer) return null;
+    const item = this.pixiEngine.goodsContainer.getChildByLabel(id);
+    if (item) {
+      const point = item.getGlobalPosition();
+      return { x: point.x, y: point.y };
+    }
+    return null;
+  }
+
+  getCartPosition(): { x: number, y: number } | null {
+    if (!this.pixiEngine.cartContainer) return null;
+    const cart = this.pixiEngine.cartContainer.getChildByLabel('cart');
+    if (cart) {
+      const bounds = (cart as any).hitAreaBounds;
+      if (bounds) {
+        // return center
+        return { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 };
+      }
+      const point = cart.getGlobalPosition();
+      return { x: point.x, y: point.y };
+    }
+    return null;
+  }
+
+  getLeftButtonPosition(index: number): { x: number, y: number } | null {
+    if (!this.pixiEngine.app) return null;
+    const height = this.pixiEngine.height;
+    const goodsHeight = height * 0.4;
+    const goodsY = 80;
+    const cartY = goodsY + goodsHeight + 5;
+    const PADDING = 20;
+    const leftX = PADDING + 10;
+    const topY = cartY + 5;
+
+    // Approximate button width/spacing based on responsive styles
+    // Mobile: w-10 (40px). Tablet: w-12 (48px). PC: w-14 (56px).
+    // Let's assume an average or detect screen width.
+    const width = this.pixiEngine.width;
+    let buttonWidth = 40;
+    if (width >= 1024) buttonWidth = 64; // lg
+    else if (width >= 768) buttonWidth = 48; // md
+
+    const spacing = width >= 1024 ? 8 : 4; // lg:space-x-2 (8px), space-x-1 (4px)
+
+    // Offset for button center (half width) + index * (width + spacing)
+    const offsetX = index * (buttonWidth + spacing) + buttonWidth / 2;
+    const offsetY = buttonWidth / 2; // Assuming height ~ width for center calculation
+
+    return { x: leftX + offsetX, y: topY + offsetY };
   }
 }

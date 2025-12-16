@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NumberMarketGameService } from './services/number-market-game.service';
+import { NumberMarketTutorialService } from './services/number-market-tutorial.service';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { LearnMode } from 'src/app/app.types';
 
@@ -35,6 +36,7 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
   @ViewChild('pixiContainer', { static: true }) pixiContainer!: ElementRef;
 
   gameService = inject(NumberMarketGameService);
+  tutorialService = inject(NumberMarketTutorialService);
   route = inject(ActivatedRoute);
 
   // Expose signals and properties for the template
@@ -68,8 +70,23 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
   }
 
   // Proxy methods for template
-  startGame() {
-    this.gameService.startGame();
+  async startGame() {
+    const shouldRun = await this.tutorialService.checkShouldRun();
+    let forceTarget: number | undefined;
+
+    if (shouldRun) {
+      if (this.gameService.learnMode() === LearnMode.Advanced) {
+        forceTarget = 5;
+      } else {
+        forceTarget = 1; // Starter mode tutorial: only buy 1
+      }
+    }
+
+    this.gameService.startGame(forceTarget);
+
+    if (shouldRun) {
+      this.tutorialService.startTutorial();
+    }
   }
 
   playCurrentRoundSound() {

@@ -6,6 +6,8 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
+import { IonicStorageModule } from '@ionic/storage-angular';
+import { Drivers } from '@ionic/storage';
 
 import { AppRoutingModule } from 'src/app/app-routing.module';
 
@@ -24,6 +26,7 @@ import { NumberBubblesCanvasComponent } from 'src/app/pages/number-bubbles-canva
 import { NumberBubblesPixiComponent } from './pages/number-bubbles-pixi/number-bubbles-pixi.component';
 import { NumberTrainPixiComponent } from './pages/number-train-pixi/number-train-pixi.component';
 import { NumberMarketPixiComponent } from './pages/number-market-pixi/number-market-pixi.component';
+
 
 @NgModule({
   declarations: [
@@ -47,6 +50,10 @@ import { NumberMarketPixiComponent } from './pages/number-market-pixi/number-mar
     BrowserModule,
     CommonModule,
     IonicModule.forRoot(),
+    IonicStorageModule.forRoot({
+      name: 'baby-numbers',
+      driverOrder: [Drivers.IndexedDB, Drivers.LocalStorage],
+    }),
     AppRoutingModule,
     FormsModule,
     BrowserAnimationsModule,
