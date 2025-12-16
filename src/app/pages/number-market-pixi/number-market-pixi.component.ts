@@ -6,6 +6,7 @@ import {
   ViewChild,
   inject,
 } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { NumberMarketGameService } from './services/number-market-game.service';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { LearnMode } from 'src/app/app.types';
@@ -34,6 +35,7 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
   @ViewChild('pixiContainer', { static: true }) pixiContainer!: ElementRef;
 
   gameService = inject(NumberMarketGameService);
+  route = inject(ActivatedRoute);
 
   // Expose signals and properties for the template
   gameState = this.gameService.gameState;
@@ -49,6 +51,15 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
   constructor() { }
 
   async ngOnInit() {
+    // Logic from incoming changes: Check query params for mode
+    this.route.queryParams.subscribe(params => {
+      if (params['mode']) {
+        const mode = params['mode'] === 'advanced' ? LearnMode.Advanced : LearnMode.Starter;
+        this.gameService.store.setLearnMode(mode);
+      }
+    });
+
+    // Initialize Game Service (replaces old initPixi logic)
     await this.gameService.init(this.pixiContainer.nativeElement);
   }
 

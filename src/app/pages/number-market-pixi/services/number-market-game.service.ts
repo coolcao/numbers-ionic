@@ -168,6 +168,9 @@ export class NumberMarketGameService implements OnDestroy {
     this.cartZoneHitArea = (cartZone as any).hitAreaBounds;
 
     // Re-render dynamic items if they exist (to match new layout)
+    if (this.goods().length > 0) {
+      this.renderGoods();
+    }
     if (this.cartGoods().length > 0) {
       this.renderCartItems();
     }
@@ -296,7 +299,11 @@ export class NumberMarketGameService implements OnDestroy {
   // --- Public Interactions called by Component ---
 
   multiTimes(times: number) {
+    // Use single source of truth: the goods list, matching original logic
     const currentSelected = this.selectedGoods();
+    // const goods = this.goods();
+    // const currentSelected = goods.find(g => g.selected);
+
     if (!currentSelected) {
       this.audioService.playError();
       return;
@@ -368,14 +375,15 @@ export class NumberMarketGameService implements OnDestroy {
 
   getRightButtonsStyle() {
     if (!this.pixiEngine.app) return '';
-    const width = this.pixiEngine.width;
     const height = this.pixiEngine.height;
     const goodsHeight = height * 0.4;
     const goodsY = 80;
     const cartY = goodsY + goodsHeight + 5;
     const PADDING = 20;
-    const rightX = width - PADDING - 90;
+    // Use 'right' property to allow button container to grow naturally to the left without calculation
+    // Aligning symmetrically with left buttons (PADDING + 10)
+    const rightMargin = PADDING + 10;
     const topY = cartY + 5;
-    return `left: ${rightX}px; top: ${topY}px; z-index: 20;`;
+    return `right: ${rightMargin}px; top: ${topY}px; z-index: 20;`;
   }
 }

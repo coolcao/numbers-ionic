@@ -1,9 +1,11 @@
 import { AfterContentInit, AfterViewInit, Component, computed, effect, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild, ChangeDetectorRef } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { interval, Subscription, timer } from 'rxjs';
 import { NumberBubblesAudioService } from '../number-bubbles/number-bubbles.audio.service';
 import { NumberBubblesStore } from '../../store/number-bubbles.store';
 import { AppService } from 'src/app/service/app.service';
+import { AppStore } from 'src/app/store/app.store';
+import { LearnMode } from 'src/app/app.types';
 import { Application, Container, Graphics, Text, Sprite, Texture } from 'pixi.js';
 
 interface Bubble {
@@ -41,11 +43,13 @@ interface Particle {
   styleUrl: './number-bubbles-pixi.component.css'
 })
 export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterContentInit, OnDestroy {
+  private readonly route = inject(ActivatedRoute);
   private readonly appService = inject(AppService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly router = inject(Router);
   private readonly numberBubblesStore = inject(NumberBubblesStore);
   private readonly numberBubblesAudioService = inject(NumberBubblesAudioService);
+  private readonly appStore = inject(AppStore);
   private bubbleSubscription?: Subscription;
 
   numbers = this.numberBubblesStore.numbers;
@@ -152,6 +156,14 @@ export class NumberBubblesPixiComponent implements OnInit, AfterViewInit, AfterC
   }
 
   async ngOnInit(): Promise<void> {
+    // 检查query参数中的模式，如果有则更新store
+    this.route.queryParams.subscribe(params => {
+      if (params['mode']) {
+        const mode = params['mode'] === 'advanced' ? LearnMode.Advanced : LearnMode.Starter;
+        this.appStore.setLearnMode(mode);
+      }
+    });
+    
     await this.appService.lockPortrait();
     // 初始化时设置响应式泡泡大小
     this.updateBubbleSize();

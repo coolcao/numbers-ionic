@@ -73,19 +73,19 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   goToLearn() {
     this.audioService.stopAll();
-    this.router.navigate(['learn-numbers']);
+    this.router.navigate(['learn-numbers'], { queryParams: { mode: this.learnMode() } });
   }
   goToListen() {
     this.audioService.stopAll();
-    this.router.navigate(['listen-numbers']);
+    this.router.navigate(['listen-numbers'], { queryParams: { mode: this.learnMode() } });
   }
   goToBubbles() {
     this.audioService.stopAll();
-    this.router.navigate(['number-bubbles']);
+    this.router.navigate(['number-bubbles'], { queryParams: { mode: this.learnMode() } });
   }
   goToTrainGame() {
     this.audioService.stopAll();
-    this.router.navigate(['number-train']);
+    this.router.navigate(['number-train'], { queryParams: { mode: this.learnMode() } });
   }
 
   changeLearnMode(mode: LearnMode) {
@@ -94,6 +94,6 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   goToMarketGame() {
     this.audioService.stopAll();
-    this.router.navigate(['number-market']);
+    this.router.navigate(['number-market'], { queryParams: { mode: this.learnMode() } });
   }
 }

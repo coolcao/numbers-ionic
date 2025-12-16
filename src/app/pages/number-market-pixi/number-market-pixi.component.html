@@ -83,16 +83,16 @@
           class="pointer-events-auto absolute"
           [style]="getLeftButtonsStyle()"
         >
-          <div class="flex space-x-1">
+          <div class="flex space-x-1 lg:space-x-2">
             <button
               (click)="multiTimes(5)"
-              class="flex h-8 w-10 items-center justify-center rounded-full bg-teal-400 text-xs font-bold text-white transition-all hover:scale-110 hover:bg-teal-500 active:scale-95 dark:bg-teal-600 dark:hover:bg-teal-700 sm:h-10 sm:w-12 sm:text-sm"
+              class="flex h-8 w-10 items-center justify-center rounded-full bg-teal-400 text-xs font-bold text-white transition-all hover:scale-110 hover:bg-teal-500 active:scale-95 dark:bg-teal-600 dark:hover:bg-teal-700 sm:h-10 sm:w-12 sm:text-sm md:h-12 md:w-14 md:text-base lg:h-14 lg:w-16 lg:text-lg"
             >
               x5
             </button>
             <button
               (click)="multiTimes(10)"
-              class="flex h-8 w-10 items-center justify-center rounded-full bg-teal-400 text-xs font-bold text-white transition-all hover:scale-110 hover:bg-teal-500 active:scale-95 dark:bg-teal-600 dark:hover:bg-teal-700 sm:h-10 sm:w-12 sm:text-sm"
+              class="flex h-8 w-10 items-center justify-center rounded-full bg-teal-400 text-xs font-bold text-white transition-all hover:scale-110 hover:bg-teal-500 active:scale-95 dark:bg-teal-600 dark:hover:bg-teal-700 sm:h-10 sm:w-12 sm:text-sm md:h-12 md:w-14 md:text-base lg:h-14 lg:w-16 lg:text-lg"
             >
               x10
             </button>
@@ -104,16 +104,16 @@
           class="pointer-events-auto absolute"
           [style]="getRightButtonsStyle()"
         >
-          <div class="flex space-x-1">
+          <div class="flex space-x-1 lg:space-x-2">
             <button
               (click)="multiTimes(25)"
-              class="flex h-8 w-10 items-center justify-center rounded-full bg-teal-400 text-xs font-bold text-white transition-all hover:scale-110 hover:bg-teal-500 active:scale-95 dark:bg-teal-600 dark:hover:bg-teal-700 sm:h-10 sm:w-12 sm:text-sm"
+              class="flex h-8 w-10 items-center justify-center rounded-full bg-teal-400 text-xs font-bold text-white transition-all hover:scale-110 hover:bg-teal-500 active:scale-95 dark:bg-teal-600 dark:hover:bg-teal-700 sm:h-10 sm:w-12 sm:text-sm md:h-12 md:w-14 md:text-base lg:h-14 lg:w-16 lg:text-lg"
             >
               x25
             </button>
             <button
               (click)="multiTimes(50)"
-              class="flex h-8 w-10 items-center justify-center rounded-full bg-teal-400 text-xs font-bold text-white transition-all hover:scale-110 hover:bg-teal-500 active:scale-95 dark:bg-teal-600 dark:hover:bg-teal-700 sm:h-10 sm:w-12 sm:text-sm"
+              class="flex h-8 w-10 items-center justify-center rounded-full bg-teal-400 text-xs font-bold text-white transition-all hover:scale-110 hover:bg-teal-500 active:scale-95 dark:bg-teal-600 dark:hover:bg-teal-700 sm:h-10 sm:w-12 sm:text-sm md:h-12 md:w-14 md:text-base lg:h-14 lg:w-16 lg:text-lg"
             >
               x50
             </button>
@@ -122,12 +122,16 @@
       }
 
       <!-- Bottom Bar -->
-      <div class="pointer-events-auto flex items-end justify-center pb-2">
+      <div
+        class="pointer-events-auto flex items-end justify-center pb-2 md:pb-4 lg:pb-8"
+      >
         <button
           (click)="checkRound()"
-          class="flex transform items-center space-x-2 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 px-6 py-2 text-lg font-bold text-white shadow-md transition-all hover:scale-105 hover:shadow-lg active:scale-95"
+          class="flex transform items-center space-x-2 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 px-6 py-2 text-lg font-bold text-white shadow-md transition-all hover:scale-105 hover:shadow-lg active:scale-95 md:space-x-3 md:px-8 md:py-3 md:text-xl lg:space-x-4 lg:px-12 lg:py-4 lg:text-3xl"
         >
-          <i class="fa-solid fa-cash-register text-xl"></i>
+          <i
+            class="fa-solid fa-cash-register text-xl md:text-2xl lg:text-3xl"
+          ></i>
           <span>结账</span>
         </button>
       </div>
@@ -174,15 +178,17 @@
         <div class="flex justify-center space-x-4">
           <button
             (click)="restartGame()"
-            class="flex-1 rounded-xl bg-yellow-400 px-6 py-3 font-bold text-white shadow-md transition-transform hover:scale-105 hover:bg-yellow-500 active:scale-95"
+            class="flex-1 rounded-xl bg-yellow-400 px-3 py-3 font-bold text-white shadow-md transition-transform hover:scale-105 hover:bg-yellow-500 active:scale-95 sm:px-6"
           >
-            <i class="fa-solid fa-rotate-right mr-2"></i> 再玩一次
+            <i class="fa-solid fa-rotate-right sm:mr-2"></i>
+            <span class="hidden sm:inline">再玩一次</span>
           </button>
           <button
             (click)="backHome()"
-            class="flex-1 rounded-xl bg-gray-200 px-6 py-3 font-bold text-gray-700 shadow-md transition-transform hover:scale-105 hover:bg-gray-300 active:scale-95 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+            class="flex-1 rounded-xl bg-gray-200 px-3 py-3 font-bold text-gray-700 shadow-md transition-transform hover:scale-105 hover:bg-gray-300 active:scale-95 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 sm:px-6"
           >
-            <i class="fa-solid fa-house mr-2"></i> 回到首页
+            <i class="fa-solid fa-house sm:mr-2"></i>
+            <span class="hidden sm:inline">回到首页</span>
           </button>
         </div>
       </div>

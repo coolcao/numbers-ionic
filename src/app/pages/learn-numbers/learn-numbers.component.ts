@@ -1,9 +1,11 @@
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { LearnNumbersStore } from '../../store/learn-numbers.store';
 import { LearnMode } from '../../app.types';
 import { LearnNumbersAudioService } from './learn-numbers.service';
 import { learnNumbersAnimations } from './learn-numbers.animations';
 import { AppService } from 'src/app/service/app.service';
+import { AppStore } from 'src/app/store/app.store';
 
 @Component({
   selector: 'app-learn-numbers',
@@ -14,9 +16,11 @@ import { AppService } from 'src/app/service/app.service';
 })
 export class LearnNumbersComponent implements OnInit, OnDestroy {
   LearnMode = LearnMode;
+  private readonly route = inject(ActivatedRoute);
   private readonly learnNumbersStore = inject(LearnNumbersStore);
   private readonly audioService = inject(LearnNumbersAudioService);
   private readonly appService = inject(AppService);
+  private readonly appStore = inject(AppStore);
 
   numbers = this.learnNumbersStore.numbers;
   learnMode = this.learnNumbersStore.learnMode;
@@ -26,19 +30,19 @@ export class LearnNumbersComponent implements OnInit, OnDestroy {
   numberDetailImage = signal<string>('');
   clickedNumber = signal<number | null>(null);
 
-  // 进阶模式下数字太多，分6组，每组15个数字
+  // 进阶模式下数字太多，分9组，每组10个数字
   group = computed(() => {
     if (this.learnMode() === LearnMode.Advanced) {
-      return 6;
+      return 9;
     }
     return 1;
   });
   currentGroup = signal<number>(0);
   groupNumbers = computed(() => {
-    // 将numbers数组分成6组，每组15个数字
+    // 将numbers数组分成9组，每组10个数字
     const groups: number[][] = [];
     for (let i = 0; i < this.group(); i++) {
-      groups.push(this.numbers().slice(i * 15, (i + 1) * 15));
+      groups.push(this.numbers().slice(i * 10, (i + 1) * 10));
     }
     return groups;
   });
@@ -72,6 +76,14 @@ export class LearnNumbersComponent implements OnInit, OnDestroy {
 
 
   async ngOnInit(): Promise<void> {
+    // 检查query参数中的模式，如果有则更新store
+    this.route.queryParams.subscribe(params => {
+      if (params['mode']) {
+        const mode = params['mode'] === 'advanced' ? LearnMode.Advanced : LearnMode.Starter;
+        this.appStore.setLearnMode(mode);
+      }
+    });
+    
     await this.appService.lockPortrait();
     await this.audioService.preloadWelcome(this.learnMode());
     await Promise.all([this.audioService.preloadNumbers(this.numbers()), this.playWelcome(), this.audioService.preloadNumberDesc(this.numbers()), this.audioService.preloadNumberMeaning(this.numbers())]);
