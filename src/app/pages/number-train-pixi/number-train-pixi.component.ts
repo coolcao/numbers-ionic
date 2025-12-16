@@ -10,7 +10,7 @@ import {
   signal,
   WritableSignal,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import {
   Application,
   Container,
@@ -27,6 +27,7 @@ import { NumberTrainStore } from 'src/app/store/number-train.store';
 import { NumberTrainService } from 'src/app/pages/number-train/number-train.service';
 import { AudioService } from 'src/app/service/audio.service';
 import { AppService } from 'src/app/service/app.service';
+import { LearnMode } from 'src/app/app.types';
 import { Capacitor } from '@capacitor/core';
 import { timer } from 'rxjs';
 
@@ -48,6 +49,7 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
   @ViewChild('pixiContainer', { static: true }) pixiContainer!: ElementRef;
 
   private app!: Application;
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly appStore = inject(AppStore);
   private readonly trainStore = inject(NumberTrainStore);
@@ -125,6 +127,14 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit() {
+    // 检查query参数中的模式，如果有则更新store
+    this.route.queryParams.subscribe(params => {
+      if (params['mode']) {
+        const mode = params['mode'] === 'advanced' ? LearnMode.Advanced : LearnMode.Starter;
+        this.appStore.setLearnMode(mode);
+      }
+    });
+    
     // 检查设备类型（手机、平板或桌面）
     const deviceType = this.getDeviceType();
     if (deviceType === 'mobile') {

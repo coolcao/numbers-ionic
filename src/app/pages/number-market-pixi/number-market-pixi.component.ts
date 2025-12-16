@@ -9,7 +9,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import {
   Application,
   Container,
@@ -54,6 +54,7 @@ import { animate, style, transition, trigger } from '@angular/animations';
 export class NumberMarketPixiComponent implements OnInit, OnDestroy {
   @ViewChild('pixiContainer', { static: true }) pixiContainer!: ElementRef;
 
+  route = inject(ActivatedRoute);
   router = inject(Router);
   store = inject(AppStore);
   marketStore = inject(NumberMarketStore);
@@ -109,6 +110,15 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     console.log('NumberMarketPixiComponent ngOnInit started');
     console.log('Current GameState:', this.gameState());
+    
+    // 检查query参数中的模式，如果有则更新store
+    this.route.queryParams.subscribe(params => {
+      if (params['mode']) {
+        const mode = params['mode'] === 'advanced' ? LearnMode.Advanced : LearnMode.Starter;
+        this.store.setLearnMode(mode);
+      }
+    });
+    
     try {
       await this.appService.lockPortrait();
       console.log('Screen locked');

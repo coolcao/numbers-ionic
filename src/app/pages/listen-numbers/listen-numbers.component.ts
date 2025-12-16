@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { trigger, state, style, animate, transition, keyframes } from '@angular/animations';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AppStore } from '../../store/app.store';
 import { ListenNumbersStore } from '../../store/listen-numbers.store';
 import { LearnMode } from '../../app.types';
@@ -126,6 +126,7 @@ export class ListenNumbersComponent implements OnInit, OnDestroy {
   LearnMode = LearnMode;
   audioUri = 'assets/audio';
 
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly store = inject(AppStore);
   private readonly listenStore = inject(ListenNumbersStore);
@@ -205,6 +206,14 @@ export class ListenNumbersComponent implements OnInit, OnDestroy {
   }
 
   async ngOnInit(): Promise<void> {
+    // 检查query参数中的模式，如果有则更新store
+    this.route.queryParams.subscribe(params => {
+      if (params['mode']) {
+        const mode = params['mode'] === 'advanced' ? LearnMode.Advanced : LearnMode.Starter;
+        this.store.setLearnMode(mode);
+      }
+    });
+    
     await this.appService.lockPortrait();
     await this.audioService.preloadWelcomeAndRules();
     await this.audioService.playWelcomeAndRules();
