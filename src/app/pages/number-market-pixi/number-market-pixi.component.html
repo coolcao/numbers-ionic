@@ -174,15 +174,17 @@
         <div class="flex justify-center space-x-4">
           <button
             (click)="restartGame()"
-            class="flex-1 rounded-xl bg-yellow-400 px-6 py-3 font-bold text-white shadow-md transition-transform hover:scale-105 hover:bg-yellow-500 active:scale-95"
+            class="flex-1 rounded-xl bg-yellow-400 px-3 py-3 font-bold text-white shadow-md transition-transform hover:scale-105 hover:bg-yellow-500 active:scale-95 sm:px-6"
           >
-            <i class="fa-solid fa-rotate-right mr-2"></i> 再玩一次
+            <i class="fa-solid fa-rotate-right sm:mr-2"></i> 
+            <span class="hidden sm:inline">再玩一次</span>
           </button>
           <button
             (click)="backHome()"
-            class="flex-1 rounded-xl bg-gray-200 px-6 py-3 font-bold text-gray-700 shadow-md transition-transform hover:scale-105 hover:bg-gray-300 active:scale-95 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+            class="flex-1 rounded-xl bg-gray-200 px-3 py-3 font-bold text-gray-700 shadow-md transition-transform hover:scale-105 hover:bg-gray-300 active:scale-95 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 sm:px-6"
           >
-            <i class="fa-solid fa-house mr-2"></i> 回到首页
+            <i class="fa-solid fa-house sm:mr-2"></i> 
+            <span class="hidden sm:inline">回到首页</span>
           </button>
         </div>
       </div>
