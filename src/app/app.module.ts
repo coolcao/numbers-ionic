@@ -23,9 +23,9 @@ import { TrainCarComponent } from 'src/app/pages/number-train/components/train-c
 import { TrainCabooseComponent } from 'src/app/pages/number-train/components/train-caboose/train-caboose.component';
 import { NumberMarketComponent } from 'src/app/pages/number-market/number-market.component';
 import { NumberBubblesCanvasComponent } from 'src/app/pages/number-bubbles-canvas/number-bubbles-canvas.component';
-import { NumberBubblesPixiComponent } from './pages/number-bubbles-pixi/number-bubbles-pixi.component';
 import { NumberTrainPixiComponent } from './pages/number-train-pixi/number-train-pixi.component';
 import { NumberMarketPixiComponent } from './pages/number-market-pixi/number-market-pixi.component';
+import { NumberBubblesPixiComponent } from 'src/app/pages/number-bubbles-pixi/number-bubbles-pixi.component';
 
 
 @NgModule({
