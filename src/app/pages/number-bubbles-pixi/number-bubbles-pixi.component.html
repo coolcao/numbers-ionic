@@ -1,7 +1,7 @@
 <div
   class="relative flex h-full w-full select-none flex-col overflow-hidden font-sans"
 >
-  @if (gameStatus() === "playing") {
+  @if (gameStatus() === "playing" || gameStatus() === "tutorial") {
     <!-- 目标数字显示层 -->
     @if (playTargets()) {
       <div class="z-10 flex h-full w-full items-center justify-center">

@@ -5,13 +5,20 @@ import { Bubble, Particle } from './number-bubbles-pixi.types';
 @Injectable({ providedIn: 'root' })
 export class NumberBubblesBubbleService {
   // Movement and lifecycle update for all bubbles; also updates particles and removes finished containers
-  updateBubbles(app: Application, bubbles: Bubble[]): Bubble[] {
+  updateBubbles(
+    app: Application,
+    bubbles: Bubble[],
+    overlay?: Graphics,
+    uiContainer?: Container,
+  ): Bubble[] {
     const currentTime = Date.now();
+    let hasHighlight = false;
+    let highlightBubble: Bubble | undefined;
 
-    return bubbles.filter(bubble => {
+    const activeBubbles = bubbles.filter((bubble) => {
       if (bubble.isExploding) {
         if (bubble.particles) {
-          bubble.particles.forEach(p => {
+          bubble.particles.forEach((p) => {
             p.sprite.x += p.vx;
             p.sprite.y += p.vy;
             p.vy += 0.3; // gravity
@@ -23,7 +30,7 @@ export class NumberBubblesBubbleService {
             const scale = lifeRatio * 0.99;
             p.sprite.scale.set(scale);
           });
-          bubble.particles = bubble.particles.filter(p => p.life > 0);
+          bubble.particles = bubble.particles.filter((p) => p.life > 0);
           return bubble.particles.length > 0;
         }
         return false;
@@ -53,8 +60,10 @@ export class NumberBubblesBubbleService {
           if (p < 1) {
             const shakeIntensity = 12 * (1 - p);
             const shakeFrequency = 25;
-            const offsetX = Math.sin(e * shakeFrequency * 0.01) * shakeIntensity;
-            const offsetY = Math.cos(e * shakeFrequency * 0.01) * shakeIntensity * 0.6;
+            const offsetX =
+              Math.sin(e * shakeFrequency * 0.01) * shakeIntensity;
+            const offsetY =
+              Math.cos(e * shakeFrequency * 0.01) * shakeIntensity * 0.6;
             bubble.container.x = bubble.x + offsetX;
             bubble.container.y = bubble.y + offsetY;
           } else {
@@ -64,8 +73,76 @@ export class NumberBubblesBubbleService {
         }
       }
 
+      if (bubble.isHighlight && bubble.container) {
+        const bullseye = bubble.container.getChildByName('bullseye');
+        const hand = bubble.container.getChildByName('hand');
+        const t = Date.now();
+        if (bullseye) {
+          const scale = 1 + Math.sin(t / 200) * 0.1;
+          bullseye.scale.set(scale);
+          bullseye.alpha = 0.8 + Math.sin(t / 300) * 0.2;
+          bullseye.rotation += 0.02;
+        }
+      }
+
+      if (bubble.isHighlight) {
+        hasHighlight = true;
+        highlightBubble = bubble;
+      }
+
       return true;
     });
+
+    if (overlay) {
+      overlay.clear();
+
+      const width = app.renderer.width;
+      const height = app.renderer.height;
+
+      // Always draw tint
+      overlay.rect(0, 0, width, height);
+      overlay.fill({ color: 0x000000, alpha: 0.7 });
+
+      if (hasHighlight && highlightBubble) {
+        const radius = highlightBubble.size / 2 + 20;
+        overlay.circle(highlightBubble.x, highlightBubble.y, radius);
+        overlay.cut();
+      }
+    }
+
+    if (uiContainer) {
+      let hand = uiContainer.getChildByName('tutorialHand') as Text;
+
+      if (hasHighlight && highlightBubble) {
+        if (!hand) {
+          hand = new Text({
+            text: '👆',
+            style: {
+              fontSize: 60,
+            },
+          });
+          hand.name = 'tutorialHand';
+          hand.anchor.set(0.5, 0); // top-center
+          uiContainer.addChild(hand);
+        }
+
+        hand.visible = true;
+        const radius = highlightBubble.size / 2;
+        // Position relative to screen since uiContainer is global (child of gameStage)
+        // bubble x/y are relative to bubbleContainer?
+        // bubbleContainer is at 0,0 usually.
+
+        hand.rotation = -0.5;
+        hand.x = highlightBubble.x + 15;
+        hand.y = highlightBubble.y + 5 + Math.sin(Date.now() / 300) * 10;
+      } else {
+        if (hand) {
+          hand.visible = false;
+        }
+      }
+    }
+
+    return activeBubbles;
   }
 
   // Create bubble display objects and attach to container; mutates bubble to set refs
@@ -73,8 +150,36 @@ export class NumberBubblesBubbleService {
     const container = new Container();
     container.position.set(bubble.x, bubble.y);
 
-    const graphics = new Graphics();
     const radius = bubble.size / 2;
+
+    if (bubble.isHighlight) {
+      // Bullseye Effect
+      const bullseye = new Container();
+      bullseye.name = 'bullseye';
+
+      const ring1 = new Graphics();
+      ring1.circle(0, 0, radius * 1.15);
+      ring1.stroke({ color: 0xff5733, width: 4, alpha: 0.8 }); // Red/Orange
+      bullseye.addChild(ring1);
+
+      const ring2 = new Graphics();
+      ring2.circle(0, 0, radius * 0.9);
+      ring2.stroke({ color: 0xffffff, width: 3, alpha: 0.6 });
+      bullseye.addChild(ring2);
+
+      // Add crosshair lines? optional.
+      const crosshair = new Graphics();
+      crosshair.moveTo(-radius * 1.4, 0);
+      crosshair.lineTo(radius * 1.4, 0);
+      crosshair.moveTo(0, -radius * 1.4);
+      crosshair.lineTo(0, radius * 1.4);
+      crosshair.stroke({ color: 0xff5733, width: 2, alpha: 0.5 });
+      bullseye.addChild(crosshair);
+
+      container.addChild(bullseye);
+    }
+
+    const graphics = new Graphics();
 
     // shadow
     graphics.circle(2, 2, radius);
@@ -83,14 +188,17 @@ export class NumberBubblesBubbleService {
     // layered gradient body
     for (let i = radius; i >= 0; i -= radius * 0.1) {
       const alpha = 0.9 * (1 - (radius - i) / radius);
-      const color = this.adjustColorBrightness(bubble.color, (radius - i) / radius * 30);
+      const color = this.adjustColorBrightness(
+        bubble.color,
+        ((radius - i) / radius) * 30,
+      );
       graphics.circle(0, 0, i);
       graphics.fill({ color, alpha });
     }
 
     // border
     graphics.circle(0, 0, radius);
-    graphics.stroke({ color: 0xFFFFFF, width: 3, alpha: 0.6 });
+    graphics.stroke({ color: 0xffffff, width: 3, alpha: 0.6 });
 
     graphics.eventMode = 'static';
     graphics.cursor = 'pointer';
@@ -100,12 +208,12 @@ export class NumberBubblesBubbleService {
     // highlights
     const highlight = new Graphics();
     highlight.circle(-radius * 0.3, -radius * 0.3, radius * 0.5);
-    highlight.fill({ color: 0xFFFFFF, alpha: 0.6 });
+    highlight.fill({ color: 0xffffff, alpha: 0.6 });
     container.addChild(highlight);
 
     const highlight2 = new Graphics();
     highlight2.circle(-radius * 0.5, -radius * 0.5, radius * 0.2);
-    highlight2.fill({ color: 0xFFFFFF, alpha: 0.8 });
+    highlight2.fill({ color: 0xffffff, alpha: 0.8 });
     container.addChild(highlight2);
 
     // text
@@ -135,7 +243,11 @@ export class NumberBubblesBubbleService {
     bubble.text = text;
   }
 
-  createExplosion(particleContainer: Container, bubble: Bubble, bubbles: Bubble[]): Bubble[] {
+  createExplosion(
+    particleContainer: Container,
+    bubble: Bubble,
+    bubbles: Bubble[],
+  ): Bubble[] {
     const particleCount = 60;
     const particles: Particle[] = [];
 
@@ -160,9 +272,11 @@ export class NumberBubblesBubbleService {
 
       let particleColor: number;
       const colorType = Math.random();
-      if (colorType < 0.7) particleColor = (Math.floor(newR) << 16) | (Math.floor(newG) << 8) | Math.floor(newB);
-      else if (colorType < 0.85) particleColor = 0xFFD700;
-      else particleColor = 0xFFFFFF;
+      if (colorType < 0.7)
+        particleColor =
+          (Math.floor(newR) << 16) | (Math.floor(newG) << 8) | Math.floor(newB);
+      else if (colorType < 0.85) particleColor = 0xffd700;
+      else particleColor = 0xffffff;
 
       const lifeVariation = Math.random() * 20 + 25;
 
@@ -190,16 +304,29 @@ export class NumberBubblesBubbleService {
       bubble.container.parent.removeChild(bubble.container);
     }
 
-    return bubbles.map(b => (b.index === bubble.index ? { ...b, isExploding: true, particles } : b));
+    return bubbles.map((b) =>
+      b.index === bubble.index ? { ...b, isExploding: true, particles } : b,
+    );
   }
 
   getTextColor(_hex: string): number {
-    return 0xFFFFFF;
+    return 0xffffff;
   }
 
-  generateBubbleWithSpacing(app: Application, existing: Bubble[], index: number, number: number, sizeMin: number, sizeMax: number, durationStart: number, durationEnd: number, colors: string[]): Bubble | null {
+  generateBubbleWithSpacing(
+    app: Application,
+    existing: Bubble[],
+    index: number,
+    number: number,
+    sizeMin: number,
+    sizeMax: number,
+    durationStart: number,
+    durationEnd: number,
+    colors: string[],
+  ): Bubble | null {
     const size = Math.floor(Math.random() * (sizeMax - sizeMin + 1)) + sizeMin;
-    const duration = Math.random() * (durationEnd - durationStart) + durationStart;
+    const duration =
+      Math.random() * (durationEnd - durationStart) + durationStart;
     const color = colors[Math.floor(Math.random() * colors.length)];
     const textColor = this.getTextColor(color);
 
@@ -215,39 +342,88 @@ export class NumberBubblesBubbleService {
         if (eb.isExploding) continue;
         const distance = Math.abs(x - eb.x);
         const minRequiredDistance = (size + eb.size) / 2 + minSpacing;
-        if (distance < minRequiredDistance) { hasOverlap = true; break; }
+        if (distance < minRequiredDistance) {
+          hasOverlap = true;
+          break;
+        }
       }
 
       if (!hasOverlap) {
-        return { index, size, duration, color, textColor, x, y: -size, number, startTime: Date.now() };
+        return {
+          index,
+          size,
+          duration,
+          color,
+          textColor,
+          x,
+          y: -size,
+          number,
+          startTime: Date.now(),
+        };
       }
     }
     return null;
   }
 
-  generateBubble(app: Application | undefined, index: number, number: number, sizeMin: number, sizeMax: number, durationStart: number, durationEnd: number, colors: string[]): Bubble {
+  generateBubble(
+    app: Application | undefined,
+    index: number,
+    number: number,
+    sizeMin: number,
+    sizeMax: number,
+    durationStart: number,
+    durationEnd: number,
+    colors: string[],
+  ): Bubble {
     if (!app) {
-      return { index, size: 100, duration: 10, color: colors[0], textColor: 0xFFFFFF, x: 100, y: -100, number, startTime: Date.now() };
+      return {
+        index,
+        size: 100,
+        duration: 10,
+        color: colors[0],
+        textColor: 0xffffff,
+        x: 100,
+        y: -100,
+        number,
+        startTime: Date.now(),
+      };
     }
 
     const size = Math.floor(Math.random() * (sizeMax - sizeMin + 1)) + sizeMin;
-    const duration = Math.random() * (durationEnd - durationStart) + durationStart;
+    const duration =
+      Math.random() * (durationEnd - durationStart) + durationStart;
     const color = colors[Math.floor(Math.random() * colors.length)];
 
     const maxX = app.renderer.width - size;
     const x = Math.random() * maxX + size / 2;
     const textColor = this.getTextColor(color);
 
-    return { index, size, duration, color, textColor, x, y: -size, number, startTime: Date.now() };
+    return {
+      index,
+      size,
+      duration,
+      color,
+      textColor,
+      x,
+      y: -size,
+      number,
+      startTime: Date.now(),
+    };
   }
 
-  onCanvasClick(app: Application, bubbles: Bubble[], event: MouseEvent): Bubble | null {
+  onCanvasClick(
+    app: Application,
+    bubbles: Bubble[],
+    event: MouseEvent,
+  ): Bubble | null {
     const rect = (app.canvas as HTMLCanvasElement).getBoundingClientRect();
-    const clickX = (event.clientX - rect.left) * (app.renderer.width / rect.width);
-    const clickY = (event.clientY - rect.top) * (app.renderer.height / rect.height);
+    const clickX =
+      (event.clientX - rect.left) * (app.renderer.width / rect.width);
+    const clickY =
+      (event.clientY - rect.top) * (app.renderer.height / rect.height);
 
     const overlapping = bubbles
-      .filter(b => {
+      .filter((b) => {
         if (b.isExploding || !b.container) return false;
         const distance = Math.sqrt((clickX - b.x) ** 2 + (clickY - b.y) ** 2);
         return distance <= b.size / 2;
@@ -261,11 +437,19 @@ export class NumberBubblesBubbleService {
   }
 
   shakeBubble(bubbles: Bubble[], target: Bubble): Bubble[] {
-    return bubbles.map(b => (b.index === target.index ? { ...b, isShaking: true, shakeStartTime: Date.now() } : b));
+    return bubbles.map((b) =>
+      b.index === target.index
+        ? { ...b, isShaking: true, shakeStartTime: Date.now() }
+        : b,
+    );
   }
 
   clearShake(bubbles: Bubble[], target: Bubble): Bubble[] {
-    return bubbles.map(b => (b.index === target.index ? { ...b, isShaking: false, shakeStartTime: undefined } : b));
+    return bubbles.map((b) =>
+      b.index === target.index
+        ? { ...b, isShaking: false, shakeStartTime: undefined }
+        : b,
+    );
   }
 
   private adjustColorBrightness(hexColor: string, percent: number): number {

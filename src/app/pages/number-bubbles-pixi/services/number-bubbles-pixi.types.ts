@@ -17,6 +17,7 @@ export interface Bubble {
   particles?: Particle[];
   isShaking?: boolean;
   shakeStartTime?: number;
+  isHighlight?: boolean;
 }
 
 export interface Particle {

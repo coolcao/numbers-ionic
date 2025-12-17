@@ -1,5 +1,5 @@
 import { ElementRef, Injectable } from '@angular/core';
-import { Application, Container } from 'pixi.js';
+import { Application, Container, Graphics } from 'pixi.js';
 
 @Injectable({ providedIn: 'root' })
 export class NumberBubblesPixiEngineService {
@@ -7,11 +7,18 @@ export class NumberBubblesPixiEngineService {
   gameStage?: Container;
   bubbleContainer?: Container;
   particleContainer?: Container;
+  tutorialOverlay?: Graphics;
+  uiContainer?: Container;
 
   private resizeHandler?: () => void;
   private canvasClickHandler?: (e: MouseEvent) => void;
 
-  async init(containerEl: HTMLElement, onTick: (ticker: any) => void, onCanvasClick: (e: MouseEvent) => void, onResize?: () => void): Promise<void> {
+  async init(
+    containerEl: HTMLElement,
+    onTick: (ticker: any) => void,
+    onCanvasClick: (e: MouseEvent) => void,
+    onResize?: () => void,
+  ): Promise<void> {
     if (this.app) return;
 
     this.app = new Application();
@@ -30,8 +37,12 @@ export class NumberBubblesPixiEngineService {
     this.gameStage = new Container();
     this.bubbleContainer = new Container();
     this.particleContainer = new Container();
+    this.tutorialOverlay = new Graphics();
+    this.uiContainer = new Container();
     this.gameStage.addChild(this.bubbleContainer);
     this.gameStage.addChild(this.particleContainer);
+    this.gameStage.addChild(this.tutorialOverlay);
+    this.gameStage.addChild(this.uiContainer);
     this.app.stage.addChild(this.gameStage);
 
     const canvas = this.app.canvas as HTMLCanvasElement;
@@ -46,7 +57,10 @@ export class NumberBubblesPixiEngineService {
 
     this.resizeHandler = () => {
       if (!this.app) return;
-      this.app.renderer.resize(containerEl.clientWidth, containerEl.clientHeight);
+      this.app.renderer.resize(
+        containerEl.clientWidth,
+        containerEl.clientHeight,
+      );
       if (onResize) onResize();
     };
     window.addEventListener('resize', this.resizeHandler);
@@ -79,5 +93,7 @@ export class NumberBubblesPixiEngineService {
     this.gameStage = undefined;
     this.bubbleContainer = undefined;
     this.particleContainer = undefined;
+    this.tutorialOverlay = undefined;
+    this.uiContainer = undefined;
   }
 }
