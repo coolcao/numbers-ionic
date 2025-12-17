@@ -1,18 +1,19 @@
-import { Injectable, computed, inject, signal, WritableSignal } from '@angular/core';
+import { Injectable, inject, signal, WritableSignal } from '@angular/core';
 import { Subject } from 'rxjs';
 import { TrainPart } from '../number-train.types';
-import { NumberTrainService } from 'src/app/pages/number-train/number-train.service';
-import { NumberTrainStore } from 'src/app/store/number-train.store';
-import { LearnMode } from 'src/app/app.types';
 import { AppStore } from 'src/app/store/app.store';
+import { NumberTrainStore } from 'src/app/store/number-train.store';
+import { NumberTrainService } from 'src/app/pages/number-train/number-train.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NumberTrainGameService {
+  // Tutorial flag to control flow and counters
+  private tutorialMode = false;
+  private appStore = inject(AppStore);
   private logicService = inject(NumberTrainService);
   private trainStore = inject(NumberTrainStore);
-  private appStore = inject(AppStore);
 
   // Game State
   trainNumbers: WritableSignal<number[]> = signal([]);
@@ -28,13 +29,16 @@ export class NumberTrainGameService {
   correctRound = signal(0);
   roundFinished = signal(false);
 
-  // Event Bus for effects/animations
-  event$ = new Subject<{ type: 'success' | 'error' | 'next_round', payload?: any }>();
+  // Event Bus for effects/animations and tutorial signals
+  event$ = new Subject<{ type: 'success' | 'error' | 'next_round' | 'tutorial_drag' | 'tutorial_drag_end', payload?: any }>();
 
-  initGame() {
+  initGame(options: { tutorial?: boolean } = { tutorial: false }) {
+    // Switch tutorial mode and reset counters; tutorial rounds don't count
+    this.tutorialMode = !!options?.tutorial;
     this.currentRound.set(0);
     this.correctRound.set(0);
     this.gameState.set('playing');
+    // Start first round with internal tutorial flag having effect
     this.playNextRound();
   }
 
@@ -57,9 +61,18 @@ export class NumberTrainGameService {
       targetNumbers = [3];
     }
 
+    // 教程使用指定数字
+    if (this.tutorialMode) {
+      trainNumbers = [1, 2, 3, 4, 5];
+      targetNumbers = [3];
+    }
+
     this.trainNumbers.set(trainNumbers);
     this.targetNumbers.set(targetNumbers);
-    this.currentRound.update((r) => r + 1);
+    // 教程不计入轮次
+    if (!this.tutorialMode) {
+      this.currentRound.update((r) => r + 1);
+    }
 
     // Prepare Data
     const allTrains: TrainPart[] = trainNumbers.map((num, idx) => ({
@@ -102,7 +115,9 @@ export class NumberTrainGameService {
     }
 
     if (isCorrect) {
-      this.correctRound.update((r) => r + 1);
+      if (!this.tutorialMode) {
+        this.correctRound.update((r) => r + 1);
+      }
       this.gameState.set('animating'); // Lock interaction
       this.event$.next({ type: 'success' }); // Trigger animation
     } else {
@@ -120,6 +135,13 @@ export class NumberTrainGameService {
 
   // Called after success animation completes
   onRoundComplete() {
+    // 教程模式下，完成一轮后切换到正式游戏第一轮
+    if (this.tutorialMode) {
+      this.tutorialMode = false;
+      // 重置目标为正式模式
+      this.playNextRound();
+      return;
+    }
     if (this.currentRound() >= this.totalRound()) {
       this.gameState.set('finished');
     } else {
@@ -129,5 +151,10 @@ export class NumberTrainGameService {
 
   get learnMode() {
     return this.appStore.learnMode;
+  }
+
+  // Expose tutorial mode for UI/drag visuals gating
+  isTutorialMode() {
+    return this.tutorialMode;
   }
 }

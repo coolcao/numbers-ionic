@@ -8,6 +8,7 @@ import { NumberTrainPixiEngineService } from './services/number-train-pixi-engin
 import { NumberTrainGameService } from './services/number-train-game.service';
 import { NumberTrainSceneService } from './services/number-train-scene.service';
 import { NumberTrainTrainService } from './services/number-train-train.service';
+import { NumberTrainTutorialService } from './services/number-train-tutorial.service';
 
 @Component({
   selector: 'app-number-train-pixi',
@@ -28,12 +29,20 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
   readonly gameService = inject(NumberTrainGameService);
   readonly scene = inject(NumberTrainSceneService);
   readonly train = inject(NumberTrainTrainService);
+  readonly tutorialService = inject(NumberTrainTutorialService);
 
   // Expose signals for Template
   totalRound = this.gameService.totalRound;
   currentRound = this.gameService.currentRound;
   correctRound = this.gameService.correctRound;
   gameState = this.gameService.gameState;
+
+  // Tutorial signals
+  tutorialStep = this.tutorialService.step;
+  tutorialHandPosition = this.tutorialService.handPosition;
+  tutorialHandAction = this.tutorialService.handAction;
+  tutorialSpotlight = this.tutorialService.spotlight;
+  tutorialInstruction = this.tutorialService.instruction;
 
   constructor() { }
 
@@ -68,7 +77,18 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
 
     await this.train.init();
 
-    this.gameService.initGame();
+    await this.startGame();
+  }
+
+  async startGame() {
+    const shouldRun = await this.tutorialService.checkShouldRun();
+
+    if (shouldRun) {
+      this.gameService.initGame({ tutorial: true });
+      this.tutorialService.startTutorial();
+    } else {
+      this.gameService.initGame();
+    }
   }
 
   ngOnDestroy() {
@@ -83,8 +103,8 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
     }
   }
 
-  restartGame() {
-    this.gameService.initGame();
+  async restartGame() {
+    await this.startGame();
   }
 
   backHome() {

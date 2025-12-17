@@ -40,6 +40,8 @@ export class NumberTrainPixiEngineService {
     this.app.stage.hitArea = this.app.screen;
 
     this.mainContainer = new Container();
+    // Allow zIndex sorting so dragged items/highlights can appear above others
+    this.mainContainer.sortableChildren = true;
     this.app.stage.addChild(this.mainContainer);
 
     this.backgroundGraphics = new Graphics();

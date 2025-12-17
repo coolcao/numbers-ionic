@@ -26,6 +26,56 @@
   <!-- Pixi Canvas 容器 -->
   <div #pixiContainer class="absolute inset-0 h-full w-full"></div>
 
+  <!-- 教程引导层 -->
+  @if (tutorialService.isPlaying()) {
+    <!-- 半透明遮罩 - 允许事件穿透到 PixiJS -->
+    <div class="pointer-events-none absolute inset-0 z-40 bg-black/30"></div>
+
+    <!-- 聚光灯效果 -->
+    @if (tutorialSpotlight()) {
+      <div
+        class="pointer-events-none absolute z-50 rounded-full shadow-[0_0_0_9999px_rgba(0,0,0,0.3)]"
+        [style.left.px]="tutorialSpotlight()!.x - tutorialSpotlight()!.r"
+        [style.top.px]="tutorialSpotlight()!.y - tutorialSpotlight()!.r"
+        [style.width.px]="tutorialSpotlight()!.r * 2"
+        [style.height.px]="tutorialSpotlight()!.r * 2"
+      ></div>
+    }
+
+    <!-- 手形图标 -->
+    @if (tutorialHandPosition()) {
+      <div
+        class="pointer-events-none absolute z-50 text-4xl text-yellow-400 drop-shadow-lg"
+        [style.left.px]="tutorialHandPosition()!.x - 20"
+        [style.top.px]="tutorialHandPosition()!.y - 20"
+        [class.animate-pulse]="tutorialHandAction() === 'click'"
+      >
+        @if (tutorialHandAction() === 'drag') {
+          ✊
+        } @else {
+          👆
+        }
+      </div>
+    }
+
+    <!-- 指令文本 -->
+    <div
+      class="pointer-events-none absolute left-1/2 top-24 z-50 -translate-x-1/2 rounded-2xl bg-white/95 px-6 py-4 text-center shadow-2xl dark:bg-gray-800/95"
+    >
+      <div class="font-comic text-xl font-bold text-cyan-800 dark:text-white whitespace-pre-line">
+        {{ tutorialInstruction() }}
+      </div>
+    </div>
+
+    <!-- 跳过按钮 -->
+    <button
+      (click)="tutorialService.skip()"
+      class="font-comic absolute right-4 top-4 z-50 cursor-pointer rounded-xl bg-gray-600/80 px-4 py-2 text-white shadow-lg transition-all hover:scale-105 hover:bg-gray-700"
+    >
+      跳过引导
+    </button>
+  }
+
   <!-- 游戏结束弹窗 -->
   @if (gameState() === "finished") {
     <div

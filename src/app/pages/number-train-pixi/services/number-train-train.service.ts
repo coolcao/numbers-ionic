@@ -1,8 +1,9 @@
-import { Injectable, inject, effect, OnDestroy } from '@angular/core';
+import { Injectable, inject, effect, OnDestroy, NgZone } from '@angular/core';
 import { Container, Texture, Sprite, Text, Graphics, Assets, FederatedPointerEvent, Point, Ticker } from 'pixi.js';
 import { TrainPart } from '../number-train.types';
 import { NumberTrainPixiEngineService } from './number-train-pixi-engine.service';
 import { NumberTrainGameService } from './number-train-game.service';
+// import { NumberTrainTutorialService } from './number-train-tutorial.service';
 import { AudioService } from 'src/app/service/audio.service';
 import { Subscription } from 'rxjs';
 
@@ -12,6 +13,9 @@ import { Subscription } from 'rxjs';
 export class NumberTrainTrainService implements OnDestroy {
   private engine = inject(NumberTrainPixiEngineService);
   private gameService = inject(NumberTrainGameService);
+  // Avoid direct injection of tutorial service to prevent DI cyclic deps; use event bus instead
+  // private tutorialService = inject(NumberTrainTutorialService);
+
   private audioService = inject(AudioService);
 
   topZone!: Container;
@@ -27,13 +31,16 @@ export class NumberTrainTrainService implements OnDestroy {
   private originalPosition = { x: 0, y: 0 };
   private originalParent: Container | null = null;
   private gapIndex: number | null = null;
+  private dragHighlight: Graphics | null = null;
+  private dragPath: Graphics | null = null;
 
   // Scaling constants (from component)
   private readonly TRAIN_WIDTH = 180;
 
   private sub = new Subscription();
 
-  constructor() {
+  constructor() { // NgZone injected to ensure signal updates propagate during Pixi pointer events
+  
     // Track game signals explicitly so changes retrigger even if zones not yet ready
     effect(() => {
       const top = this.gameService.topTrains();
@@ -282,6 +289,14 @@ export class NumberTrainTrainService implements OnDestroy {
   // --- Interaction ---
 
   onDragStart(event: FederatedPointerEvent) {
+    // Ensure highlight sits above mask by raising zIndex
+    if (!this.dragHighlight) {
+      this.dragHighlight = new Graphics();
+    }
+    if (!this.dragPath) {
+      this.dragPath = new Graphics();
+    }
+
     const obj = event.currentTarget as Container;
     const trainData = (obj as any).trainData as TrainPart;
 
@@ -301,13 +316,41 @@ export class NumberTrainTrainService implements OnDestroy {
 
     const newPos = this.engine.mainContainer.toLocal(objGlobalPos);
     this.engine.mainContainer.addChild(this.dragItem);
+    // Add circular outline highlight only in tutorial mode
+    if (this.gameService.isTutorialMode()) {
+      this.dragHighlight.clear();
+      const { isMobile, isTablet } = this.engine;
+      const uniformSize = isMobile ? (isTablet ? 140 : 100) : 180;
+      const radius = Math.round(uniformSize * 0.6);
+      this.dragItem.sortableChildren = true;
+      this.dragHighlight.zIndex = 1000;
+      this.dragHighlight.circle(0, 0, radius);
+      this.dragHighlight.stroke({ width: 6, color: 0xffffff, alpha: 0.9 });
+      this.dragItem.addChild(this.dragHighlight);
+    }
+
+    // Optional path highlight: only in tutorial mode
+    if (this.gameService.isTutorialMode()) {
+      this.dragPath.clear();
+      this.dragPath.lineStyle(6, 0xffffff, 0.6);
+      this.dragPath.moveTo(newPos.x, newPos.y);
+      this.dragPath.zIndex = 999;
+      this.engine.mainContainer.addChild(this.dragPath);
+    }
+
     this.dragItem.position.set(newPos.x, newPos.y);
     this.dragItem.scale.set(1.1);
-    this.dragItem.alpha = 0.9;
+    this.dragItem.alpha = 0.95;
+    this.dragItem.zIndex = 1001;
 
+    // Broadcast tutorial drag start
+    this.gameService.event$.next({ type: 'tutorial_drag', payload: { x: newPos.x, y: newPos.y } });
     this.engine.app.stage.on('pointermove', this.onDragMove, this);
     this.engine.app.stage.on('pointerup', this.onDragEnd, this);
     this.engine.app.stage.on('pointerupoutside', this.onDragEnd, this);
+
+    // Hide tutorial hand while dragging
+    this.gameService.event$.next({ type: 'tutorial_drag', payload: { x: newPos.x, y: newPos.y, hideHand: true } });
   }
 
   onDragMove(event: FederatedPointerEvent) {
@@ -320,6 +363,17 @@ export class NumberTrainTrainService implements OnDestroy {
     };
     const newLocal = this.engine.mainContainer.toLocal(new Point(newGlobal.x, newGlobal.y));
     this.dragItem.position.set(newLocal.x, newLocal.y);
+
+    // Update highlight and draw path trail
+    if (this.dragHighlight) {
+      // outline attached to dragItem; no extra position update required
+    }
+    if (this.dragPath) {
+      this.dragPath.lineTo(newLocal.x, newLocal.y);
+    }
+
+    // During tutorial, broadcast drag move for spotlight update
+    this.gameService.event$.next({ type: 'tutorial_drag', payload: { x: newLocal.x, y: newLocal.y } });
 
     // Collision
     const bottomY = this.bottomZone.y;
@@ -392,8 +446,22 @@ export class NumberTrainTrainService implements OnDestroy {
       if (this.dragItem) {
         this.dragItem.scale.set(1);
         this.dragItem.alpha = 1;
+        this.dragItem.zIndex = 0;
         this.dragItem = null;
       }
+
+      // Clear highlight and path
+      if (this.dragHighlight) {
+        this.dragHighlight.destroy({ children: false });
+        this.dragHighlight = null;
+      }
+      if (this.dragPath) {
+        this.dragPath.destroy({ children: false });
+        this.dragPath = null;
+      }
+
+      // Notify tutorial that dragging ended
+      this.gameService.event$.next({ type: 'tutorial_drag_end' });
     }
   }
 
