@@ -334,8 +334,15 @@ export class NumberBubblesBubbleService {
     const minSpacing = size * 0.2;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const maxX = app.renderer.width - size;
-      const x = Math.random() * maxX + size / 2;
+      const margin = 40;
+      const minCenter = size / 2 + margin;
+      const maxCenter = app.renderer.width - size / 2 - margin;
+
+      // Ensure we have space; if screen is too narrow (unlikely), fall back to center or existing logic
+      const x =
+        maxCenter > minCenter
+          ? Math.random() * (maxCenter - minCenter) + minCenter
+          : app.renderer.width / 2;
 
       let hasOverlap = false;
       for (const eb of existing) {
