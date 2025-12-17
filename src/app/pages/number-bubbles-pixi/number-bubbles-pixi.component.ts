@@ -13,7 +13,7 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
-import { interval, Subscription, timer } from 'rxjs';
+import { interval, Subscription, timer, firstValueFrom } from 'rxjs';
 import { NumberBubblesAudioService } from '../number-bubbles/number-bubbles.audio.service';
 import { NumberBubblesStore } from '../../store/number-bubbles.store';
 import { AppService } from 'src/app/service/app.service';
@@ -24,6 +24,7 @@ import { LearnMode } from 'src/app/app.types';
 import { NumberBubblesPixiEngineService } from './services/number-bubbles-pixi-engine.service';
 import { NumberBubblesBubbleService } from './services/number-bubbles-bubble.service';
 import { Bubble } from './services/number-bubbles-pixi.types';
+import { StorageService } from 'src/app/service/storage.service';
 
 @Component({
   selector: 'app-number-bubbles-pixi',
@@ -32,8 +33,7 @@ import { Bubble } from './services/number-bubbles-pixi.types';
   styleUrl: './number-bubbles-pixi.component.css',
 })
 export class NumberBubblesPixiComponent
-  implements OnInit, AfterViewInit, AfterContentInit, OnDestroy
-{
+  implements OnInit, AfterViewInit, AfterContentInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly appService = inject(AppService);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -45,6 +45,7 @@ export class NumberBubblesPixiComponent
   private readonly appStore = inject(AppStore);
   private readonly engine = inject(NumberBubblesPixiEngineService);
   private readonly bubbleSrv = inject(NumberBubblesBubbleService);
+  private readonly storageService = inject(StorageService);
   private bubbleSubscription?: Subscription;
 
   numbers = this.numberBubblesStore.numbers;
@@ -133,8 +134,8 @@ export class NumberBubblesPixiComponent
     this.generateTargetNumbers();
   }
 
-  ngAfterViewInit() {}
-  ngAfterContentInit() {}
+  ngAfterViewInit() { }
+  ngAfterContentInit() { }
 
   async ngOnDestroy(): Promise<void> {
     await this.appService.unlockScreen();
@@ -166,9 +167,17 @@ export class NumberBubblesPixiComponent
   }
 
   private async initPixiApp(): Promise<boolean> {
-    if (this.engine.app) return true;
     await this.waitForGameContainer();
     if (!this.gameContainer) return false;
+
+    if (this.engine.app) {
+      // Ensure canvas is attached to current container
+      if (this.engine.app.canvas.parentElement !== this.gameContainer.nativeElement) {
+        this.gameContainer.nativeElement.appendChild(this.engine.app.canvas);
+      }
+      return true;
+    }
+
     await this.engine.init(
       this.gameContainer.nativeElement,
       this.gameLoop.bind(this),
@@ -200,10 +209,16 @@ export class NumberBubblesPixiComponent
       !this.playTargets()
     ) {
       if (this.engine.app) {
+        // Only show overlay in tutorial mode
+        const overlay =
+          this.gameStatus() === 'tutorial'
+            ? this.engine.tutorialOverlay
+            : undefined;
+
         const updated = this.bubbleSrv.updateBubbles(
           this.engine.app,
           this.bubbles(),
-          this.engine.tutorialOverlay,
+          overlay,
           this.engine.uiContainer,
         );
         this.bubbles.set(updated);
@@ -246,6 +261,8 @@ export class NumberBubblesPixiComponent
       this.engine.bubbleContainer.removeChildren();
     if (this.engine.particleContainer)
       this.engine.particleContainer.removeChildren();
+    this.engine.tutorialOverlay?.clear();
+    this.engine.uiContainer?.removeChildren();
     this.bubbles().forEach((b) => {
       if (b.container && b.container.parent)
         b.container.parent.removeChild(b.container);
@@ -258,7 +275,9 @@ export class NumberBubblesPixiComponent
   }
 
   async startGame() {
-    const tutorialDone = localStorage.getItem('number_bubbles_tutorial_done');
+    const tutorialDone = await this.storageService.get(
+      'number_bubbles_tutorial_done',
+    );
     if (!tutorialDone) {
       await this.startTutorial();
       return;
@@ -279,6 +298,10 @@ export class NumberBubblesPixiComponent
         resolve(void 0);
       }, 100);
     });
+
+    // Ensure overlay is cleared when starting game
+    this.engine.tutorialOverlay?.clear();
+    this.engine.uiContainer?.removeChildren();
 
     await this.playTargetNumbersAudio();
     this.startGameTimer();
@@ -304,18 +327,24 @@ export class NumberBubblesPixiComponent
   }
 
   async completeTutorial() {
-    localStorage.setItem('number_bubbles_tutorial_done', 'true');
+    await this.storageService.set('number_bubbles_tutorial_done', 'true');
     this.numberBubblesAudioService.playSuccess();
 
-    // Clear and restart normal game
+    // Stop game loop but keep the last frame visible for the modal background
     this.stopGameLoop();
     if (this.bubbleSubscription) this.bubbleSubscription.unsubscribe();
-    this.clearPixiStage();
 
-    // Brief delay before starting real game
-    setTimeout(() => {
-      this.startGame();
-    }, 1500);
+    this.gameStatus.set('tutorial_success');
+  }
+
+  startRealGame() {
+    this.targetBubbleCount.set(0);
+    this.eliminatedBubbleCount.set(0);
+    this.bubbles.set([]); // Clear bubbles array too
+    this.clearPixiStage();
+    // Ensure loop is running!
+    this.startGameLoop();
+    this.startGame();
   }
 
   private async playTargetNumbersAudio() {
@@ -503,6 +532,7 @@ export class NumberBubblesPixiComponent
     if (this.gameStatus() === 'tutorial') {
       if (bubble.number === 1) {
         // Correct tutorial click
+        this.bubbleSubscription?.unsubscribe(); // Stop generation immediately
         this.eliminatedBubbleCount.update((count) => count + 1);
         if (this.engine.particleContainer) {
           this.bubbles.set(
@@ -514,6 +544,9 @@ export class NumberBubblesPixiComponent
           );
         }
         this.numberBubblesAudioService.playExplode();
+
+        // Wait for explosion animation
+        await new Promise((resolve) => setTimeout(resolve, 800));
 
         await this.completeTutorial();
       } else {

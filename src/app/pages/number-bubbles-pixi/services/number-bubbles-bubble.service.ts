@@ -96,14 +96,14 @@ export class NumberBubblesBubbleService {
     if (overlay) {
       overlay.clear();
 
-      const width = app.renderer.width;
-      const height = app.renderer.height;
-
-      // Always draw tint
-      overlay.rect(0, 0, width, height);
-      overlay.fill({ color: 0x000000, alpha: 0.7 });
-
       if (hasHighlight && highlightBubble) {
+        const width = app.renderer.width;
+        const height = app.renderer.height;
+
+        // Always draw tint
+        overlay.rect(0, 0, width, height);
+        overlay.fill({ color: 0x000000, alpha: 0.7 });
+
         const radius = highlightBubble.size / 2 + 20;
         overlay.circle(highlightBubble.x, highlightBubble.y, radius);
         overlay.cut();
@@ -305,7 +305,9 @@ export class NumberBubblesBubbleService {
     }
 
     return bubbles.map((b) =>
-      b.index === bubble.index ? { ...b, isExploding: true, particles } : b,
+      b.index === bubble.index
+        ? { ...b, isExploding: true, isHighlight: false, particles }
+        : b,
     );
   }
 
