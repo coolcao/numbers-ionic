@@ -10,6 +10,7 @@ export class NumberBubblesBubbleService {
     bubbles: Bubble[],
     overlay?: Graphics,
     uiContainer?: Container,
+    isTutorial?: boolean, // 新增教程状态参数
   ): Bubble[] {
     const currentTime = Date.now();
     let hasHighlight = false;
@@ -96,24 +97,29 @@ export class NumberBubblesBubbleService {
     if (overlay) {
       overlay.clear();
 
-      if (hasHighlight && highlightBubble) {
+      if (isTutorial) {
         const width = app.renderer.width;
         const height = app.renderer.height;
 
-        // Always draw tint
+        // 教程模式下始终显示遮罩
         overlay.rect(0, 0, width, height);
         overlay.fill({ color: 0x000000, alpha: 0.7 });
 
-        const radius = highlightBubble.size / 2 + 20;
-        overlay.circle(highlightBubble.x, highlightBubble.y, radius);
-        overlay.cut();
+        if (hasHighlight && highlightBubble) {
+          // 只有在有高亮泡泡时才挖空圆圈
+          const radius = highlightBubble.size / 2 + 20;
+          overlay.circle(highlightBubble.x, highlightBubble.y, radius);
+          overlay.cut();
+        }
+        // 没有高亮泡泡时，遮罩完全覆盖屏幕，不挖空任何区域
       }
     }
 
     if (uiContainer) {
       let hand = uiContainer.getChildByName('tutorialHand') as Text;
 
-      if (hasHighlight && highlightBubble) {
+      if (isTutorial && hasHighlight && highlightBubble) {
+        // 只有在教程模式且有高亮泡泡时才显示手势
         if (!hand) {
           hand = new Text({
             text: '👆',
@@ -127,15 +133,12 @@ export class NumberBubblesBubbleService {
         }
 
         hand.visible = true;
-        const radius = highlightBubble.size / 2;
-        // Position relative to screen since uiContainer is global (child of gameStage)
-        // bubble x/y are relative to bubbleContainer?
-        // bubbleContainer is at 0,0 usually.
-
+        // 手势指向高亮泡泡
         hand.rotation = -0.5;
         hand.x = highlightBubble.x + 15;
         hand.y = highlightBubble.y + 5 + Math.sin(Date.now() / 300) * 10;
       } else {
+        // 没有高亮泡泡或不在教程模式时隐藏手势
         if (hand) {
           hand.visible = false;
         }

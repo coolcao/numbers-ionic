@@ -220,6 +220,7 @@ export class NumberBubblesPixiComponent
           this.bubbles(),
           overlay,
           this.engine.uiContainer,
+          this.gameStatus() === 'tutorial', // 传递教程状态
         );
         this.bubbles.set(updated);
       }
