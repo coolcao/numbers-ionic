@@ -227,10 +227,10 @@
       <!-- Instruction Bubble (Top Bar Style) -->
       @if (tutorialService.instruction(); as text) {
         <div
-          class="absolute left-0 top-0 z-[120] flex min-h-[100px] w-full items-center justify-center border-b-4 border-yellow-400 bg-white/95 p-4 shadow-xl"
+          class="absolute left-0 top-0 z-[120] flex min-h-[100px] w-full items-center justify-center border-b-4 border-yellow-400 bg-white/95 p-4 shadow-xl dark:bg-slate-900/95 dark:border-yellow-600"
         >
           <p
-            class="animate-bounce whitespace-pre-line text-center text-xl font-bold text-teal-900 md:text-3xl"
+            class="whitespace-pre-line text-center text-xl font-bold text-teal-900 dark:text-teal-400 md:text-3xl"
           >
             {{ text }}
           </p>

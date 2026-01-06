@@ -1,6 +1,7 @@
 import { ElementRef, Injectable, inject } from '@angular/core';
 import { Capacitor } from '@capacitor/core';
 import { Application, Container, Graphics } from 'pixi.js';
+import { Subject } from 'rxjs';
 
 import { AppStore } from 'src/app/store/app.store';
 import { AppService } from 'src/app/service/app.service';
@@ -11,6 +12,8 @@ import { AppService } from 'src/app/service/app.service';
 export class NumberTrainPixiEngineService {
   app!: Application;
   mainContainer!: Container;
+
+  public resize$ = new Subject<void>();
 
   // Background
   private backgroundGraphics!: Graphics;
@@ -68,6 +71,15 @@ export class NumberTrainPixiEngineService {
     const isDarkMode = this.appStore.isDarkMode();
     const backgroundColor = isDarkMode ? 0x082f49 : 0xecfeff;
     this.updateBackgroundColor(backgroundColor);
+
+    this.resize$.next();
+  }
+
+  resize() {
+    if (this.app) {
+      this.app.resize();
+      this.onResize();
+    }
   }
 
   destroy() {

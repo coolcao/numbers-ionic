@@ -77,6 +77,11 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
 
     await this.train.init();
 
+    // Ensure canvas is resized to full screen after layout updates (e.g. header removal)
+    setTimeout(() => {
+      this.engine.resize();
+    }, 100);
+
     await this.startGame();
   }
 

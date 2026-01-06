@@ -105,6 +105,11 @@ export class NumberTrainTrainService implements OnDestroy {
     this.engine.mainContainer.addChild(this.topZone);
     this.engine.mainContainer.addChild(this.bottomZone);
 
+    // Subscribe to engine resize signal
+    this.sub.add(
+      this.engine.resize$.subscribe(() => this.onResize())
+    );
+
     this.onResize();
     window.addEventListener('resize', this.onResizeBound);
   }

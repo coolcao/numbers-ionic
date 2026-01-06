@@ -1,27 +1,29 @@
 <div class="relative h-full w-full overflow-hidden bg-sky-100">
   <!-- 顶部统计栏 (HTML Overlay) -->
-  <div
-    class="absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-center space-x-2 rounded-2xl bg-white/90 px-4 py-2 shadow-md backdrop-blur-sm dark:bg-gray-800/90 sm:space-x-4 sm:px-6 md:space-x-8"
-  >
+  @if (!tutorialService.isPlaying()) {
     <div
-      class="flex items-center gap-1 text-sm font-medium text-teal-600 dark:text-teal-300 sm:text-base md:text-lg"
+      class="absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-center space-x-2 rounded-2xl bg-white/90 px-4 py-2 shadow-md backdrop-blur-sm dark:bg-gray-800/90 sm:space-x-4 sm:px-6 md:space-x-8"
     >
-      <i class="fa-solid fa-list-ol"></i>
-      <span class="whitespace-nowrap">{{ totalRound() }}</span>
+      <div
+        class="flex items-center gap-1 text-sm font-medium text-teal-600 dark:text-teal-300 sm:text-base md:text-lg"
+      >
+        <i class="fa-solid fa-list-ol"></i>
+        <span class="whitespace-nowrap">{{ totalRound() }}</span>
+      </div>
+      <div
+        class="flex items-center gap-1 text-sm font-medium text-teal-600 dark:text-teal-300 sm:text-base md:text-lg"
+      >
+        <i class="fa-solid fa-sync"></i>
+        <span class="whitespace-nowrap">第 {{ currentRound() }} 轮</span>
+      </div>
+      <div
+        class="flex items-center gap-1 text-sm font-medium text-teal-600 dark:text-teal-300 sm:text-base md:text-lg"
+      >
+        <i class="fa-solid fa-check-circle"></i>
+        <span class="whitespace-nowrap">{{ correctRound() }}</span>
+      </div>
     </div>
-    <div
-      class="flex items-center gap-1 text-sm font-medium text-teal-600 dark:text-teal-300 sm:text-base md:text-lg"
-    >
-      <i class="fa-solid fa-sync"></i>
-      <span class="whitespace-nowrap">第 {{ currentRound() }} 轮</span>
-    </div>
-    <div
-      class="flex items-center gap-1 text-sm font-medium text-teal-600 dark:text-teal-300 sm:text-base md:text-lg"
-    >
-      <i class="fa-solid fa-check-circle"></i>
-      <span class="whitespace-nowrap">{{ correctRound() }}</span>
-    </div>
-  </div>
+  }
 
   <!-- Pixi Canvas 容器 -->
   <div #pixiContainer class="absolute inset-0 h-full w-full"></div>
@@ -60,7 +62,7 @@
 
     <!-- 指令文本 -->
     <div
-      class="pointer-events-none absolute left-1/2 top-16 z-50 w-11/12 max-w-lg -translate-x-1/2 rounded-2xl bg-white/95 px-6 py-2 text-center shadow-2xl dark:bg-gray-800/95 md:w-auto md:max-w-xl landscape:top-6"
+      class="pointer-events-none absolute left-1/2 top-16 z-50 w-11/12 max-w-lg -translate-x-1/2 rounded-2xl bg-white/95 px-4 py-1.5 text-center shadow-2xl dark:bg-gray-800/95 md:w-auto md:max-w-xl landscape:top-0"
     >
       <div
         class="font-comic whitespace-pre-line text-sm font-bold text-cyan-800 dark:text-white md:text-base"
