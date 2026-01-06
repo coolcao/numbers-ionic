@@ -40,7 +40,7 @@ export class NumberTrainTrainService implements OnDestroy {
   private sub = new Subscription();
 
   constructor() { // NgZone injected to ensure signal updates propagate during Pixi pointer events
-  
+
     // Track game signals explicitly so changes retrigger even if zones not yet ready
     effect(() => {
       const top = this.gameService.topTrains();
@@ -110,10 +110,14 @@ export class NumberTrainTrainService implements OnDestroy {
     const { isMobile, isTablet } = this.engine;
     const h = this.engine.height;
 
-    this.bottomZone.y = h - (isMobile ? (isTablet ? 120 : 90) : 200);
+    // 横屏模式下重新调整位置，给拖拽操作留出更多空间
+    // 底部轨道位置 - 向下移动一些，但不要太靠近底部
+    this.bottomZone.y = h - (isMobile ? (isTablet ? 100 : 80) : 180);
+
+    // 顶部轨道位置 - 向下移动，给顶部教程文字留出空间
     this.topZone.y = Math.max(
-      isMobile ? (isTablet ? 140 : 120) : 200,
-      h * 0.4,
+      isMobile ? (isTablet ? 120 : 100) : 140,
+      h * 0.25, // 从0.35改为0.25，给顶部留出更多空间
     );
 
     this.renderTrains();
@@ -226,7 +230,7 @@ export class NumberTrainTrainService implements OnDestroy {
       };
       this.engine.app.ticker.add(smokeUpdate);
       container.on('destroyed', () => {
-        // Ticker clean up handled automatically if we passed function ref? 
+        // Ticker clean up handled automatically if we passed function ref?
         // But we used arrow func closure. Need variable ref.
         // Actually original code was: `this.app.ticker.remove(smokeUpdate)`
         if (this.engine.app?.ticker) this.engine.app.ticker.remove(smokeUpdate);

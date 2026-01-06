@@ -84,7 +84,7 @@ export class NumberTrainTutorialService implements OnDestroy {
               this.showDragDemo();
             } else if (event.type === 'tutorial_drag' && event.payload) {
               // Follow drag position and hide hand during actual dragging
-              this.spotlight.set({ x: event.payload.x, y: event.payload.y, r: 110 });
+              this.spotlight.set({ x: event.payload.x, y: event.payload.y, r: 80 });
               if (event.payload.hideHand) {
                 this.handPosition.set(null);
               }
@@ -158,7 +158,7 @@ export class NumberTrainTutorialService implements OnDestroy {
   private updateTrainSpotlight(id: string) {
     const pos = this.getTrainPosition(id);
     if (pos) {
-      this.spotlight.set({ x: pos.x, y: pos.y, r: 110 });
+      this.spotlight.set({ x: pos.x, y: pos.y, r: 80 });
     }
   }
 
@@ -184,7 +184,7 @@ export class NumberTrainTutorialService implements OnDestroy {
           const curX = trainPos.x + (bottomPos.x - trainPos.x) * ease;
           const curY = trainPos.y + (bottomPos.y - trainPos.y) * ease;
           this.handPosition.set({ x: curX, y: curY });
-          this.spotlight.set({ x: curX, y: curY, r: 110 });
+          this.spotlight.set({ x: curX, y: curY, r: 80 });
         } else {
           this.handAction.set('idle');
           this.handPosition.set(bottomPos);
