@@ -1,8 +1,9 @@
-import { ElementRef, Injectable, inject, signal, WritableSignal } from '@angular/core';
+import { ElementRef, Injectable, inject } from '@angular/core';
+import { Capacitor } from '@capacitor/core';
 import { Application, Container, Graphics } from 'pixi.js';
+
 import { AppStore } from 'src/app/store/app.store';
 import { AppService } from 'src/app/service/app.service';
-import { Capacitor } from '@capacitor/core';
 
 @Injectable({
   providedIn: 'root'
@@ -138,11 +139,11 @@ export class NumberTrainPixiEngineService {
   }
 
   get width() {
-    return this.app?.screen.width || 0;
+    return this.app?.renderer ? this.app.screen.width : 0;
   }
   // ...
 
   get height() {
-    return this.app?.screen.height || 0;
+    return this.app?.renderer ? this.app.screen.height : 0;
   }
 }

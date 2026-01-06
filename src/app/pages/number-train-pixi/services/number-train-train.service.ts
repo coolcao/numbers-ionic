@@ -18,8 +18,8 @@ export class NumberTrainTrainService implements OnDestroy {
 
   private audioService = inject(AudioService);
 
-  topZone!: Container;
-  bottomZone!: Container;
+  topZone?: Container;
+  bottomZone?: Container;
 
   private textures: { [key: string]: Texture } = {};
   private activeSmokeParticles: Graphics[] = [];
@@ -70,9 +70,16 @@ export class NumberTrainTrainService implements OnDestroy {
   }
 
   ngOnDestroy() {
-    this.activeSmokeParticles.forEach(p => p.destroy());
+    this.reset();
     this.sub.unsubscribe();
     window.removeEventListener('resize', this.onResizeBound);
+  }
+
+  reset() {
+    this.activeSmokeParticles.forEach(p => p.destroy());
+    this.activeSmokeParticles = [];
+    this.topZone = undefined;
+    this.bottomZone = undefined;
   }
 
   async init() {
@@ -105,7 +112,7 @@ export class NumberTrainTrainService implements OnDestroy {
   private onResizeBound = () => this.onResize();
 
   onResize() {
-    if (!this.engine.app || !this.bottomZone) return;
+    if (!this.engine.app || !this.bottomZone || !this.topZone) return;
 
     const { isMobile, isTablet } = this.engine;
     const h = this.engine.height;
@@ -138,13 +145,15 @@ export class NumberTrainTrainService implements OnDestroy {
       console.warn('renderTrains skipped: zones not ready');
       return;
     }
+    const topZone = this.topZone;
+    const bottomZone = this.bottomZone;
 
     const topTrains = this.gameService.topTrains();
     const bottomTrains = this.gameService.bottomTrains();
 
     // Clear zones
-    this.topZone.removeChildren();
-    this.bottomZone.removeChildren();
+    topZone.removeChildren();
+    bottomZone.removeChildren();
 
     const { isMobile, isTablet } = this.engine;
     const w = this.engine.width;
@@ -158,7 +167,7 @@ export class NumberTrainTrainService implements OnDestroy {
       const sprite = this.createTrainSprite(t);
       sprite.x = startXTop + i * topSpacing;
       sprite.y = 0;
-      this.topZone.addChild(sprite);
+      topZone.addChild(sprite);
     });
 
     // Render Bottom Trains
@@ -171,7 +180,7 @@ export class NumberTrainTrainService implements OnDestroy {
       const sprite = this.createTrainSprite(t);
       sprite.x = startXBottom + i * bottomSpacing;
       sprite.y = 0;
-      this.bottomZone.addChild(sprite);
+      bottomZone.addChild(sprite);
     });
   }
 
@@ -380,6 +389,7 @@ export class NumberTrainTrainService implements OnDestroy {
     this.gameService.event$.next({ type: 'tutorial_drag', payload: { x: newLocal.x, y: newLocal.y } });
 
     // Collision
+    if (!this.bottomZone) return;
     const bottomY = this.bottomZone.y;
     const distY = Math.abs(this.dragItem.y - bottomY);
     const threshold = 80;
@@ -413,6 +423,7 @@ export class NumberTrainTrainService implements OnDestroy {
   }
 
   updateBottomTrainPositions(gapIndex: number | null) {
+    if (!this.bottomZone) return;
     const bottomTrains = this.gameService.bottomTrains();
     const { isMobile, isTablet } = this.engine;
     const uniformSize = isMobile ? (isTablet ? 140 : 100) : 180;
@@ -545,17 +556,18 @@ export class NumberTrainTrainService implements OnDestroy {
       }
     };
 
-    if (this.bottomZone) {
-      const originalX = this.bottomZone.x;
+    const bottomZone = this.bottomZone;
+    if (bottomZone) {
+      const originalX = bottomZone.x;
       let count = 0;
       const shake = () => {
         if (count < 6) {
           const dir = count % 2 === 0 ? 1 : -1;
-          this.bottomZone.x = originalX + dir * 10;
+          bottomZone.x = originalX + dir * 10;
           count++;
           setTimeout(shake, 50);
         } else {
-          this.bottomZone.x = originalX;
+          bottomZone.x = originalX;
           setTimeout(proceedNext, 500);
         }
       };

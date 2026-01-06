@@ -127,7 +127,8 @@
       >
         <button
           (click)="checkRound()"
-          class="flex transform items-center space-x-2 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 px-6 py-2 text-lg font-bold text-white shadow-md transition-all hover:scale-105 hover:shadow-lg active:scale-95 md:space-x-3 md:px-8 md:py-3 md:text-xl lg:space-x-4 lg:px-12 lg:py-4 lg:text-3xl"
+          [disabled]="isChecking() || checkoutLocked()"
+          class="flex transform items-center space-x-2 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 px-6 py-2 text-lg font-bold text-white shadow-md transition-all hover:scale-105 hover:shadow-lg active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100 md:space-x-3 md:px-8 md:py-3 md:text-xl lg:space-x-4 lg:px-12 lg:py-4 lg:text-3xl"
         >
           <i
             class="fa-solid fa-cash-register text-xl md:text-2xl lg:text-3xl"

@@ -92,6 +92,8 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.train.reset();
+    this.tutorialService.stop();
     this.engine.destroy();
     this.audioService.stopAll();
 

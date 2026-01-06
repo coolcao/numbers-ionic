@@ -59,10 +59,15 @@ export class NumberMarketGameService implements OnDestroy {
   totalRound = signal(6);
   currentRound = signal(0);
   correctRound = signal(0);
+  isChecking = signal(false);
+  dragLocked = signal(false);
+  checkoutLocked = signal(false);
+  tutorialMode = signal(false);
 
   public event$ = new Subject<{ type: 'drop_success' | 'select_goods' | 'multi_times' | 'checkout', payload?: any }>();
 
   private effects: EffectRef[] = [];
+
   private resizeSubscription: any;
   private cartZoneHitArea: any; // Store hit area for checks
 
@@ -127,6 +132,20 @@ export class NumberMarketGameService implements OnDestroy {
 
     this.effects.forEach(eff => eff.destroy());
     this.effects = [];
+
+    // Reset State
+    this.gameState.set('init');
+    this.targetNumber.set(0);
+    this.targetGoods.set(null);
+    this.goods.set([]);
+    this.cartGoods.set([]);
+    this.selectedGoods.set(null);
+    this.currentRound.set(0);
+    this.correctRound.set(0);
+    this.isChecking.set(false);
+    this.dragLocked.set(false);
+    this.checkoutLocked.set(false);
+    this.tutorialMode.set(false);
   }
 
   private drawLayout() {
@@ -261,15 +280,35 @@ export class NumberMarketGameService implements OnDestroy {
   // --- Logic Implementations ---
 
   private checkHitCart(item: Container): boolean {
+    if (this.dragLocked()) return false;
     if (!this.cartZoneHitArea) return false;
+
+    // Geometric Check
     const itemX = item.x;
     const itemY = item.y;
-    return (
+    const hit = (
       itemX > this.cartZoneHitArea.x &&
       itemX < this.cartZoneHitArea.x + this.cartZoneHitArea.width &&
       itemY > this.cartZoneHitArea.y &&
       itemY < this.cartZoneHitArea.y + this.cartZoneHitArea.height
     );
+
+    if (!hit) return false;
+
+    // Tutorial Strict Checks
+    if (this.tutorialMode()) {
+      // 1. Check Correct Item
+      if (item.label !== this.targetGoods()?.id) {
+        return false;
+      }
+      // 2. Check Quantity Limit
+      const currentTotal = this.cartGoods().reduce((acc, curr) => acc + (curr.amount || 1), 0);
+      if (currentTotal >= this.targetNumber()) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   private handleDropToCart(item: GoodsItem) {
@@ -291,6 +330,14 @@ export class NumberMarketGameService implements OnDestroy {
   }
 
   private handleSelectGoods(item: GoodsItem) {
+    if (this.dragLocked()) return;
+
+    if (this.tutorialMode()) {
+      if (item.id !== this.targetGoods()?.id) {
+        return;
+      }
+    }
+
     const goods = this.goods();
     goods.forEach((g) => {
       g.selected = g.id === item.id;
@@ -341,24 +388,29 @@ export class NumberMarketGameService implements OnDestroy {
   }
 
   async checkRound() {
+    if (this.isChecking() || this.checkoutLocked()) return;
+    this.isChecking.set(true);
+
     const result = this.check();
     this.event$.next({ type: 'checkout', payload: result });
     this.currentRound.update((round) => round + 1);
 
     if (result) {
-      await this.audioService.playRoundRight();
       this.correctRound.update((round) => round + 1);
+      await this.audioService.playRoundRight();
     } else {
       await this.audioService.playRoundWrong();
     }
 
     if (this.currentRound() === this.totalRound()) {
       this.gameState.set('finished');
+      this.isChecking.set(false);
       return;
     }
 
     setTimeout(() => {
       this.playNextRound();
+      this.isChecking.set(false);
     }, 300);
   }
 

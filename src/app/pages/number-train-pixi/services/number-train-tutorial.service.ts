@@ -146,6 +146,7 @@ export class NumberTrainTutorialService implements OnDestroy {
     this.handPosition.set(null);
     this.stopDemo();
     this.sub.unsubscribe();
+    this.sub = new Subscription();
 
     // 不区分模式，统一存一个完成标记，避免重复展示
     await this.storageService.set('number_train_tutorial', 'true');
@@ -153,6 +154,15 @@ export class NumberTrainTutorialService implements OnDestroy {
 
   skip() {
     this.finish();
+  }
+
+  stop() {
+    this.stopDemo();
+    this.step.set('idle');
+    this.spotlight.set(null);
+    this.handPosition.set(null);
+    this.sub.unsubscribe();
+    this.sub = new Subscription();
   }
 
   private updateTrainSpotlight(id: string) {

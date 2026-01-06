@@ -38,21 +38,40 @@ export class NumberMarketTutorialService implements OnDestroy {
   constructor() { }
 
   ngOnDestroy() {
+    this.stop();
+  }
+
+  stop() {
     this.stopDemo();
     this.sub.unsubscribe();
+    this.sub = new Subscription();
+
+    this.step.set('idle');
+    this.handPosition.set(null);
+    this.handAction.set('idle');
+    this.spotlight.set(null);
+    this.instruction.set('');
   }
 
   async checkShouldRun(): Promise<boolean> {
     const mode = this.gameService.learnMode();
     const key = mode === LearnMode.Advanced
-      ? 'number_market_tutorial_advanced'
+      ? 'number_market_pixi_tutorial_advanced'
       : 'number_market_tutorial_starter';
     const hasCompleted = await this.storageService.get(key);
     return !hasCompleted;
   }
 
   startTutorial() {
+    this.stop();
     this.setupEventListeners();
+    
+    // Lock interactions
+    this.gameService.dragLocked.set(true);
+    this.gameService.checkoutLocked.set(true);
+    // Enable Strict Tutorial Checks
+    this.gameService.tutorialMode.set(true);
+
     this.step.set('welcome');
     this.instruction.set('欢迎来到数字小超市！\n让我们一起来买东西吧！');
 
@@ -111,6 +130,7 @@ export class NumberMarketTutorialService implements OnDestroy {
         break;
       case 'find_item':
         this.step.set('action_demo');
+        this.gameService.dragLocked.set(false); // Unlock drag/select
         this.showActionDemo();
         break;
       case 'action_demo':
@@ -119,11 +139,13 @@ export class NumberMarketTutorialService implements OnDestroy {
           this.showMultiplierHint();
         } else {
           this.step.set('checkout_hint');
+          this.gameService.checkoutLocked.set(false); // Unlock checkout
           this.showCheckoutHint();
         }
         break;
       case 'multiplier_hint':
         this.step.set('checkout_hint');
+        this.gameService.checkoutLocked.set(false); // Unlock checkout
         this.showCheckoutHint();
         break;
       case 'checkout_hint':
@@ -195,11 +217,16 @@ export class NumberMarketTutorialService implements OnDestroy {
     this.handPosition.set(null);
     this.stopDemo();
     this.sub.unsubscribe();
+    
+    // Unlock all
+    this.gameService.dragLocked.set(false);
+    this.gameService.checkoutLocked.set(false);
+    this.gameService.tutorialMode.set(false);
 
     const mode = this.gameService.learnMode();
     const key = mode === LearnMode.Advanced
       ? 'number_market_pixi_tutorial_advanced'
-      : 'number_market_pixi_tutorial_starter';
+      : 'number_market_tutorial_starter';
 
     await this.storageService.set(key, 'true');
   }

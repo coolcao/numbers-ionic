@@ -47,6 +47,8 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
   currentRound = this.gameService.currentRound;
   correctRound = this.gameService.correctRound;
   learnMode = this.gameService.learnMode;
+  isChecking = this.gameService.isChecking;
+  checkoutLocked = this.gameService.checkoutLocked;
 
   LearnMode = LearnMode;
 
@@ -66,6 +68,7 @@ export class NumberMarketPixiComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.tutorialService.stop();
     this.gameService.destroy();
   }
 
