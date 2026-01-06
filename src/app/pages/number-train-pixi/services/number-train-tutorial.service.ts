@@ -56,7 +56,7 @@ export class NumberTrainTutorialService implements OnDestroy {
   startTutorial() {
     this.setupEventListeners();
     this.step.set('welcome');
-    this.instruction.set('欢迎来到数字小火车！\n让我们一起把火车车厢排好顺序吧！');
+    this.instruction.set('欢迎来到数字小火车！\n把火车车厢排好顺序吧！');
 
     setTimeout(() => {
       if (this.step() === 'welcome') {
@@ -122,7 +122,7 @@ export class NumberTrainTutorialService implements OnDestroy {
 
     const firstTarget = targetTrains[0];
     this.updateTrainSpotlight(firstTarget.id);
-    this.instruction.set(`看这里\n把编号 ${firstTarget.number} 的车厢\n拖到下面的火车正确的位置上`);
+    this.instruction.set(`把编号 ${firstTarget.number} 的车厢\n拖到下面正确的位置`);
 
     setTimeout(() => {
       if (this.step() === 'find_target') {
@@ -136,7 +136,7 @@ export class NumberTrainTutorialService implements OnDestroy {
     if (!targetTrains || targetTrains.length === 0) return;
 
     const firstTarget = targetTrains[0];
-    this.instruction.set(`按住车厢，\n把它拖到正确的位置！`);
+    this.instruction.set(`按住车厢拖到正确位置！`);
     this.startDragDemo(firstTarget.id);
   }
 

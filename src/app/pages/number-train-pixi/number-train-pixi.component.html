@@ -50,7 +50,7 @@
         [style.top.px]="tutorialHandPosition()!.y - 20"
         [class.animate-pulse]="tutorialHandAction() === 'click'"
       >
-        @if (tutorialHandAction() === 'drag') {
+        @if (tutorialHandAction() === "drag") {
           ✊
         } @else {
           👆
@@ -60,9 +60,11 @@
 
     <!-- 指令文本 -->
     <div
-      class="pointer-events-none absolute left-1/2 top-24 z-50 -translate-x-1/2 rounded-2xl bg-white/95 px-6 py-4 text-center shadow-2xl dark:bg-gray-800/95"
+      class="pointer-events-none absolute left-1/2 top-24 z-50 w-11/12 max-w-md -translate-x-1/2 rounded-2xl bg-white/95 px-6 py-4 text-center shadow-2xl dark:bg-gray-800/95 md:w-auto md:max-w-lg"
     >
-      <div class="font-comic text-xl font-bold text-cyan-800 dark:text-white whitespace-pre-line">
+      <div
+        class="font-comic whitespace-pre-line text-lg font-bold text-cyan-800 dark:text-white md:text-xl"
+      >
         {{ tutorialInstruction() }}
       </div>
     </div>
