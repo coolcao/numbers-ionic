@@ -53,6 +53,7 @@ export class AudioService {
       const soundId = sound.play();
 
       sound.once('end', () => resolve());
+      sound.once('stop', () => resolve());
       sound.once('playerror', (id, error) => reject(error));
     });
   }
