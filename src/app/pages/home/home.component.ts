@@ -96,4 +96,9 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.audioService.stopAll();
     this.router.navigate(['number-market'], { queryParams: { mode: this.learnMode() } });
   }
+
+  goToVendingMachine() {
+    this.audioService.stopAll();
+    this.router.navigate(['vending-machine'], { queryParams: { mode: this.learnMode() } });
+  }
 }

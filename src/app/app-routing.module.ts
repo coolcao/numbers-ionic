@@ -9,6 +9,7 @@ import { NumberTrainComponent } from 'src/app/pages/number-train/number-train.co
 import { NumberTrainPixiComponent } from './pages/number-train-pixi/number-train-pixi.component';
 import { NumberMarketPixiComponent } from './pages/number-market-pixi/number-market-pixi.component';
 import { NumberBubblesPixiComponent } from 'src/app/pages/number-bubbles-pixi/number-bubbles-pixi.component';
+import { VendingMachinePixiComponent } from './pages/vending-machine-pixi/vending-machine-pixi.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/home', pathMatch: 'full' },
@@ -21,6 +22,7 @@ const routes: Routes = [
   { path: 'number-train', component: NumberTrainPixiComponent },
   // { path: 'number-market', component: NumberMarketComponent },
   { path: 'number-market', component: NumberMarketPixiComponent },
+  { path: 'vending-machine', component: VendingMachinePixiComponent },
   { path: '**', redirectTo: '/home' },
 ];
 

@@ -26,6 +26,7 @@ import { NumberBubblesCanvasComponent } from 'src/app/pages/number-bubbles-canva
 import { NumberTrainPixiComponent } from './pages/number-train-pixi/number-train-pixi.component';
 import { NumberMarketPixiComponent } from './pages/number-market-pixi/number-market-pixi.component';
 import { NumberBubblesPixiComponent } from 'src/app/pages/number-bubbles-pixi/number-bubbles-pixi.component';
+import { VendingMachinePixiComponent } from './pages/vending-machine-pixi/vending-machine-pixi.component';
 
 
 @NgModule({
@@ -45,6 +46,7 @@ import { NumberBubblesPixiComponent } from 'src/app/pages/number-bubbles-pixi/nu
     NumberBubblesPixiComponent,
     NumberTrainPixiComponent,
     NumberMarketPixiComponent,
+    VendingMachinePixiComponent,
   ],
   imports: [
     BrowserModule,

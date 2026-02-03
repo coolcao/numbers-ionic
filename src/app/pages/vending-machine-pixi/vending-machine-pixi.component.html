@@ -1,0 +1,11 @@
+<div class="relative-container bg-slate-100">
+  <!-- Pixi Canvas 容器 -->
+  <div #pixiContainer class="w-full h-full block"></div>
+
+  <!-- 提示文字 (覆盖层) -->
+  <div *ngIf="!selectedToy" class="absolute top-10 left-0 w-full text-center pointer-events-none animate-bounce z-20">
+    <span class="bg-blue-500 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
+      请先点击选择一个玩具
+    </span>
+  </div>
+</div>
