@@ -31,14 +31,16 @@ export class AudioService {
 
   // 播放音频并返回Promise
   async play(key: string, options: { interrupt?: boolean, loop?: boolean, volume?: number } = {}): Promise<void> {
+    // 默认策略：播放新音频前停止所有正在播放的音频
+    // 除非 options.interrupt 显式设置为 false (虽然目前没有用到，但保留灵活性)
+    if (options.interrupt !== false) {
+      this.stopAll();
+    }
+
     return new Promise((resolve, reject) => {
       const sound = this.sounds.get(key);
       if (!sound) {
         return reject(`Sound ${key} not found`);
-      }
-
-      if (options.interrupt) {
-        sound.stop();
       }
 
       if (options.loop) {

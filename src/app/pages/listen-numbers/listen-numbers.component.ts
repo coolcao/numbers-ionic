@@ -93,26 +93,29 @@ import { AppService } from 'src/app/service/app.service';
 
     trigger('indicatorAnimation', [
       state('default', style({
-        backgroundColor: 'var(--indicator-default)'
+        backgroundColor: 'var(--indicator-default)',
+        transform: 'scaleX(1)'
       })),
       state('right', style({
-        backgroundColor: 'var(--indicator-right)'
+        backgroundColor: 'var(--indicator-right)',
+        transform: 'scaleX(1)'
       })),
       state('wrong', style({
-        backgroundColor: 'var(--indicator-wrong)'
+        backgroundColor: 'var(--indicator-wrong)',
+        transform: 'scaleX(1)'
       })),
       transition('default => right', [
         animate('0.3s', keyframes([
-          style({ width: '100%', offset: 0 }),
-          style({ width: '110%', offset: 0.3 }),
-          style({ width: '100%', backgroundColor: 'var(--indicator-right)', offset: 1 })
+          style({ transform: 'scaleX(1)', offset: 0 }),
+          style({ transform: 'scaleX(1.1)', offset: 0.3 }), // 使用 scaleX 代替 width
+          style({ transform: 'scaleX(1)', backgroundColor: 'var(--indicator-right)', offset: 1 })
         ]))
       ]),
       transition('default => wrong', [
         animate('0.3s', keyframes([
-          style({ width: '100%', offset: 0 }),
-          style({ width: '90%', offset: 0.3 }),
-          style({ width: '100%', backgroundColor: 'var(--indicator-wrong)', offset: 1 })
+          style({ transform: 'scaleX(1)', offset: 0 }),
+          style({ transform: 'scaleX(0.9)', offset: 0.3 }), // 使用 scaleX 代替 width
+          style({ transform: 'scaleX(1)', backgroundColor: 'var(--indicator-wrong)', offset: 1 })
         ]))
       ]),
       transition('* => default', [
