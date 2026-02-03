@@ -194,13 +194,15 @@ export class NumberBubblesPixiComponent
     this.updateBubbleSize();
   }
 
+  private boundGameLoop = this.gameLoop.bind(this);
+
   private startGameLoop() {
     if (!this.engine.app) return;
-    this.engine.startLoop(this.gameLoop.bind(this));
+    this.engine.startLoop(this.boundGameLoop);
   }
   private stopGameLoop() {
     if (!this.engine.app) return;
-    this.engine.stopLoop(this.gameLoop.bind(this));
+    this.engine.stopLoop(this.boundGameLoop);
   }
 
   private gameLoop(ticker: any) {

@@ -86,7 +86,12 @@ export class LearnNumbersComponent implements OnInit, OnDestroy {
     
     await this.appService.lockPortrait();
     await this.audioService.preloadWelcome(this.learnMode());
-    await Promise.all([this.audioService.preloadNumbers(this.numbers()), this.playWelcome(), this.audioService.preloadNumberDesc(this.numbers()), this.audioService.preloadNumberMeaning(this.numbers())]);
+    // Optimization: Only preload number pronunciations initially.
+    // Descriptions and meanings are loaded on demand when clicked.
+    await Promise.all([
+        this.audioService.preloadNumbers(this.numbers()), 
+        this.playWelcome()
+    ]);
   }
 
   async ngOnDestroy(): Promise<void> {
@@ -102,6 +107,13 @@ export class LearnNumbersComponent implements OnInit, OnDestroy {
     if (this.learnMode() === LearnMode.Starter) {
       this.showNumberDetail.set(true);
       this.numberDetailImage.set(this.starterNumbersDetail()[number].descImg);
+      
+      // Preload specific detail audio on demand
+      await Promise.all([
+        this.audioService.preloadNumberDesc([number]),
+        this.audioService.preloadNumberMeaning([number])
+      ]);
+
       await this.audioService.playNumber(number);
       await this.waitSeconds(0.5);
       await this.audioService.playNumberDesc(number);

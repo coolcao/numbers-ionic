@@ -77,7 +77,7 @@ export class NumberMarketPixiEngineService implements OnDestroy {
     if (this.app) {
       this.app.destroy(true, {
         children: true,
-        texture: true,
+        texture: false,
       });
       // @ts-ignore
       this.app = null;

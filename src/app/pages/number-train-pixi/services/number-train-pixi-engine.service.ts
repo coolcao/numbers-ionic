@@ -52,8 +52,11 @@ export class NumberTrainPixiEngineService {
     this.mainContainer.addChild(this.backgroundGraphics);
     this.updateBackgroundColor(backgroundColor);
 
-    window.addEventListener('resize', () => this.onResize());
+    this.boundResizeHandler = () => this.onResize();
+    window.addEventListener('resize', this.boundResizeHandler);
   }
+
+  private boundResizeHandler?: () => void;
 
   updateBackgroundColor(color: number) {
     if (this.backgroundGraphics && this.app) {
@@ -83,6 +86,10 @@ export class NumberTrainPixiEngineService {
   }
 
   destroy() {
+    if (this.boundResizeHandler) {
+      window.removeEventListener('resize', this.boundResizeHandler);
+      this.boundResizeHandler = undefined;
+    }
     if (this.app) {
       try {
         // Do not destroy textures as they are cached by Assets and reused by singleton service
