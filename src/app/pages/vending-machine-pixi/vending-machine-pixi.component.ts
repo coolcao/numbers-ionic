@@ -201,6 +201,7 @@ export class VendingMachinePixiComponent
     // Ensure the first frame is ready before showing
     requestAnimationFrame(() => {
       this.isLoading = false;
+      this.audioService.play('welcome');
     });
   }
 
@@ -341,13 +342,14 @@ export class VendingMachinePixiComponent
         this.pushBtn.scale.set(originalScale * 0.95);
         setTimeout(() => this.pushBtn.scale.set(originalScale), 100);
       },
-      onSuccess: (message) => this.success(message),
+      onSuccess: (message, type) => this.success(message, type),
     });
   }
 
-  private success(message: string) {
+  private success(message: string, type: 'exact' | 'change') {
     this.isProcessing = true;
-    this.audioService.play('checkout_success');
+    const audioKey = type === 'exact' ? 'checkout_success' : 'checkout_change';
+    this.audioService.play(audioKey);
     this.effectsService.playSuccess({
       app: this.app,
       message,

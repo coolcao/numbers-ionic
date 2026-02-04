@@ -13,7 +13,7 @@ export class VendingMachinePixiCheckoutService {
     feedbackService: VendingMachinePixiFeedbackService;
     audioService: AudioService;
     displayPriceText: Text;
-    onSuccess: (message: string) => void;
+    onSuccess: (message: string, type: 'exact' | 'change') => void;
     onPress: () => void;
   }) {
     const { dataService, gameService, feedbackService, audioService, displayPriceText, onSuccess, onPress } = params;
@@ -37,10 +37,10 @@ export class VendingMachinePixiCheckoutService {
     onPress();
 
     if (checkout.status === 'exact') {
-      onSuccess('购买成功!');
+      onSuccess('购买成功!', 'exact');
       return;
     }
 
-    onSuccess(`找零: ¥${checkout.change}`);
+    onSuccess(`找零: ¥${checkout.change}`, 'change');
   }
 }

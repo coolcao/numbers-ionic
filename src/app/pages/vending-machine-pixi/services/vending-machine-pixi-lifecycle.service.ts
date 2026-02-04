@@ -11,8 +11,17 @@ export class VendingMachinePixiLifecycleService {
     const { audioService, toyImageCount } = params;
     const audioPromises = [
       audioService.preload('insert_coin', 'assets/audio/vending-machine/dropping-a-coin.mp3'),
-      audioService.preload('checkout_success', 'assets/audio/right_answer.mp3'),
-      audioService.preload('checkout_fail', 'assets/audio/wrong_answer.mp3'),
+      audioService.preload('checkout_success', 'assets/audio/vending-machine/checkout_success.mp3'),
+      audioService.preload('checkout_change', 'assets/audio/vending-machine/change_returned.mp3'),
+      audioService.preload('checkout_fail', 'assets/audio/vending-machine/money_not_enough.mp3'),
+      audioService.preload('game_success', 'assets/audio/vending-machine/game_success.mp3'),
+      audioService.preload('welcome', 'assets/audio/vending-machine/welcome.mp3'),
+      audioService.preload('t1', 'assets/audio/vending-machine/t1.mp3'),
+      audioService.preload('t2', 'assets/audio/vending-machine/t2.mp3'),
+      audioService.preload('t3', 'assets/audio/vending-machine/t3.mp3'),
+      audioService.preload('t4', 'assets/audio/vending-machine/t4.mp3'),
+      audioService.preload('t5', 'assets/audio/vending-machine/t5.mp3'),
+      audioService.preload('t6', 'assets/audio/vending-machine/t6.mp3'),
     ];
 
     const texturePromises = [];

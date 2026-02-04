@@ -139,7 +139,7 @@ export class VendingMachinePixiEffectsService {
 
         time++;
 
-        if (time > 300) {
+        if (time > 480) {
           app.ticker.remove(animate);
 
           successText.destroy();
@@ -288,7 +288,7 @@ export class VendingMachinePixiEffectsService {
       toysShowcase.addChild(sprite);
     });
 
-    audioService.play('checkout_success');
+    audioService.play('game_success');
 
     // 5. 操作按钮
     const btnY = app.screen.height * 0.75;
