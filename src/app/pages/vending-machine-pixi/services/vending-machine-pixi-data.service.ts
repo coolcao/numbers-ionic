@@ -51,21 +51,10 @@ export class VendingMachinePixiDataService {
     // 4. 选取前 9 个（如果不够 9 个，就取全部）
     const selectedIds = allIds.slice(0, 9);
 
-    let prices: number[] = [];
-    const count = selectedIds.length; // 实际生成的数量
-
-    if (this.mode === 'simple') {
-      // 简单模式：价格 1~9
-      for (let k = 0; k < count; k++) {
-        // 简单的分布：1-3, 4-6, 7-9 均匀分布
-        const tier = k % 3;
-        const price = Math.floor(Math.random() * 3) + 1 + (tier * 3);
-        prices.push(price);
-      }
-      prices.sort(() => 0.5 - Math.random());
-    } else {
-      prices = Array.from({ length: count }, () => Math.floor(Math.random() * 90) + 10);
-    }
+    const count = selectedIds.length;
+    const prices = this.mode === 'simple'
+      ? this.pickUniquePrices(count, 1, 9)
+      : this.pickUniquePrices(count, 10, 99);
 
     this.toys = [];
     for (let i = 0; i < count; i++) {
@@ -78,5 +67,24 @@ export class VendingMachinePixiDataService {
       };
       this.toys.push(toyData);
     }
+
+    // 按价格随机排序放置
+    this.shuffle(this.toys);
+  }
+
+  private pickUniquePrices(count: number, min: number, max: number) {
+    const range = max - min + 1;
+    const cappedCount = Math.min(count, range);
+    const pool = Array.from({ length: range }, (_, i) => min + i);
+    this.shuffle(pool);
+    return pool.slice(0, cappedCount);
+  }
+
+  private shuffle<T>(arr: T[]) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
   }
 }
