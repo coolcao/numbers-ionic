@@ -10,6 +10,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Application, Container, Graphics, Text } from 'pixi.js';
 import { AudioService } from 'src/app/service/audio.service';
 import { AppService } from 'src/app/service/app.service';
+import { LearnMode } from 'src/app/app.types';
 import { Toy, VendingMachinePixiDataService } from './services/vending-machine-pixi-data.service';
 import { VendingMachinePixiSceneService } from './services/vending-machine-pixi-scene.service';
 import { VendingMachinePixiGameService } from './services/vending-machine-pixi-game.service';
@@ -123,7 +124,7 @@ export class VendingMachinePixiComponent
   ngOnInit() {
     this.route.queryParams.subscribe((params) => {
       // 首页传递的是 'advanced' 或 'starter'
-      const mode = params['mode'] === 'advanced' ? 'hard' : 'simple';
+      const mode = params['mode'] === 'advanced' ? LearnMode.Advanced : LearnMode.Starter;
       this.dataService.setMode(mode);
       this.forceTutorial = params['tutorial'] === '1';
     });

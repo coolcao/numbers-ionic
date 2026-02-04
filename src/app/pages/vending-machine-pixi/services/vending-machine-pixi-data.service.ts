@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { LearnMode } from 'src/app/app.types';
 import { Container } from 'pixi.js';
 
 export interface Toy {
@@ -13,7 +14,7 @@ export interface Toy {
 
 @Injectable()
 export class VendingMachinePixiDataService {
-  mode: 'simple' | 'hard' = 'simple';
+  mode: LearnMode = LearnMode.Starter;
   toys: Toy[] = [];
   selectedToy: Toy | null = null;
   currentBalance = 0;
@@ -26,7 +27,7 @@ export class VendingMachinePixiDataService {
   tutorialTargetPrice = 1;
   tutorialTargetToyId: number | null = null;
 
-  setMode(mode: 'simple' | 'hard') {
+  setMode(mode: LearnMode) {
     this.mode = mode;
   }
 
@@ -69,14 +70,14 @@ export class VendingMachinePixiDataService {
     const count = selectedIds.length;
     let prices: number[] = [];
     if (this.tutorialActive) {
-      const min = this.mode === 'simple' ? 1 : 10;
-      const max = this.mode === 'simple' ? 9 : 99;
+      const min = this.mode === LearnMode.Starter ? 1 : 10;
+      const max = this.mode === LearnMode.Starter ? 9 : 99;
       const remainingCount = Math.max(count - 1, 0);
       const pool = this.pickUniquePrices(remainingCount + 3, min, max)
         .filter(price => price !== this.tutorialTargetPrice);
       prices = [this.tutorialTargetPrice, ...pool].slice(0, count);
     } else {
-      prices = this.mode === 'simple'
+      prices = this.mode === LearnMode.Starter
         ? this.pickUniquePrices(count, 1, 9)
         : this.pickUniquePrices(count, 10, 99);
     }

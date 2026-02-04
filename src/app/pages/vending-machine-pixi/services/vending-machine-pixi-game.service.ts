@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { LearnMode } from 'src/app/app.types';
 import { VendingMachinePixiDataService, Toy } from './vending-machine-pixi-data.service';
 
 export type CheckoutStatus = 'no-selection' | 'insufficient' | 'exact' | 'overpaid';
@@ -10,8 +11,8 @@ export interface CheckoutResult {
 
 @Injectable()
 export class VendingMachinePixiGameService {
-  getCoinsForMode(mode: 'simple' | 'hard') {
-    return mode === 'simple' ? [1, 5] : [1, 5, 10];
+  getCoinsForMode(mode: LearnMode) {
+    return mode === LearnMode.Starter ? [1, 5] : [1, 5, 10];
   }
 
   applyCoin(currentBalance: number, value: number) {
