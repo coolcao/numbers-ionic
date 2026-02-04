@@ -167,7 +167,7 @@ export class VendingMachinePixiSceneService {
         windowWidth / 2 - 10, windowHeight / 2 - 10,
         windowWidth / 2 - windowWidth * 0.35, windowHeight / 2 - 10,
       ])
-      .fill({ color: 0xFFFFFF, alpha: isDarkMode ? 0.08 : 0.18 });
+      .fill({ color: 0xFFFFFF, alpha: isDarkMode ? 0.04 : 0.08 });
     glassContainer.addChild(glassShine);
 
     const toysContainer = new Container();
@@ -345,7 +345,7 @@ export class VendingMachinePixiSceneService {
     app.stage.addChild(toyBoxContainer);
 
     const hudColors = {
-      boxFill: colors.panel,
+      boxFill: colors.body,
       boxStroke: colors.textHighlight,
       badgeFill: colors.headerText,
       text: colors.textHighlight
