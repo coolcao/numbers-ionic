@@ -1,4 +1,11 @@
 <div class="relative-container bg-slate-100">
   <!-- Pixi Canvas 容器 -->
   <div #pixiContainer class="w-full h-full block"></div>
+
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="loading-card">
+      <div class="loading-bubble"></div>
+      <div class="loading-text">加载中...</div>
+    </div>
+  </div>
 </div>

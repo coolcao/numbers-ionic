@@ -49,6 +49,7 @@ export class VendingMachinePixiComponent
 
   // Game State
   private isProcessing = false;
+  isLoading = true;
 
   // Collection State
   private purchasedToySprites: Container[] = [];
@@ -185,6 +186,11 @@ export class VendingMachinePixiComponent
     this.lifecycleCleanup = this.lifecycleService.bindLifecycleHandlers({
       app: this.app,
       onRebuild: (reason) => this.rebuildScene(reason),
+    });
+
+    // Ensure the first frame is ready before showing
+    requestAnimationFrame(() => {
+      this.isLoading = false;
     });
   }
 
