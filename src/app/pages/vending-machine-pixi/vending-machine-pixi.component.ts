@@ -53,8 +53,9 @@ export class VendingMachinePixiComponent
 
   // Game State
   private isProcessing = false;
-  isLoading = true;
   private forceTutorial = false;
+  introVisible = true;
+  private pendingTutorial = false;
 
   // Collection State
   private purchasedToySprites: Container[] = [];
@@ -202,6 +203,7 @@ export class VendingMachinePixiComponent
       await this.tutorialService.resetProgress();
     }
     const shouldRunTutorial = this.forceTutorial || await this.tutorialService.checkShouldRun();
+    this.pendingTutorial = shouldRunTutorial;
     if (shouldRunTutorial) {
       this.dataService.enableTutorial(1);
     } else {
@@ -212,9 +214,7 @@ export class VendingMachinePixiComponent
     this.generateToys();
     this.configureTutorial();
 
-    if (shouldRunTutorial) {
-      this.tutorialService.startTutorial();
-    }
+    // Start tutorial after user taps "开始游戏"
 
     this.lifecycleCleanup = this.lifecycleService.bindLifecycleHandlers({
       app: this.app,
@@ -223,9 +223,24 @@ export class VendingMachinePixiComponent
 
     // Ensure the first frame is ready before showing
     requestAnimationFrame(() => {
-      this.isLoading = false;
-      this.audioService.play('welcome');
+      if (!this.introVisible) {
+        this.audioService.play('welcome');
+      }
     });
+  }
+
+  startGame() {
+    if (!this.introVisible) return;
+    this.introVisible = false;
+    requestAnimationFrame(() => {
+      if (this.app && typeof (this.app as any).resize === 'function') {
+        (this.app as any).resize();
+      }
+    });
+    this.audioService.play('welcome').catch(() => undefined);
+    if (this.pendingTutorial) {
+      this.tutorialService.startTutorial();
+    }
   }
 
   private buildScene() {

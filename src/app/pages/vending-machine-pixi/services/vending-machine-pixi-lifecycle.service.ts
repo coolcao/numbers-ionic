@@ -39,7 +39,7 @@ export class VendingMachinePixiLifecycleService {
     const { pixiContainer, isDarkMode } = params;
     const app = new Application();
 
-    const bgColor = isDarkMode ? '#082F49' : '#f0f9ff';
+    const bgColor = isDarkMode ? '#082F49' : '#ecfeff';
     const width = pixiContainer.clientWidth;
     const height = pixiContainer.clientHeight;
 

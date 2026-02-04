@@ -1,6 +1,9 @@
-<div class="relative h-full w-full overflow-hidden bg-sky-100">
+<div
+  class="relative h-full w-full overflow-hidden"
+  [class.bg-sky-100]="!introVisible()"
+>
   <!-- 顶部统计栏 (HTML Overlay) -->
-  @if (!tutorialService.isPlaying()) {
+  @if (!tutorialService.isPlaying() && !introVisible()) {
     <div
       class="absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-center space-x-2 rounded-2xl bg-white/90 px-4 py-2 shadow-md backdrop-blur-sm dark:bg-gray-800/90 sm:space-x-4 sm:px-6 md:space-x-8"
     >
@@ -26,7 +29,35 @@
   }
 
   <!-- Pixi Canvas 容器 -->
-  <div #pixiContainer class="absolute inset-0 h-full w-full"></div>
+  <div
+    #pixiContainer
+    class="absolute inset-0 h-full w-full"
+    [style.visibility]="canvasHidden() ? 'hidden' : 'visible'"
+    [style.opacity]="canvasHidden() ? '0' : '1'"
+    [style.pointerEvents]="introVisible() ? 'none' : 'auto'"
+  ></div>
+
+  @if (introVisible()) {
+    <div class="absolute inset-0 z-50 flex flex-col items-center justify-center px-6 py-10">
+      <div class="text-6xl">🚂</div>
+      <h2 class="mt-3 text-5xl font-black text-cyan-800">数字小火车</h2>
+      <p class="mt-4 whitespace-pre-line text-center text-xl font-bold text-teal-700">
+        把车厢拖到正确的位置，\n让火车按顺序出发吧！
+      </p>
+      <div class="mt-6 flex flex-wrap justify-center gap-4 text-base font-bold text-teal-700">
+        <div class="rounded-full bg-white/80 px-4 py-2 shadow-md">👆 选车厢</div>
+        <div class="rounded-full bg-white/80 px-4 py-2 shadow-md">↔️ 拖到位</div>
+        <div class="rounded-full bg-white/80 px-4 py-2 shadow-md">✅ 排顺序</div>
+      </div>
+      <button
+        (click)="startGame()"
+        class="mt-10 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-teal-400 to-cyan-500 px-12 py-4 text-2xl font-bold text-white shadow-xl transition-transform hover:scale-105 active:scale-95"
+      >
+        <span class="mr-2">🌟</span>
+        开始游戏
+      </button>
+    </div>
+  }
 
   <!-- 教程引导层 -->
   @if (tutorialService.isPlaying()) {

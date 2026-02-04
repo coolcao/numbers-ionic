@@ -81,7 +81,7 @@ export class VendingMachinePixiTutorialService {
     if (!this.dataService || !this.refs) return;
     this.stop();
     this.step.set('welcome');
-    this.instruction.set('欢迎来到自动售卖机！\n跟着提示完成一次购买吧～');
+    this.instruction.set('欢迎来到快乐售卖机！\n跟着提示完成一次购买吧～');
     this.instructionPosition.set('top');
 
     setTimeout(() => {

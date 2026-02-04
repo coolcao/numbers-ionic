@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AppStore } from 'src/app/store/app.store';
 import { AudioService } from 'src/app/service/audio.service';
@@ -43,6 +43,8 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
   tutorialHandAction = this.tutorialService.handAction;
   tutorialSpotlight = this.tutorialService.spotlight;
   tutorialInstruction = this.tutorialService.instruction;
+  introVisible = signal(true);
+  canvasHidden = signal(true);
 
   constructor() { }
 
@@ -82,10 +84,18 @@ export class NumberTrainPixiComponent implements OnInit, OnDestroy {
       this.engine.resize();
     }, 100);
 
-    await this.startGame();
+    // Wait for user action to start game
   }
 
   async startGame() {
+    if (this.introVisible()) {
+      this.introVisible.set(false);
+    }
+    this.canvasHidden.set(true);
+    this.engine.resize();
+    requestAnimationFrame(() => {
+      this.canvasHidden.set(false);
+    });
     const shouldRun = await this.tutorialService.checkShouldRun();
 
     if (shouldRun) {

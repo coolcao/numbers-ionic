@@ -54,6 +54,21 @@
   color: #334155;
 }
 
+.intro-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.intro-page {
+  width: 100%;
+  max-width: 720px;
+  text-align: center;
+}
+
 .tutorial-overlay {
   position: absolute;
   inset: 0;

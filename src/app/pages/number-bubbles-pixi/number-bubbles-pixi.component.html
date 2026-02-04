@@ -23,85 +23,42 @@
     <div
       #gameContainer
       class="absolute inset-0 h-full w-full cursor-pointer"
+      [class.hidden]="gameStatus() === 'initial'"
       [style.opacity]="playTargets() ? '0' : '1'"
       [style.pointer-events]="playTargets() ? 'none' : 'auto'"
     ></div>
   }
   @if (gameStatus() === "initial") {
-    <div class="flex flex-1 items-center justify-center">
-      <div
-        class="relativemx-auto my-5 w-full max-w-4xl overflow-hidden rounded-3xl bg-gradient-to-br from-sky-100 to-green-100 p-8 shadow-xl dark:from-sky-900/50 dark:to-sky-950/50 dark:shadow-sky-800/50"
+    <div
+      class="absolute inset-0 z-50 flex flex-col items-center justify-center px-6 py-10"
+    >
+      <div class="text-6xl">🫧</div>
+      <h2 class="mt-3 text-5xl font-black text-cyan-800">数字泡泡</h2>
+      <p
+        class="mt-4 whitespace-pre-line text-center text-xl font-bold text-teal-700"
       >
-        <!-- 装饰元素 -->
-        <div
-          class="absolute left-4 top-2 animate-bounce text-4xl text-yellow-400 dark:text-yellow-300"
-        >
-          ✨
+        听清数字，\n戳破正确的泡泡！
+      </p>
+      <div
+        class="mt-6 flex flex-wrap justify-center gap-4 text-base font-bold text-teal-700"
+      >
+        <div class="rounded-full bg-white/80 px-4 py-2 shadow-md">
+          🎧 听指令
         </div>
-        <div
-          class="absolute bottom-4 right-6 animate-pulse text-3xl text-blue-400 dark:text-purple-300"
-        >
-          ⭐️
+        <div class="rounded-full bg-white/80 px-4 py-2 shadow-md">
+          🫧 找泡泡
         </div>
-
-        <!-- 文字内容 -->
-        <div
-          class="font-comic relative z-10 flex flex-col items-center justify-center space-y-6 text-center text-gray-800 dark:text-gray-100"
-        >
-          <div class="animate-slide-in-down text-3xl font-bold leading-relaxed">
-            🫧<span
-              class="ml-2 mr-2 text-3xl text-yellow-500 dark:text-yellow-300"
-              >数字泡泡</span
-            >🫧
-          </div>
-
-          <div
-            class="animate-fade-in-up w-fit rounded-xl border-2 border-dashed border-yellow-200 bg-white/50 p-4 text-xl shadow-md dark:border-purple-300 dark:bg-black/20"
-          >
-            <p class="mb-3">🎧 游戏开始时我会随机播报一组数字</p>
-            <p>👆 你要戳破对应下落的泡泡哦！</p>
-          </div>
-
-          <div
-            class="text text-em text-em animate-pulse font-semibold text-emerald-600 dark:text-green-300"
-          >
-            准备好就点击下面的星星按钮开始吧！ 🌟
-          </div>
-          <button
-            (click)="startGame()"
-            class="relative my-10 cursor-pointer rounded-3xl bg-gradient-to-br from-purple-300 via-purple-400 to-purple-500 px-8 py-4 text-2xl font-bold text-white shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl active:scale-95 dark:from-indigo-600 dark:via-indigo-700 dark:to-indigo-800 dark:shadow-gray-800/50 hover:dark:from-indigo-500 hover:dark:via-indigo-600 hover:dark:to-indigo-700"
-          >
-            <!-- 云朵装饰 -->
-            <div
-              class="absolute -left-4 -top-4 h-12 w-12 rounded-full bg-white shadow-md dark:bg-gray-200 dark:shadow-gray-800/50"
-            ></div>
-            <div
-              class="absolute -top-6 right-6 h-8 w-8 rounded-full bg-white shadow-md dark:bg-gray-200 dark:shadow-gray-800/50"
-            ></div>
-            <div
-              class="absolute -right-2 -top-2 h-10 w-10 rounded-full bg-white shadow-md dark:bg-gray-200 dark:shadow-gray-800/50"
-            ></div>
-
-            <!-- 星星动画 -->
-            <span
-              class="mr-2 inline-block animate-bounce dark:brightness-125 dark:filter"
-            >
-              ⭐️
-            </span>
-            <!-- 文字部分 -->
-            <span
-              class="text-shadow font-comic tracking-wide dark:text-gray-100"
-            >
-              开始游戏
-            </span>
-            <span
-              class="ml-2 inline-block animate-pulse dark:brightness-125 dark:filter"
-            >
-              ✨
-            </span>
-          </button>
+        <div class="rounded-full bg-white/80 px-4 py-2 shadow-md">
+          👆 点正确
         </div>
       </div>
+      <button
+        (click)="startGame()"
+        class="mt-10 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-teal-400 to-cyan-500 px-12 py-4 text-2xl font-bold text-white shadow-xl transition-transform hover:scale-105 active:scale-95"
+      >
+        <span class="mr-2">🌟</span>
+        开始游戏
+      </button>
     </div>
   }
   @if (gameStatus() === "tutorial_success") {

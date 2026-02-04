@@ -1,11 +1,44 @@
-<div class="relative-container bg-slate-100">
+<div class="relative-container">
   <!-- Pixi Canvas 容器 -->
-  <div #pixiContainer class="block h-full w-full"></div>
+  <div
+    #pixiContainer
+    class="block h-full w-full"
+    [style.visibility]="introVisible ? 'hidden' : 'visible'"
+    [style.opacity]="introVisible ? '0' : '1'"
+    [style.pointer-events]="introVisible ? 'none' : 'auto'"
+  ></div>
 
-  <div class="loading-overlay" *ngIf="isLoading">
-    <div class="loading-card">
-      <div class="loading-bubble"></div>
-      <div class="loading-text">加载中...</div>
+  <div class="intro-overlay" *ngIf="introVisible">
+    <div
+      class="intro-page flex flex-col items-center justify-center px-6 py-10"
+    >
+      <div class="text-6xl">🧸</div>
+      <h2 class="mt-3 text-5xl font-black text-cyan-800">快乐售卖机</h2>
+      <p
+        class="mt-4 whitespace-pre-line text-center text-xl font-bold text-teal-700"
+      >
+        选一个玩具，投币凑够金额，\n买到喜欢的礼物吧！
+      </p>
+      <div
+        class="mt-6 flex flex-wrap justify-center gap-4 text-base font-bold text-teal-700"
+      >
+        <div class="rounded-full bg-white/80 px-4 py-2 shadow-md">
+          🧸 选玩具
+        </div>
+        <div class="rounded-full bg-white/80 px-4 py-2 shadow-md">
+          🪙 投硬币
+        </div>
+        <div class="rounded-full bg-white/80 px-4 py-2 shadow-md">
+          🎁 收礼物
+        </div>
+      </div>
+      <button
+        class="mt-10 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-teal-400 to-cyan-500 px-12 py-4 text-2xl font-bold text-white shadow-xl transition-transform hover:scale-105 active:scale-95"
+        (click)="startGame()"
+      >
+        <span class="mr-2">🌟</span>
+        开始游戏
+      </button>
     </div>
   </div>
 
