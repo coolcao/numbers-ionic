@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Application, Container, Graphics, Text, TextStyle } from 'pixi.js';
+import { Application, Assets, Container, Graphics, Sprite, Text, TextStyle } from 'pixi.js';
 
 export interface VendingMachineColors {
   body: number;
@@ -43,6 +43,8 @@ interface SceneParams {
   app: Application;
   colors: VendingMachineColors;
   isDarkMode: boolean;
+  isLandscape: boolean;
+  purchasedImageIds: number[];
   purchasedCount: number;
   maxPurchaseCount: number;
   coins: number[];
@@ -53,19 +55,51 @@ interface SceneParams {
 
 @Injectable()
 export class VendingMachinePixiSceneService {
+  getToyBoxConfig(screenWidth: number, screenHeight: number, isLandscape: boolean) {
+    if (!isLandscape) {
+      const isPadPortrait = Math.min(screenWidth, screenHeight) >= 600;
+      if (isPadPortrait) {
+        return {
+          boxWidth: 80,
+          boxHeight: 80,
+          x: screenWidth * 0.86,
+          y: 70,
+          badgeRadius: 18,
+        };
+      }
+      return {
+        boxWidth: 60,
+        boxHeight: 60,
+        x: screenWidth - 60,
+        y: 45,
+        badgeRadius: 20,
+      };
+    }
+
+    const boxWidth = this.clamp(screenWidth * 0.32, 260, 360);
+    const boxHeight = this.clamp(screenHeight * 0.36, 180, 260);
+    return {
+      boxWidth,
+      boxHeight,
+      x: screenWidth * 0.78,
+      y: screenHeight * 0.32,
+      badgeRadius: 18,
+    };
+  }
+
   createScene(params: SceneParams): VendingMachineSceneRefs {
-    const { app, colors, isDarkMode } = params;
+    const { app, colors, isDarkMode, isLandscape } = params;
     const { width, height } = app.screen;
 
     // --- A. Vending Machine Body ---
     const machineContainer = new Container();
-    machineContainer.x = width / 2;
-    machineContainer.y = height * 0.38;
+    machineContainer.x = isLandscape ? width * 0.35 : width / 2;
+    machineContainer.y = isLandscape ? height * 0.5 : height * 0.38;
     app.stage.addChild(machineContainer);
 
-    const machineHeight = height * 0.65;
+    const machineHeight = height * (isLandscape ? 0.78 : 0.65);
     const isNarrowScreen = width <= 480;
-    const maxWidthRatio = isNarrowScreen ? 0.95 : 0.85;
+    const maxWidthRatio = isLandscape ? 0.55 : (isNarrowScreen ? 0.95 : 0.85);
     const machineWidth = Math.min(width * maxWidthRatio, machineHeight * 0.72);
 
     // Support legs/feet - fixed to extend downward from machine bottom
@@ -338,10 +372,16 @@ export class VendingMachinePixiSceneService {
 
     machineContainer.addChild(exitContainer);
 
+    const walletWidth = isLandscape ? Math.min(width * 0.38, machineWidth) : machineWidth;
+    const walletX = isLandscape ? width * 0.78 : width / 2;
+    const walletY = isLandscape ? height * 0.78 : height - 10;
+
     const { coinWalletContainer } = this.createCoinWallet({
       app,
       colors,
-      machineWidth,
+      walletWidth,
+      walletX,
+      walletY,
       coins: params.coins,
       onCoinPointerDown: params.onCoinPointerDown,
     });
@@ -349,6 +389,8 @@ export class VendingMachinePixiSceneService {
     const { toyBoxContainer, toyBoxText } = this.createToyBoxHUD({
       app,
       colors,
+      isLandscape,
+      purchasedImageIds: params.purchasedImageIds,
       purchasedCount: params.purchasedCount,
       maxPurchaseCount: params.maxPurchaseCount,
     });
@@ -373,15 +415,20 @@ export class VendingMachinePixiSceneService {
   createToyBoxHUD(params: {
     app: Application;
     colors: VendingMachineColors;
+    isLandscape: boolean;
+    purchasedImageIds: number[];
     purchasedCount: number;
     maxPurchaseCount: number;
   }) {
-    const { app, colors, purchasedCount, maxPurchaseCount } = params;
+    const { app, colors, isLandscape, purchasedImageIds, purchasedCount, maxPurchaseCount } = params;
     const { width } = app.screen;
 
+    const config = this.getToyBoxConfig(app.screen.width, app.screen.height, isLandscape);
+    const boxWidth = config.boxWidth;
+    const boxHeight = config.boxHeight;
     const toyBoxContainer = new Container();
-    toyBoxContainer.x = width - 60; // 向右移动一点
-    toyBoxContainer.y = 45;
+    toyBoxContainer.x = config.x;
+    toyBoxContainer.y = config.y;
     app.stage.addChild(toyBoxContainer);
 
     const hasToys = purchasedCount > 0;
@@ -392,15 +439,14 @@ export class VendingMachinePixiSceneService {
       text: colors.textHighlight
     };
 
-    const boxSize = 60; // 65 -> 60
     const box = new Graphics();
     box.label = 'toybox_box';
-    box.roundRect(-boxSize / 2, -boxSize / 2, boxSize, boxSize, 12)
+    box.roundRect(-boxWidth / 2, -boxHeight / 2, boxWidth, boxHeight, 12)
       .fill(hudColors.boxFill)
       .stroke({ width: 4, color: hudColors.boxStroke });
 
-    box.moveTo(-boxSize / 2, -boxSize / 2 + 18)
-      .lineTo(boxSize / 2, -boxSize / 2 + 18)
+    box.moveTo(-boxWidth / 2, -boxHeight / 2 + (isLandscape ? 14 : 18))
+      .lineTo(boxWidth / 2, -boxHeight / 2 + (isLandscape ? 14 : 18))
       .stroke({ width: 3, color: hudColors.boxStroke });
 
     toyBoxContainer.addChild(box);
@@ -414,13 +460,13 @@ export class VendingMachinePixiSceneService {
     toyBoxContainer.addChild(itemsLayer);
 
     const bulgeShadow = new Graphics()
-      .ellipse(0, 8, boxSize * 0.32, boxSize * 0.2)
+      .ellipse(0, 8, boxWidth * 0.26, boxHeight * 0.16)
       .fill({ color: 0x000000, alpha: 0.2 });
     bulgeShadow.label = 'toybox_bulge_shadow';
     bulgeShadow.visible = hasToys;
 
     const bulgeHighlight = new Graphics()
-      .ellipse(0, -6, boxSize * 0.28, boxSize * 0.18)
+      .ellipse(0, -6, boxWidth * 0.22, boxHeight * 0.14)
       .fill({ color: 0xFFFFFF, alpha: 0.35 });
     bulgeHighlight.label = 'toybox_bulge_highlight';
     bulgeHighlight.visible = hasToys;
@@ -428,29 +474,32 @@ export class VendingMachinePixiSceneService {
     toyBoxContainer.addChild(bulgeShadow, bulgeHighlight);
 
     const badge = new Graphics()
-      .circle(boxSize / 2 - 3, boxSize / 2 - 3, 20)
+      .circle(boxWidth / 2 - 8, -boxHeight / 2 + 8, config.badgeRadius)
       .fill(hudColors.badgeFill)
       .stroke({ width: 2, color: hudColors.boxStroke });
     toyBoxContainer.addChild(badge);
 
     const toyBoxText = new Text(`${purchasedCount}/${maxPurchaseCount}`, {
       fontFamily: 'Arial',
-      fontSize: 16,
+      fontSize: isLandscape ? 14 : 16,
       fill: hudColors.text,
       fontWeight: 'bold',
       stroke: { width: 2, color: 0x000000, join: 'round' }
     });
     toyBoxText.anchor.set(0.5);
-    toyBoxText.position.set(boxSize / 2 - 3, boxSize / 2 - 3);
+    toyBoxText.position.set(boxWidth / 2 - 8, -boxHeight / 2 + 8);
     toyBoxContainer.addChild(toyBoxText);
 
     this.updateToyBoxVisuals(
       toyBoxContainer,
       purchasedCount,
       maxPurchaseCount,
-      boxSize,
+      boxWidth,
+      boxHeight,
       hudColors.boxFill,
       hudColors.boxStroke,
+      purchasedImageIds,
+      isLandscape,
     );
 
     return { toyBoxContainer, toyBoxText };
@@ -459,11 +508,13 @@ export class VendingMachinePixiSceneService {
   createCoinWallet(params: {
     app: Application;
     colors: VendingMachineColors;
-    machineWidth: number;
+    walletWidth: number;
+    walletX: number;
+    walletY: number;
     coins: number[];
     onCoinPointerDown: (value: number, x: number, y: number, scale: number) => void;
   }) {
-    const { app, colors, machineWidth, coins, onCoinPointerDown } = params;
+    const { app, colors, walletWidth, walletX, walletY, coins, onCoinPointerDown } = params;
     const screenHeight = app.screen.height;
     const screenWidth = app.screen.width;
 
@@ -479,17 +530,17 @@ export class VendingMachinePixiSceneService {
     }
 
     const coinWalletContainer = new Container();
-    coinWalletContainer.x = screenWidth / 2;
-    coinWalletContainer.y = screenHeight - (walletHeight / 2) - 10;
+    coinWalletContainer.x = walletX;
+    coinWalletContainer.y = walletY - (walletHeight / 2);
     app.stage.addChild(coinWalletContainer);
 
     const bg = new Graphics()
-      .roundRect(-machineWidth / 2, -walletHeight / 2, machineWidth, walletHeight, 20)
+      .roundRect(-walletWidth / 2, -walletHeight / 2, walletWidth, walletHeight, 20)
       .fill({ color: colors.walletBg, alpha: 0.95 })
       .stroke({ width: 3, color: colors.walletBorder });
     coinWalletContainer.addChild(bg);
 
-    const spacing = Math.min(110 * coinScale, machineWidth / (coins.length + 0.5));
+    const spacing = Math.min(110 * coinScale, walletWidth / (coins.length + 0.5));
     const startX = -((coins.length - 1) * spacing) / 2;
 
     coins.forEach((value, index) => {
@@ -520,9 +571,12 @@ export class VendingMachinePixiSceneService {
     toyBoxContainer: Container,
     purchasedCount: number,
     maxPurchaseCount: number,
-    boxSize = 60,
+    boxWidth = 60,
+    boxHeight = 60,
     baseFill = 0xffffff,
     strokeColor = 0xffffff,
+    purchasedImageIds: number[] = [],
+    isLandscape = false,
   ) {
     const box = toyBoxContainer.children.find((c) => c.label === 'toybox_box') as Graphics | undefined;
     const fillLayer = toyBoxContainer.children.find((c) => c.label === 'toybox_fill') as Graphics | undefined;
@@ -535,11 +589,11 @@ export class VendingMachinePixiSceneService {
     if (box) {
       const fillColor = hasToys ? this.mixColor(baseFill, 0xFFFFFF, 0.22) : baseFill;
       box.clear()
-        .roundRect(-boxSize / 2, -boxSize / 2, boxSize, boxSize, 12)
+        .roundRect(-boxWidth / 2, -boxHeight / 2, boxWidth, boxHeight, 12)
         .fill(fillColor)
         .stroke({ width: 4, color: strokeColor });
-      box.moveTo(-boxSize / 2, -boxSize / 2 + 18)
-        .lineTo(boxSize / 2, -boxSize / 2 + 18)
+      box.moveTo(-boxWidth / 2, -boxHeight / 2 + (isLandscape ? 14 : 18))
+        .lineTo(boxWidth / 2, -boxHeight / 2 + (isLandscape ? 14 : 18))
         .stroke({ width: 3, color: strokeColor });
     }
 
@@ -557,12 +611,12 @@ export class VendingMachinePixiSceneService {
 
     if (fillLayer) {
       const ratio = maxPurchaseCount > 0 ? Math.min(1, purchasedCount / maxPurchaseCount) : 0;
-      const fillHeight = boxSize * 0.55 * ratio;
-      const y = boxSize / 2 - 6 - fillHeight;
+      const fillHeight = boxHeight * 0.55 * ratio;
+      const y = boxHeight / 2 - 6 - fillHeight;
 
       fillLayer.clear();
       if (fillHeight > 0) {
-        fillLayer.roundRect(-boxSize / 2 + 6, y, boxSize - 12, fillHeight, 8)
+        fillLayer.roundRect(-boxWidth / 2 + 6, y, boxWidth - 12, fillHeight, 8)
           .fill({ color: this.mixColor(baseFill, 0xFFFFFF, 0.35), alpha: 0.9 });
       }
     }
@@ -570,10 +624,39 @@ export class VendingMachinePixiSceneService {
     if (itemsLayer) {
       itemsLayer.removeChildren();
       if (hasToys) {
-        const item1 = new Graphics().circle(-10, 6, 6).fill({ color: 0xffffff, alpha: 0.35 });
-        const item2 = new Graphics().circle(8, 2, 7).fill({ color: 0xffffff, alpha: 0.3 });
-        const item3 = new Graphics().rect(-4, -6, 10, 10).fill({ color: 0xffffff, alpha: 0.28 });
-        itemsLayer.addChild(item1, item2, item3);
+        if (isLandscape && purchasedImageIds.length > 0) {
+          const cols = 3;
+          const rows = 2;
+          const innerW = boxWidth - 16;
+          const innerH = boxHeight - 28;
+          const cellW = innerW / cols;
+          const cellH = innerH / rows;
+          const cell = Math.min(cellW, cellH);
+          const maxItems = cols * rows;
+          const size = cell * 0.8;
+          const startX = -innerW / 2 + cellW / 2;
+          const startY = -innerH / 2 + cellH / 2 + 10;
+          purchasedImageIds.slice(0, maxItems).forEach((id, i) => {
+            const col = i % cols;
+            const row = Math.floor(i / cols);
+            // @ts-ignore
+            const texture = Assets.get(`assets/images/number-vending/toys/${id}.png`);
+            const sprite = new Sprite(texture);
+            sprite.anchor.set(0.5);
+            const maxDim = Math.max(sprite.width, sprite.height);
+            if (maxDim > 0) {
+              sprite.scale.set(size / maxDim);
+            }
+            sprite.x = startX + col * cellW;
+            sprite.y = startY + row * cellH;
+            itemsLayer.addChild(sprite);
+          });
+        } else {
+          const item1 = new Graphics().circle(-10, 6, 6).fill({ color: 0xffffff, alpha: 0.35 });
+          const item2 = new Graphics().circle(8, 2, 7).fill({ color: 0xffffff, alpha: 0.3 });
+          const item3 = new Graphics().rect(-4, -6, 10, 10).fill({ color: 0xffffff, alpha: 0.28 });
+          itemsLayer.addChild(item1, item2, item3);
+        }
       }
     }
   }
@@ -583,6 +666,10 @@ export class VendingMachinePixiSceneService {
     const g = Math.round(((base >> 8) & 0xff) * (1 - ratio) + ((tint >> 8) & 0xff) * ratio);
     const b = Math.round((base & 0xff) * (1 - ratio) + (tint & 0xff) * ratio);
     return (r << 16) | (g << 8) | b;
+  }
+
+  private clamp(value: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, value));
   }
 
   drawCoinGraphics(value: number): Graphics {

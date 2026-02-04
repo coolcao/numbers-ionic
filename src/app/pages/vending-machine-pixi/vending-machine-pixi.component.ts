@@ -9,6 +9,7 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { Application, Container, Graphics, Text } from 'pixi.js';
 import { AudioService } from 'src/app/service/audio.service';
+import { AppService } from 'src/app/service/app.service';
 import { Toy, VendingMachinePixiDataService } from './services/vending-machine-pixi-data.service';
 import { VendingMachinePixiSceneService } from './services/vending-machine-pixi-scene.service';
 import { VendingMachinePixiGameService } from './services/vending-machine-pixi-game.service';
@@ -100,6 +101,7 @@ export class VendingMachinePixiComponent
     private router: Router,
     private route: ActivatedRoute,
     private audioService: AudioService,
+    private appService: AppService,
     private dataService: VendingMachinePixiDataService,
     private sceneService: VendingMachinePixiSceneService,
     private gameService: VendingMachinePixiGameService,
@@ -119,6 +121,14 @@ export class VendingMachinePixiComponent
       const mode = params['mode'] === 'advanced' ? 'hard' : 'simple';
       this.dataService.setMode(mode);
     });
+
+    // 锁定方向：手机端锁竖屏，平板/大屏允许横屏
+    const minSide = Math.min(window.innerWidth, window.innerHeight);
+    if (minSide < 600) {
+      this.appService.lockPortrait();
+    } else {
+      this.appService.unlockScreen();
+    }
 
     // 检测暗黑模式
     const theme = this.themeService.getInitialTheme();
@@ -196,10 +206,13 @@ export class VendingMachinePixiComponent
 
   private buildScene() {
     const coins = this.gameService.getCoinsForMode(this.dataService.mode);
+    const isLandscape = this.app.screen.width / this.app.screen.height > 1.1;
     const refs = this.sceneService.createScene({
       app: this.app,
       colors: this.colors,
       isDarkMode: this.isDarkMode,
+      isLandscape,
+      purchasedImageIds: this.dataService.purchasedImageIds,
       purchasedCount: this.dataService.purchasedCount,
       maxPurchaseCount: this.dataService.maxPurchaseCount,
       coins,
@@ -298,13 +311,18 @@ export class VendingMachinePixiComponent
       isProcessing: this.isProcessing,
     });
     if (this.toyBoxContainer) {
+      const isLandscape = this.app && this.app.screen.width / this.app.screen.height > 1.1;
+      const config = this.sceneService.getToyBoxConfig(this.app.screen.width, this.app.screen.height, isLandscape);
       this.sceneService.updateToyBoxVisuals(
         this.toyBoxContainer,
         this.dataService.purchasedCount,
         this.dataService.maxPurchaseCount,
-        60,
+        config.boxWidth,
+        config.boxHeight,
         this.colors.body,
         this.colors.textHighlight,
+        this.dataService.purchasedImageIds,
+        isLandscape,
       );
     }
   }
@@ -345,13 +363,18 @@ export class VendingMachinePixiComponent
       onResetRound: () => this.resetRound(),
       onGoBack: () => this.goBack(),
       onToyBoxChange: (count, max) => {
+        const isLandscape = this.app && this.app.screen.width / this.app.screen.height > 1.1;
+        const config = this.sceneService.getToyBoxConfig(this.app.screen.width, this.app.screen.height, isLandscape);
         this.sceneService.updateToyBoxVisuals(
           this.toyBoxContainer,
           count,
           max,
-          60,
+          config.boxWidth,
+          config.boxHeight,
           this.colors.body,
           this.colors.textHighlight,
+          this.dataService.purchasedImageIds,
+          isLandscape,
         );
       },
     });
