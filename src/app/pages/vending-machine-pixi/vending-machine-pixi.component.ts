@@ -291,6 +291,16 @@ export class VendingMachinePixiComponent
       pushGlow: this.pushGlow ?? null,
       isProcessing: this.isProcessing,
     });
+    if (this.toyBoxContainer) {
+      this.sceneService.updateToyBoxVisuals(
+        this.toyBoxContainer,
+        this.dataService.purchasedCount,
+        this.dataService.maxPurchaseCount,
+        60,
+        this.colors.body,
+        this.colors.textHighlight,
+      );
+    }
   }
 
   private tryCheckout() {
@@ -328,6 +338,16 @@ export class VendingMachinePixiComponent
       windowHeight: this.windowHeight,
       onResetRound: () => this.resetRound(),
       onGoBack: () => this.goBack(),
+      onToyBoxChange: (count, max) => {
+        this.sceneService.updateToyBoxVisuals(
+          this.toyBoxContainer,
+          count,
+          max,
+          60,
+          this.colors.body,
+          this.colors.textHighlight,
+        );
+      },
     });
   }
 

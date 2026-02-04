@@ -384,8 +384,9 @@ export class VendingMachinePixiSceneService {
     toyBoxContainer.y = 45;
     app.stage.addChild(toyBoxContainer);
 
+    const hasToys = purchasedCount > 0;
     const hudColors = {
-      boxFill: colors.body,
+      boxFill: hasToys ? this.mixColor(colors.body, 0xFFFFFF, 0.22) : colors.body,
       boxStroke: colors.textHighlight,
       badgeFill: colors.headerText,
       text: colors.textHighlight
@@ -393,6 +394,7 @@ export class VendingMachinePixiSceneService {
 
     const boxSize = 60; // 65 -> 60
     const box = new Graphics();
+    box.label = 'toybox_box';
     box.roundRect(-boxSize / 2, -boxSize / 2, boxSize, boxSize, 12)
       .fill(hudColors.boxFill)
       .stroke({ width: 4, color: hudColors.boxStroke });
@@ -402,6 +404,28 @@ export class VendingMachinePixiSceneService {
       .stroke({ width: 3, color: hudColors.boxStroke });
 
     toyBoxContainer.addChild(box);
+
+    const fillLayer = new Graphics();
+    fillLayer.label = 'toybox_fill';
+    toyBoxContainer.addChild(fillLayer);
+
+    const itemsLayer = new Container();
+    itemsLayer.label = 'toybox_items';
+    toyBoxContainer.addChild(itemsLayer);
+
+    const bulgeShadow = new Graphics()
+      .ellipse(0, 8, boxSize * 0.32, boxSize * 0.2)
+      .fill({ color: 0x000000, alpha: 0.2 });
+    bulgeShadow.label = 'toybox_bulge_shadow';
+    bulgeShadow.visible = hasToys;
+
+    const bulgeHighlight = new Graphics()
+      .ellipse(0, -6, boxSize * 0.28, boxSize * 0.18)
+      .fill({ color: 0xFFFFFF, alpha: 0.35 });
+    bulgeHighlight.label = 'toybox_bulge_highlight';
+    bulgeHighlight.visible = hasToys;
+
+    toyBoxContainer.addChild(bulgeShadow, bulgeHighlight);
 
     const badge = new Graphics()
       .circle(boxSize / 2 - 3, boxSize / 2 - 3, 20)
@@ -419,6 +443,15 @@ export class VendingMachinePixiSceneService {
     toyBoxText.anchor.set(0.5);
     toyBoxText.position.set(boxSize / 2 - 3, boxSize / 2 - 3);
     toyBoxContainer.addChild(toyBoxText);
+
+    this.updateToyBoxVisuals(
+      toyBoxContainer,
+      purchasedCount,
+      maxPurchaseCount,
+      boxSize,
+      hudColors.boxFill,
+      hudColors.boxStroke,
+    );
 
     return { toyBoxContainer, toyBoxText };
   }
@@ -481,6 +514,75 @@ export class VendingMachinePixiSceneService {
     });
 
     return { coinWalletContainer };
+  }
+
+  updateToyBoxVisuals(
+    toyBoxContainer: Container,
+    purchasedCount: number,
+    maxPurchaseCount: number,
+    boxSize = 60,
+    baseFill = 0xffffff,
+    strokeColor = 0xffffff,
+  ) {
+    const box = toyBoxContainer.children.find((c) => c.label === 'toybox_box') as Graphics | undefined;
+    const fillLayer = toyBoxContainer.children.find((c) => c.label === 'toybox_fill') as Graphics | undefined;
+    const itemsLayer = toyBoxContainer.children.find((c) => c.label === 'toybox_items') as Container | undefined;
+    const bulgeShadow = toyBoxContainer.children.find((c) => c.label === 'toybox_bulge_shadow') as Graphics | undefined;
+    const bulgeHighlight = toyBoxContainer.children.find((c) => c.label === 'toybox_bulge_highlight') as Graphics | undefined;
+
+    const hasToys = purchasedCount > 0;
+
+    if (box) {
+      const fillColor = hasToys ? this.mixColor(baseFill, 0xFFFFFF, 0.22) : baseFill;
+      box.clear()
+        .roundRect(-boxSize / 2, -boxSize / 2, boxSize, boxSize, 12)
+        .fill(fillColor)
+        .stroke({ width: 4, color: strokeColor });
+      box.moveTo(-boxSize / 2, -boxSize / 2 + 18)
+        .lineTo(boxSize / 2, -boxSize / 2 + 18)
+        .stroke({ width: 3, color: strokeColor });
+    }
+
+    if (bulgeShadow) bulgeShadow.visible = hasToys;
+    if (bulgeHighlight) bulgeHighlight.visible = hasToys;
+    if (hasToys && bulgeShadow && bulgeHighlight) {
+      const count = Math.max(1, Math.min(purchasedCount, maxPurchaseCount));
+      const step = maxPurchaseCount > 1 ? (count - 1) / (maxPurchaseCount - 1) : 0;
+      const scale = 0.75 + step * 0.45; // 1个最小，5个最大
+      bulgeShadow.scale.set(scale);
+      bulgeHighlight.scale.set(scale);
+      bulgeShadow.alpha = 0.18 + step * 0.07;
+      bulgeHighlight.alpha = 0.3 + step * 0.1;
+    }
+
+    if (fillLayer) {
+      const ratio = maxPurchaseCount > 0 ? Math.min(1, purchasedCount / maxPurchaseCount) : 0;
+      const fillHeight = boxSize * 0.55 * ratio;
+      const y = boxSize / 2 - 6 - fillHeight;
+
+      fillLayer.clear();
+      if (fillHeight > 0) {
+        fillLayer.roundRect(-boxSize / 2 + 6, y, boxSize - 12, fillHeight, 8)
+          .fill({ color: this.mixColor(baseFill, 0xFFFFFF, 0.35), alpha: 0.9 });
+      }
+    }
+
+    if (itemsLayer) {
+      itemsLayer.removeChildren();
+      if (hasToys) {
+        const item1 = new Graphics().circle(-10, 6, 6).fill({ color: 0xffffff, alpha: 0.35 });
+        const item2 = new Graphics().circle(8, 2, 7).fill({ color: 0xffffff, alpha: 0.3 });
+        const item3 = new Graphics().rect(-4, -6, 10, 10).fill({ color: 0xffffff, alpha: 0.28 });
+        itemsLayer.addChild(item1, item2, item3);
+      }
+    }
+  }
+
+  private mixColor(base: number, tint: number, ratio: number) {
+    const r = Math.round(((base >> 16) & 0xff) * (1 - ratio) + ((tint >> 16) & 0xff) * ratio);
+    const g = Math.round(((base >> 8) & 0xff) * (1 - ratio) + ((tint >> 8) & 0xff) * ratio);
+    const b = Math.round((base & 0xff) * (1 - ratio) + (tint & 0xff) * ratio);
+    return (r << 16) | (g << 8) | b;
   }
 
   drawCoinGraphics(value: number): Graphics {

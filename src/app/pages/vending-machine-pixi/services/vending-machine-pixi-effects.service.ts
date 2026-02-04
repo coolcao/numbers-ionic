@@ -19,6 +19,7 @@ interface SuccessParams {
   windowHeight: number;
   onResetRound: () => void;
   onGoBack: () => void;
+  onToyBoxChange?: (purchasedCount: number, maxPurchaseCount: number) => void;
 }
 
 interface GameOverParams {
@@ -31,6 +32,7 @@ interface GameOverParams {
   audioService: AudioService;
   onResetRound: () => void;
   onGoBack: () => void;
+  onToyBoxChange?: (purchasedCount: number, maxPurchaseCount: number) => void;
 }
 
 @Injectable()
@@ -50,6 +52,7 @@ export class VendingMachinePixiEffectsService {
       windowHeight,
       onResetRound,
       onGoBack,
+      onToyBoxChange,
     } = params;
 
     const successText = new Text(message, {
@@ -167,7 +170,7 @@ export class VendingMachinePixiEffectsService {
   }
 
   showGameOver(params: GameOverParams) {
-    const { app, machineContainer, coinWalletContainer, toyBoxContainer, toyBoxText, dataService, audioService, onResetRound, onGoBack } = params;
+    const { app, machineContainer, coinWalletContainer, toyBoxContainer, toyBoxText, dataService, audioService, onResetRound, onGoBack, onToyBoxChange } = params;
 
     // 创建统一容器，方便管理和销毁
     const gameOverContainer = new Container();
@@ -341,6 +344,9 @@ export class VendingMachinePixiEffectsService {
       dataService.purchasedCount = 0;
       dataService.purchasedImageIds = [];
       toyBoxText.text = `0/${dataService.maxPurchaseCount}`;
+      if (onToyBoxChange) {
+        onToyBoxChange(dataService.purchasedCount, dataService.maxPurchaseCount);
+      }
       onResetRound();
     });
 
@@ -364,6 +370,7 @@ export class VendingMachinePixiEffectsService {
     audioService: AudioService;
     onResetRound: () => void;
     onGoBack: () => void;
+    onToyBoxChange?: (purchasedCount: number, maxPurchaseCount: number) => void;
   }) {
     const {
       app,
@@ -377,6 +384,7 @@ export class VendingMachinePixiEffectsService {
       audioService,
       onResetRound,
       onGoBack,
+      onToyBoxChange,
     } = params;
     const startX = sprite.x;
     const startY = sprite.y;
@@ -394,6 +402,9 @@ export class VendingMachinePixiEffectsService {
 
         gameService.applyPurchase(dataService);
         toyBoxText.text = `${dataService.purchasedCount}/${dataService.maxPurchaseCount}`;
+        if (onToyBoxChange) {
+          onToyBoxChange(dataService.purchasedCount, dataService.maxPurchaseCount);
+        }
 
         this.bumpToyBox(app, toyBoxContainer);
 
@@ -408,6 +419,7 @@ export class VendingMachinePixiEffectsService {
             audioService,
             onResetRound,
             onGoBack,
+            onToyBoxChange,
           });
         } else {
           onResetRound();
