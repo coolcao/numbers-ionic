@@ -57,6 +57,7 @@ export class VendingMachinePixiComponent
   private coinSlotZone!: Graphics;
   private pushBtn!: Container;
   private pushText!: Text;
+  private pushGlow?: Graphics;
 
   private observer?: MutationObserver;
 
@@ -140,34 +141,34 @@ export class VendingMachinePixiComponent
   private initThemeColors() {
     if (this.isDarkMode) {
       this.colors = {
-        body: 0x5D0F0A, // 深酒红 (更暗)
+        body: 0x2C5E76, // 暖一点的深蓝青机身
         shadow: 0x000000,
-        glass: 0x17202A, // 深灰黑 (更暗)
-        shelf: 0x4D5656, // 暗灰栏杆
-        panel: 0x17202A, // 与玻璃一致的深色
-        walletBg: 0x1C2833, // 深蓝灰钱包底
-        walletBorder: 0x5D0F0A, // 深红边框
-        textHighlight: 0x95A5A6, // 灰色高亮
-        headerBg: 0x2C3E50, // 深色标题栏
-        headerText: 0xE74C3C, // 亮红文字
-        tagBg: 0x2C3E50, // 深色标签底
-        tagText: 0xECF0F1, // 亮色标签字
-        toyStroke: 0x95A5A6 // 浅灰描边
+        glass: 0x1B3F52, // 暖一点的深蓝玻璃
+        shelf: 0x5B7688, // 暖蓝灰栏杆
+        panel: 0x23324D, // 暖蓝面板
+        walletBg: 0x1B3F52, // 深蓝钱包底
+        walletBorder: 0x7FD8F0, // 暖亮蓝边框
+        textHighlight: 0xE3F6FF, // 暖淡蓝高亮
+        headerBg: 0x315B86, // 暖蓝标题栏
+        headerText: 0xFFD166, // 活泼黄文字
+        tagBg: 0x315B86, // 暖蓝标签底
+        tagText: 0xFFECC7, // 奶油黄标签字
+        toyStroke: 0xD9F2FF // 淡蓝描边
       };
     } else {
       this.colors = {
-        body: 0xE84118,
+        body: 0x6EC6E8, // 暖一点的天蓝机身
         shadow: 0x000000,
-        glass: 0xDFF9FB,
-        shelf: 0x95A5A6,
-        panel: 0x2F3640,
-        walletBg: 0xFFFFFF,
-        walletBorder: 0xE17055,
+        glass: 0xEEF9FF, // 暖柔蓝玻璃
+        shelf: 0xC6E1EC, // 暖浅蓝栏杆
+        panel: 0x7A6CF6, // 活泼紫面板
+        walletBg: 0xEEF9FF, // 浅蓝钱包底
+        walletBorder: 0x2AC3F2, // 暖亮蓝边框
         textHighlight: 0xFFFFFF,
-        headerBg: 0xFFFFFF,
-        headerText: 0xE84118,
-        tagBg: 0xFFFFFF,
-        tagText: 0x000000,
+        headerBg: 0xFFF1A6, // 活泼黄标题栏
+        headerText: 0xFF6B6B, // 珊瑚红文字
+        tagBg: 0xC7F9CC, // 薄荷绿标签底
+        tagText: 0x1F2937,
         toyStroke: 0xFFFFFF
       };
     }
@@ -257,16 +258,11 @@ export class VendingMachinePixiComponent
     this.app.stage.addChild(this.toyBoxContainer);
 
     // Theme Colors for HUD
-    const hudColors = this.isDarkMode ? {
-      boxFill: 0x8E44AD,
-      boxStroke: 0xECF0F1,
-      badgeFill: 0xC0392B,
-      text: 0xECF0F1
-    } : {
-      boxFill: 0xFF9FF3,
-      boxStroke: 0xFFFFFF,
-      badgeFill: 0xFF4757,
-      text: 0xFFFFFF
+    const hudColors = {
+      boxFill: this.colors.panel,
+      boxStroke: this.colors.textHighlight,
+      badgeFill: this.colors.headerText,
+      text: this.colors.textHighlight
     };
 
     const boxSize = 60; // 65 -> 60
@@ -326,6 +322,53 @@ export class VendingMachinePixiComponent
       .stroke({ width: 5, color: this.colors.panel });
     this.machineContainer.addChild(body);
 
+    // Body accents (subtle highlight + side shade)
+    const bodyHighlight = new Graphics()
+      .roundRect(
+        -this.machineWidth / 2 + 6,
+        -this.machineHeight / 2 + 6,
+        this.machineWidth - 12,
+        this.machineHeight * 0.12,
+        14,
+      )
+      .fill({ color: 0xFFFFFF, alpha: 0.12 });
+    this.machineContainer.addChild(bodyHighlight);
+
+    const bodyShade = new Graphics()
+      .roundRect(
+        -this.machineWidth / 2,
+        -this.machineHeight / 2,
+        this.machineWidth * 0.12,
+        this.machineHeight,
+        18,
+      )
+      .fill({ color: 0x000000, alpha: this.isDarkMode ? 0.2 : 0.08 });
+    this.machineContainer.addChild(bodyShade);
+
+    const bodyInnerStroke = new Graphics()
+      .roundRect(
+        -this.machineWidth / 2 + 4,
+        -this.machineHeight / 2 + 4,
+        this.machineWidth - 8,
+        this.machineHeight - 8,
+        16,
+      )
+      .stroke({ width: 2, color: this.colors.textHighlight, alpha: 0.18 });
+    this.machineContainer.addChild(bodyInnerStroke);
+
+    const screwOffsetX = this.machineWidth / 2 - 18;
+    const screwOffsetY = this.machineHeight / 2 - 18;
+    const screws = new Graphics()
+      .circle(-screwOffsetX, -screwOffsetY, 4)
+      .fill({ color: 0x000000, alpha: 0.25 })
+      .circle(screwOffsetX, -screwOffsetY, 4)
+      .fill({ color: 0x000000, alpha: 0.25 })
+      .circle(-screwOffsetX, screwOffsetY, 4)
+      .fill({ color: 0x000000, alpha: 0.25 })
+      .circle(screwOffsetX, screwOffsetY, 4)
+      .fill({ color: 0x000000, alpha: 0.25 });
+    this.machineContainer.addChild(screws);
+
     // Header / Title
     const headerHeight = this.machineHeight * 0.09;
     const header = new Graphics()
@@ -382,6 +425,16 @@ export class VendingMachinePixiComponent
     glassContainer.addChild(glass);
     this.machineContainer.addChild(glassContainer);
 
+    const glassShine = new Graphics()
+      .poly([
+        -this.windowWidth / 2 + 10, -this.windowHeight / 2 + 10,
+        -this.windowWidth / 2 + this.windowWidth * 0.35, -this.windowHeight / 2 + 10,
+        this.windowWidth / 2 - 10, this.windowHeight / 2 - 10,
+        this.windowWidth / 2 - this.windowWidth * 0.35, this.windowHeight / 2 - 10,
+      ])
+      .fill({ color: 0xFFFFFF, alpha: this.isDarkMode ? 0.08 : 0.18 });
+    glassContainer.addChild(glassShine);
+
     this.toysContainer = new Container();
     glassContainer.addChild(this.toysContainer);
 
@@ -402,9 +455,18 @@ export class VendingMachinePixiComponent
     panelContainer.addChild(panelBg);
     this.machineContainer.addChild(panelContainer);
 
+    const panelInset = new Graphics()
+      .roundRect(-controlPanelWidth / 2 + 6, -panelHeight / 2 + 6, controlPanelWidth - 12, panelHeight - 12, 8)
+      .stroke({ width: 2, color: this.colors.textHighlight, alpha: 0.15 });
+    panelContainer.addChild(panelInset);
+
     // Display screen
     const screenH = panelHeight * 0.3;
     const screenY = -panelHeight / 2 + 8;
+    const screenGlow = new Graphics()
+      .rect(-controlPanelWidth / 2 + 4, screenY - 2, controlPanelWidth - 8, screenH + 4)
+      .fill({ color: 0x00FF7F, alpha: this.isDarkMode ? 0.08 : 0.12 });
+    panelContainer.addChild(screenGlow);
     const screenBg = new Graphics()
       .rect(-controlPanelWidth / 2 + 5, screenY, controlPanelWidth - 10, screenH)
       .fill(0x000000);
@@ -441,6 +503,9 @@ export class VendingMachinePixiComponent
       .circle(0, slotCenterY, slotRadius)
       .fill(0x7F8FA6)
       .stroke({ width: 2, color: 0xDCDDE1 });
+    const slotInner = new Graphics()
+      .circle(0, slotCenterY, slotRadius * 0.72)
+      .fill({ color: 0x000000, alpha: 0.35 });
 
     const holeW = slotRadius * 0.25;
     const holeH = slotRadius * 1.1;
@@ -460,7 +525,7 @@ export class VendingMachinePixiComponent
     slotText.y = slotCenterY + slotRadius + (panelHeight * 0.05);
 
     this.coinSlotZone = slotOuter;
-    panelContainer.addChild(slotOuter, slotHole, slotText);
+    panelContainer.addChild(slotOuter, slotInner, slotHole, slotText);
 
     // --- Exit Door (PUSH) ---
     const exitW = this.machineWidth - controlPanelWidth - 25;
@@ -471,6 +536,10 @@ export class VendingMachinePixiComponent
     const exitDoor = new Graphics()
       .roundRect(-exitW / 2, -exitH / 2, exitW, exitH, 8)
       .fill(this.colors.panel);
+
+    const exitGlow = new Graphics()
+      .roundRect(-exitW / 2 + 4, -exitH / 2 + 4, exitW - 8, exitH - 8, 6)
+      .fill({ color: 0x00FF7F, alpha: 0.06 });
 
     const exitFlap = new Graphics()
       .rect(-exitW / 2 + 5, -exitH / 2 + 5, exitW - 10, exitH - 10)
@@ -486,7 +555,7 @@ export class VendingMachinePixiComponent
     const exitContainer = new Container();
     exitContainer.x = exitX;
     exitContainer.y = exitY;
-    exitContainer.addChild(exitDoor, exitFlap, pushText);
+    exitContainer.addChild(exitDoor, exitGlow, exitFlap, pushText);
 
     exitContainer.eventMode = 'static';
     exitContainer.cursor = 'pointer';
@@ -494,6 +563,7 @@ export class VendingMachinePixiComponent
 
     this.pushBtn = exitContainer;
     this.pushText = pushText;
+    this.pushGlow = exitGlow;
 
     this.machineContainer.addChild(exitContainer);
 
@@ -869,11 +939,13 @@ export class VendingMachinePixiComponent
     if (!this.selectedToy || this.currentBalance === 0) {
       this.pushText.style.fill = '#7F8FA6';
       this.pushBtn.alpha = 1;
+      if (this.pushGlow) this.pushGlow.alpha = 0.05;
       return;
     }
 
     this.pushText.style.fill = '#00FF00';
     this.pushBtn.alpha = 1;
+    if (this.pushGlow) this.pushGlow.alpha = 0.2;
   }
 
   private tryCheckout() {
