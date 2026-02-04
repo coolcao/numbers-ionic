@@ -472,6 +472,7 @@ export class VendingMachinePixiComponent
       this.coinWalletContainer.addChild(placeholder);
 
       const visualCoin = this.drawCoinGraphics(value);
+      visualCoin.label = 'visual_coin'; // Pixi 8 use label or name. Keeping name for safety if older version, but label is preferred in 8.
       visualCoin.scale.set(coinScale);
       visualCoin.x = x;
 
@@ -481,6 +482,8 @@ export class VendingMachinePixiComponent
 
       this.coinWalletContainer.addChild(visualCoin);
     });
+    
+    this.updateWalletState();
   }
 
   private drawCoinGraphics(value: number): Graphics {
@@ -764,6 +767,21 @@ export class VendingMachinePixiComponent
     this.displayBalanceText.style.fill = '#00ff00';
 
     this.updatePushStatus();
+    this.updateWalletState();
+  }
+
+  private updateWalletState() {
+    if (!this.coinWalletContainer) return;
+    
+    const isEnabled = !!this.selectedToy && !this.isProcessing;
+
+    this.coinWalletContainer.children.forEach(child => {
+      if (child.label === 'visual_coin') {
+        child.alpha = isEnabled ? 1 : 0.5;
+        child.eventMode = isEnabled ? 'static' : 'none';
+        child.cursor = isEnabled ? 'grab' : 'default';
+      }
+    });
   }
 
   private updatePushStatus() {
