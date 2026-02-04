@@ -58,6 +58,9 @@ export class VendingMachinePixiComponent
   private pushBtn!: Container;
   private pushText!: Text;
   private pushGlow?: Graphics;
+  private onVisibilityChange?: () => void;
+  private onContextLost?: (event: any) => void;
+  private onContextRestored?: () => void;
 
   private observer?: MutationObserver;
 
@@ -247,6 +250,42 @@ export class VendingMachinePixiComponent
     this.createScene();
     this.createToyBoxHUD(); // Create HUD
     this.generateToys();
+
+    this.bindLifecycleHandlers();
+  }
+
+  private bindLifecycleHandlers() {
+    this.onVisibilityChange = () => {
+      if (!this.app) return;
+      if (document.visibilityState === 'visible') {
+        // When returning from background on mobile, WebGL context can be lost.
+        requestAnimationFrame(() => this.rebuildScene('visibility'));
+      }
+    };
+
+    document.addEventListener('visibilitychange', this.onVisibilityChange);
+
+    this.onContextLost = (event: any) => {
+      if (event && typeof event.preventDefault === 'function') {
+        event.preventDefault();
+      }
+    };
+
+    this.onContextRestored = () => {
+      this.rebuildScene('context-restored');
+    };
+
+    this.app.canvas.addEventListener('webglcontextlost', this.onContextLost, false);
+    this.app.canvas.addEventListener('webglcontextrestored', this.onContextRestored, false);
+  }
+
+  private rebuildScene(reason: 'visibility' | 'context-restored') {
+    if (!this.app) return;
+    this.app.stage.removeChildren();
+    this.createScene();
+    this.createToyBoxHUD();
+    this.generateToys();
+    this.updateDisplay();
   }
 
   private createToyBoxHUD() {
@@ -1427,7 +1466,12 @@ export class VendingMachinePixiComponent
     if (this.observer) {
       this.observer.disconnect();
     }
+    if (this.onVisibilityChange) {
+      document.removeEventListener('visibilitychange', this.onVisibilityChange);
+    }
     if (this.app) {
+      if (this.onContextLost) this.app.canvas.removeEventListener('webglcontextlost', this.onContextLost, false);
+      if (this.onContextRestored) this.app.canvas.removeEventListener('webglcontextrestored', this.onContextRestored, false);
       this.app.destroy(true, { children: true, texture: true });
     }
   }
