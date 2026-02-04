@@ -7,7 +7,8 @@ import {
   ViewChild,
 } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Application, Assets, BlurFilter, Container, Graphics, Sprite, Text, TextStyle } from 'pixi.js';
+import { timer } from 'rxjs';
+import { Application, Assets, BlurFilter, Container, Graphics, Sprite, Text, TextStyle, Ticker } from 'pixi.js';
 import { AudioService } from 'src/app/service/audio.service';
 
 interface Toy {
@@ -39,10 +40,18 @@ export class VendingMachinePixiComponent
   private currentBalance = 0;
   private isProcessing = false;
 
+  // Collection State
+  private purchasedCount = 0;
+  private readonly maxPurchaseCount = 5;
+  private purchasedToySprites: Container[] = [];
+  private purchasedImageIds: number[] = []; // 记录已购买的玩具图片ID
+
   // Scene Elements
   private machineContainer!: Container;
   private toysContainer!: Container;
   private coinWalletContainer!: Container;
+  private toyBoxContainer!: Container; // New HUD
+  private toyBoxText!: Text; // New Counter text
   private displayPriceText!: Text;
   private displayBalanceText!: Text;
   private coinSlotZone!: Graphics;
@@ -178,6 +187,12 @@ export class VendingMachinePixiComponent
     // 3. 重绘场景
     this.app.stage.removeChildren();
     this.createScene();
+    this.createToyBoxHUD(); // 重新创建 HUD
+
+    // 恢复 HUD 状态
+    if (this.toyBoxText) {
+      this.toyBoxText.text = `${this.purchasedCount}/${this.maxPurchaseCount}`;
+    }
 
     // 重绘玩具（保留数据）
     this.generateToys();
@@ -229,7 +244,59 @@ export class VendingMachinePixiComponent
     this.app.stage.hitArea = this.app.screen;
 
     this.createScene();
+    this.createToyBoxHUD(); // Create HUD
     this.generateToys();
+  }
+
+  private createToyBoxHUD() {
+    const { width } = this.app.screen;
+
+    this.toyBoxContainer = new Container();
+    this.toyBoxContainer.x = width - 60; // 向右移动一点
+    this.toyBoxContainer.y = 45;
+    this.app.stage.addChild(this.toyBoxContainer);
+
+    // Theme Colors for HUD
+    const hudColors = this.isDarkMode ? {
+      boxFill: 0x8E44AD,
+      boxStroke: 0xECF0F1,
+      badgeFill: 0xC0392B,
+      text: 0xECF0F1
+    } : {
+      boxFill: 0xFF9FF3,
+      boxStroke: 0xFFFFFF,
+      badgeFill: 0xFF4757,
+      text: 0xFFFFFF
+    };
+
+    const boxSize = 60; // 65 -> 60
+    const box = new Graphics();
+    box.roundRect(-boxSize / 2, -boxSize / 2, boxSize, boxSize, 12)
+      .fill(hudColors.boxFill)
+      .stroke({ width: 4, color: hudColors.boxStroke });
+
+    box.moveTo(-boxSize / 2, -boxSize / 2 + 18)
+      .lineTo(boxSize / 2, -boxSize / 2 + 18)
+      .stroke({ width: 3, color: hudColors.boxStroke });
+
+    this.toyBoxContainer.addChild(box);
+
+    const badge = new Graphics()
+      .circle(boxSize / 2 - 3, boxSize / 2 - 3, 20)
+      .fill(hudColors.badgeFill)
+      .stroke({ width: 2, color: hudColors.boxStroke });
+    this.toyBoxContainer.addChild(badge);
+
+    this.toyBoxText = new Text(`${this.purchasedCount}/${this.maxPurchaseCount}`, {
+      fontFamily: 'Arial',
+      fontSize: 16, // 回退到 16
+      fill: hudColors.text,
+      fontWeight: 'bold',
+      stroke: { width: 2, color: 0x000000, join: 'round' }
+    });
+    this.toyBoxText.anchor.set(0.5);
+    this.toyBoxText.position.set(boxSize / 2 - 3, boxSize / 2 - 3);
+    this.toyBoxContainer.addChild(this.toyBoxText);
   }
 
   private createScene() {
@@ -482,7 +549,7 @@ export class VendingMachinePixiComponent
 
       this.coinWalletContainer.addChild(visualCoin);
     });
-    
+
     this.updateWalletState();
   }
 
@@ -575,7 +642,7 @@ export class VendingMachinePixiComponent
       if (Math.sqrt(dx * dx + dy * dy) < 80) {
         this.handleCoinDrop(value, coin);
       } else {
-        const fadeOut = (ticker: any) => {
+        const fadeOut = (ticker: Ticker) => {
           coin.alpha -= 0.1;
           coin.scale.x -= 0.05;
           coin.scale.y -= 0.05;
@@ -603,7 +670,7 @@ export class VendingMachinePixiComponent
 
     const slotPos = this.coinSlotZone.getGlobalPosition();
 
-    const animateDrop = (ticker: any) => {
+    const animateDrop = (ticker: Ticker) => {
       coinSprite.x += (slotPos.x - coinSprite.x) * 0.2;
       coinSprite.y += (slotPos.y - coinSprite.y) * 0.2;
       coinSprite.scale.x *= 0.8;
@@ -623,30 +690,44 @@ export class VendingMachinePixiComponent
   private generateToys() {
     this.toysContainer.removeChildren();
 
-    // 如果没有数据（初次初始化），则生成数据
+    // 如果没有数据（初次初始化或下一轮），则生成数据
     if (this.toys.length === 0) {
       this.selectedToy = null;
       this.currentBalance = 0;
       this.updateDisplay();
 
-      const allIds = Array.from({ length: this.TOY_IMAGE_COUNT }, (_, k) => k + 1);
+      // 1. 生成所有可用 ID
+      let allIds = Array.from({ length: this.TOY_IMAGE_COUNT }, (_, k) => k + 1);
+
+      // 2. 排除已购买的 ID
+      allIds = allIds.filter(id => !this.purchasedImageIds.includes(id));
+
+      // 3. 洗牌
       for (let i = allIds.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [allIds[i], allIds[j]] = [allIds[j], allIds[i]];
       }
+
+      // 4. 选取前 9 个（如果不够 9 个，就取全部）
       const selectedIds = allIds.slice(0, 9);
 
       let prices: number[] = [];
+      const count = selectedIds.length; // 实际生成的数量
+
       if (this.mode === 'simple') {
-        for (let k = 0; k < 3; k++) prices.push(Math.floor(Math.random() * 3) + 1);
-        for (let k = 0; k < 3; k++) prices.push(Math.floor(Math.random() * 3) + 4);
-        for (let k = 0; k < 3; k++) prices.push(Math.floor(Math.random() * 3) + 7);
+        // 简单模式：价格 1~9
+        for (let k = 0; k < count; k++) {
+          // 简单的分布：1-3, 4-6, 7-9 均匀分布
+          const tier = k % 3;
+          const price = Math.floor(Math.random() * 3) + 1 + (tier * 3);
+          prices.push(price);
+        }
         prices.sort(() => 0.5 - Math.random());
       } else {
-        prices = Array.from({ length: 9 }, () => Math.floor(Math.random() * 90) + 10);
+        prices = Array.from({ length: count }, () => Math.floor(Math.random() * 90) + 10);
       }
 
-      for (let i = 0; i < 9; i++) {
+      for (let i = 0; i < count; i++) {
         const toyData: Toy = {
           id: i,
           name: `Toy ${i}`,
@@ -704,7 +785,7 @@ export class VendingMachinePixiComponent
         .roundRect(-25, 30, 50, 20, 4)
         .fill(this.colors.tagBg)
         .stroke({ width: 1, color: 0x000000 });
-      
+
       const priceText = new Text(`¥${toyData.price}`, {
         fontSize: 14,
         fill: this.colors.tagText,
@@ -772,7 +853,7 @@ export class VendingMachinePixiComponent
 
   private updateWalletState() {
     if (!this.coinWalletContainer) return;
-    
+
     const isEnabled = !!this.selectedToy && !this.isProcessing;
 
     this.coinWalletContainer.children.forEach(child => {
@@ -918,7 +999,7 @@ export class VendingMachinePixiComponent
       this.app.stage.addChild(sprite);
 
       let time = 0;
-      const animate = (ticker: any) => {
+      const animate = (ticker: Ticker) => {
         sprite.x += (targetX - sprite.x) * 0.025;
         sprite.y += (targetY - sprite.y) * 0.025;
 
@@ -929,7 +1010,7 @@ export class VendingMachinePixiComponent
         sprite.rotation = Math.sin(time * 0.03) * 0.1;
 
         if (time < 60) {
-          blurFilter.blur = (time / 60) * 8;
+          blurFilter.blur = (time / 60) * 8; // 恢复模糊渐变效果
           overlay.alpha = (time / 60) * 0.8;
           successText.alpha = (time / 60);
           successText.y -= 0.5;
@@ -937,29 +1018,289 @@ export class VendingMachinePixiComponent
 
         time++;
 
-        if (time > 240) {
+        if (time > 300) {
           this.app.ticker.remove(animate);
 
-          sprite.destroy();
           successText.destroy();
           confettiContainer.destroy({ children: true });
           overlay.destroy();
-
           this.machineContainer.filters = [];
           this.coinWalletContainer.filters = [];
 
-          this.isProcessing = false;
-          this.selectedToy = null;
-          this.currentBalance = 0;
-          this.updateDisplay();
-
-          this.toys = [];
-          this.generateToys();
+          // Fly to Toy Box Animation
+          this.flyToBox(sprite);
         }
       };
 
       this.app.ticker.add(animate);
     }
+  }
+
+  private flyToBox(sprite: Container) {
+    const startX = sprite.x;
+    const startY = sprite.y;
+    const startScale = sprite.scale.x;
+
+    // Global position of toy box
+    const targetPos = this.toyBoxContainer.getGlobalPosition();
+
+    let progress = 0;
+    const fly = (ticker: Ticker) => {
+      progress += 0.05;
+
+      if (progress >= 1) {
+        this.app.ticker.remove(fly);
+        sprite.destroy();
+
+        // Update State
+        this.purchasedCount++;
+        this.toyBoxText.text = `${this.purchasedCount}/${this.maxPurchaseCount}`;
+
+        // 记录已购买 ID
+        if (this.selectedToy) {
+          this.purchasedImageIds.push(this.selectedToy.imageId);
+        }
+
+        // Bump animation for box
+        this.bumpToyBox();
+
+        if (this.purchasedCount >= this.maxPurchaseCount) {
+          this.showGameOver();
+        } else {
+          this.resetRound();
+        }
+        return;
+      }
+
+      // Lerp position
+      sprite.x = startX + (targetPos.x - startX) * progress;
+      sprite.y = startY + (targetPos.y - startY) * progress;
+      // Scale down
+      sprite.scale.set(startScale * (1 - progress * 0.8)); // Shrink to 20%
+      // Rotate
+      sprite.rotation += 0.5;
+    };
+
+    this.app.ticker.add(fly);
+  }
+
+  private bumpToyBox() {
+    let tick = 0;
+    const bump = (t: any) => {
+      tick += 0.2;
+      const s = 1 + Math.sin(tick) * 0.2;
+      this.toyBoxContainer.scale.set(s);
+      if (tick >= Math.PI) {
+        this.toyBoxContainer.scale.set(1);
+        this.app.ticker.remove(bump);
+      }
+    };
+    this.app.ticker.add(bump);
+  }
+
+  private resetRound() {
+    this.isProcessing = false;
+    this.selectedToy = null;
+    this.currentBalance = 0;
+    this.updateDisplay();
+    this.toys = [];
+    this.generateToys();
+  }
+
+  private showGameOver() {
+    // 创建统一容器，方便管理和销毁
+    const gameOverContainer = new Container();
+    gameOverContainer.eventMode = 'static';
+    gameOverContainer.sortableChildren = true;
+    this.app.stage.addChild(gameOverContainer);
+
+    // 1. 准备模糊效果
+    const blurFilter = new BlurFilter();
+    blurFilter.blur = 0;
+    this.machineContainer.filters = [blurFilter];
+    this.coinWalletContainer.filters = [blurFilter];
+    this.toyBoxContainer.filters = [blurFilter];
+
+    // 全屏遮罩
+    const overlay = new Graphics()
+      .rect(0, 0, this.app.screen.width, this.app.screen.height)
+      .fill({ color: 0x000000, alpha: 0 }); // 从透明开始
+    gameOverContainer.addChild(overlay);
+
+    // 2. 渐变动画
+    let time = 0;
+    const fadeIn = (ticker: Ticker) => {
+      if (time < 60) {
+        const progress = time / 60;
+        overlay.alpha = progress * 0.8;
+        blurFilter.blur = progress * 10;
+        time++;
+      } else {
+        this.app.ticker.remove(fadeIn);
+      }
+    };
+    this.app.ticker.add(fadeIn);
+
+    // 3. 胜利标题 (移到底部)
+    const gameOverText = new Text('挑战成功', {
+      fontFamily: 'Arial Black',
+      fontSize: 64,
+      fill: '#FFD700',
+      stroke: { width: 6, color: '#FFFFFF', join: 'round' },
+      dropShadow: { alpha: 0.5, blur: 10, distance: 5, angle: Math.PI / 4, color: '#000000' }
+    });
+    gameOverText.anchor.set(0.5);
+    gameOverText.x = this.app.screen.width / 2;
+    gameOverText.y = this.app.screen.height * 0.6; // 再向上 (0.7 -> 0.6)
+    gameOverContainer.addChild(gameOverText);
+
+    // 3. 展示战利品 (移到顶部)
+    const toysShowcase = new Container();
+    toysShowcase.x = this.app.screen.width / 2;
+    toysShowcase.y = this.app.screen.height * 0.25; // 再向上 (0.3 -> 0.25)
+    gameOverContainer.addChild(toysShowcase);
+
+    // 布局配置
+    const row1Count = 3;
+    const itemSize = 100;
+    const spacing = 20;
+
+    this.purchasedImageIds.forEach((imageId, index) => {
+      // @ts-ignore
+      const texture = Assets.get(`assets/images/number-vending/toys/${imageId}.png`);
+      const sprite = new Sprite(texture);
+      sprite.anchor.set(0.5);
+
+      const maxDim = Math.max(sprite.width, sprite.height);
+      sprite.scale.set(100 / maxDim);
+
+      // 计算行列位置
+      let row = 0;
+      let col = 0;
+      let rowWidth = 0;
+
+      if (index < row1Count) {
+        row = 0;
+        col = index;
+        rowWidth = row1Count * itemSize + (row1Count - 1) * spacing;
+      } else {
+        row = 1;
+        col = index - row1Count;
+        const row2Count = this.purchasedImageIds.length - row1Count;
+        rowWidth = row2Count * itemSize + (row2Count - 1) * spacing;
+      }
+
+      const startX = -rowWidth / 2 + itemSize / 2;
+      sprite.x = startX + col * (itemSize + spacing);
+      sprite.y = row * (itemSize + spacing + 20);
+
+      sprite.scale.set(0);
+
+      let tick = 0;
+      const delay = index * 10;
+      const bounce = (t: Ticker) => {
+        if (sprite.destroyed) {
+          this.app.ticker.remove(bounce);
+          return;
+        }
+
+        if (tick < delay) {
+          tick++;
+          return;
+        }
+        const animTick = tick - delay;
+        const progress = Math.min(animTick / 20, 1);
+
+        const s = 100 / maxDim;
+        if (progress < 1) {
+          const p = progress - 1;
+          const scaleFactor = Math.sin(p * Math.PI * 4.5) * p * p + 1;
+          sprite.scale.set(s * scaleFactor);
+        } else {
+          sprite.scale.set(s);
+          sprite.rotation = Math.sin(Date.now() / 200 + index) * 0.1;
+        }
+        tick++;
+      };
+      this.app.ticker.add(bounce);
+      toysShowcase.addChild(sprite);
+    });
+
+    // Play big win sound
+    this.audioService.play('checkout_success');
+
+    // 4. 操作按钮 (新增)
+    const btnY = this.app.screen.height * 0.75;
+
+    const createBtn = (text: string, color: number, x: number, onClick: () => void) => {
+      const btn = new Container();
+      btn.x = x;
+      btn.y = btnY;
+
+      const bg = new Graphics()
+        .roundRect(-65, -25, 130, 50, 25) // 缩小 (160x60 -> 130x50)
+        .fill(color)
+        .stroke({ width: 3, color: 0xFFFFFF });
+
+      const txt = new Text(text, {
+        fontFamily: 'Arial',
+        fontSize: 20, // 缩小 (24 -> 20)
+        fontWeight: 'bold',
+        fill: 0xFFFFFF
+      });
+      txt.anchor.set(0.5);
+
+      btn.addChild(bg, txt);
+      btn.eventMode = 'static';
+      btn.cursor = 'pointer';
+
+      // 增强点击动画和反馈
+      btn.on('pointerdown', () => {
+        btn.scale.set(0.9); // 按下时缩小更多 (0.95 -> 0.9)
+        this.audioService.play('click', { interrupt: false }); // 立即播放音效
+
+        // 延迟 100ms 执行动作，确保动画可见
+        timer(100).subscribe(() => {
+          btn.scale.set(1);
+          onClick();
+        });
+      });
+      btn.on('pointerup', () => btn.scale.set(1));
+      btn.on('pointerupoutside', () => btn.scale.set(1));
+
+      btn.zIndex = 10;
+      gameOverContainer.addChild(btn); // 确保加到这里
+      return btn;
+    };
+
+    const cleanup = () => {
+      gameOverContainer.destroy({ children: true });
+
+      this.machineContainer.filters = [];
+      this.coinWalletContainer.filters = [];
+      this.toyBoxContainer.filters = [];
+    };
+
+    // 重玩按钮 (绿色)
+    createBtn('再玩一次', 0x2ECC71, this.app.screen.width / 2 - 80, () => {
+      cleanup();
+
+      // 重置状态
+      this.purchasedCount = 0;
+      this.purchasedImageIds = [];
+      this.toyBoxText.text = `0/${this.maxPurchaseCount}`;
+      this.resetRound();
+    });
+
+    // 首页按钮 (蓝色)
+    createBtn('回到首页', 0x3498DB, this.app.screen.width / 2 + 80, () => {
+      // 使用 RxJS timer 延迟 200ms 跳转，防止点击穿透到 Home 页面
+      timer(300).subscribe(() => {
+        cleanup();
+        this.goBack();
+      });
+
+    });
   }
 
   private fireConfetti(container: Container, x: number, y: number) {
@@ -1007,7 +1348,7 @@ export class VendingMachinePixiComponent
   }
 
   goBack() {
-    this.router.navigate(['/home']);
+    this.router.navigateByUrl('/home', { replaceUrl: true });
   }
 
   ngOnDestroy() {
