@@ -20,6 +20,8 @@ export class VendingMachinePixiCoinService {
     gameService: VendingMachinePixiGameService;
     coinSlotZone: Graphics;
     onUpdateDisplay: () => void;
+    onCoinDrop?: () => void;
+    playAudio?: boolean;
   }) {
     const {
       app,
@@ -33,6 +35,8 @@ export class VendingMachinePixiCoinService {
       sceneService,
       coinSlotZone,
       onUpdateDisplay,
+      onCoinDrop,
+      playAudio,
     } = params;
 
     if (isProcessing || !dataService.selectedToy) {
@@ -79,6 +83,8 @@ export class VendingMachinePixiCoinService {
           gameService: params.gameService,
           coinSlotZone,
           onUpdateDisplay,
+          onCoinDrop,
+          playAudio,
         });
       } else {
         const fadeOut = (ticker: Ticker) => {
@@ -111,11 +117,18 @@ export class VendingMachinePixiCoinService {
     gameService: VendingMachinePixiGameService;
     coinSlotZone: Graphics;
     onUpdateDisplay: () => void;
+    onCoinDrop?: () => void;
+    playAudio?: boolean;
   }) {
-    const { app, value, coinSprite, audioService, dataService, gameService, coinSlotZone, onUpdateDisplay } = params;
-    audioService.play('insert_coin', { interrupt: false });
+    const { app, value, coinSprite, audioService, dataService, gameService, coinSlotZone, onUpdateDisplay, onCoinDrop, playAudio } = params;
+    if (playAudio !== false) {
+      audioService.play('insert_coin', { interrupt: false });
+    }
     dataService.currentBalance = gameService.applyCoin(dataService.currentBalance, value);
     onUpdateDisplay();
+    if (onCoinDrop) {
+      onCoinDrop();
+    }
 
     const slotPos = coinSlotZone.getGlobalPosition();
 

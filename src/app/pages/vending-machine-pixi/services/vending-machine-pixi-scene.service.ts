@@ -34,6 +34,7 @@ export interface VendingMachineSceneRefs {
   displayPriceText: Text;
   displayBalanceText: Text;
   coinSlotZone: Graphics;
+  coinSlotAnchor: Container;
   pushBtn: Container;
   pushText: Text;
   pushGlow?: Graphics;
@@ -334,7 +335,10 @@ export class VendingMachinePixiSceneService {
     slotText.y = slotCenterY + slotRadius + (panelHeight * 0.05);
 
     const coinSlotZone = slotOuter;
-    panelContainer.addChild(slotOuter, slotInner, slotHole, slotText);
+    const coinSlotAnchor = new Container();
+    coinSlotAnchor.x = 0;
+    coinSlotAnchor.y = slotCenterY;
+    panelContainer.addChild(slotOuter, slotInner, slotHole, slotText, coinSlotAnchor);
 
     // --- Exit Door (PUSH) ---
     const exitW = machineWidth - controlPanelWidth - 25;
@@ -406,6 +410,7 @@ export class VendingMachinePixiSceneService {
       displayPriceText,
       displayBalanceText,
       coinSlotZone,
+      coinSlotAnchor,
       pushBtn: exitContainer,
       pushText,
       pushGlow: exitGlow,
@@ -553,7 +558,7 @@ export class VendingMachinePixiSceneService {
       coinWalletContainer.addChild(placeholder);
 
       const visualCoin = this.drawCoinGraphics(value);
-      visualCoin.label = 'visual_coin';
+      visualCoin.label = `coin_${value}`;
       visualCoin.scale.set(coinScale);
       visualCoin.x = x;
 

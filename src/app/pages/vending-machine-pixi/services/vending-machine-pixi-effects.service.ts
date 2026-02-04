@@ -20,6 +20,7 @@ interface SuccessParams {
   onResetRound: () => void;
   onGoBack: () => void;
   onToyBoxChange?: (purchasedCount: number, maxPurchaseCount: number) => void;
+  onToyBoxArrived?: () => void;
 }
 
 interface GameOverParams {
@@ -53,6 +54,7 @@ export class VendingMachinePixiEffectsService {
       onResetRound,
       onGoBack,
       onToyBoxChange,
+      onToyBoxArrived,
     } = params;
 
     const successText = new Text(message, {
@@ -161,6 +163,8 @@ export class VendingMachinePixiEffectsService {
             audioService,
             onResetRound,
             onGoBack,
+            onToyBoxChange,
+            onToyBoxArrived,
           });
         }
       };
@@ -371,6 +375,7 @@ export class VendingMachinePixiEffectsService {
     onResetRound: () => void;
     onGoBack: () => void;
     onToyBoxChange?: (purchasedCount: number, maxPurchaseCount: number) => void;
+    onToyBoxArrived?: () => void;
   }) {
     const {
       app,
@@ -385,6 +390,7 @@ export class VendingMachinePixiEffectsService {
       onResetRound,
       onGoBack,
       onToyBoxChange,
+      onToyBoxArrived,
     } = params;
     const startX = sprite.x;
     const startY = sprite.y;
@@ -404,6 +410,9 @@ export class VendingMachinePixiEffectsService {
         toyBoxText.text = `${dataService.purchasedCount}/${dataService.maxPurchaseCount}`;
         if (onToyBoxChange) {
           onToyBoxChange(dataService.purchasedCount, dataService.maxPurchaseCount);
+        }
+        if (onToyBoxArrived) {
+          onToyBoxArrived();
         }
 
         this.bumpToyBox(app, toyBoxContainer);

@@ -1,11 +1,72 @@
 <div class="relative-container bg-slate-100">
   <!-- Pixi Canvas 容器 -->
-  <div #pixiContainer class="w-full h-full block"></div>
+  <div #pixiContainer class="block h-full w-full"></div>
 
   <div class="loading-overlay" *ngIf="isLoading">
     <div class="loading-card">
       <div class="loading-bubble"></div>
       <div class="loading-text">加载中...</div>
+    </div>
+  </div>
+
+  <div class="tutorial-overlay" *ngIf="tutorialService.isPlaying()">
+    <div
+      class="tutorial-dimmer"
+      [ngStyle]="{
+        'mask-image': tutorialService.spotlight()
+          ? 'radial-gradient(circle ' +
+            tutorialService.spotlight()?.r +
+            'px at ' +
+            tutorialService.spotlight()?.x +
+            'px ' +
+            tutorialService.spotlight()?.y +
+            'px, transparent 0%, black 100%)'
+          : 'none',
+        '-webkit-mask-image': tutorialService.spotlight()
+          ? 'radial-gradient(circle ' +
+            tutorialService.spotlight()?.r +
+            'px at ' +
+            tutorialService.spotlight()?.x +
+            'px ' +
+            tutorialService.spotlight()?.y +
+            'px, transparent 0%, black 100%)'
+          : 'none',
+      }"
+    ></div>
+
+    <div
+      class="tutorial-instruction"
+      [class.tutorial-instruction-bottom]="
+        tutorialService.instructionPosition() === 'bottom'
+      "
+      *ngIf="tutorialService.instruction() as text"
+    >
+      <p class="tutorial-instruction-text">{{ text }}</p>
+      <button class="tutorial-skip" (click)="tutorialService.skip()">
+        跳过
+      </button>
+    </div>
+
+    <div
+      class="tutorial-ring"
+      *ngIf="tutorialService.spotlight() as spot"
+      [style.left.px]="spot.x - spot.r"
+      [style.top.px]="spot.y - spot.r"
+      [style.width.px]="spot.r * 2"
+      [style.height.px]="spot.r * 2"
+    ></div>
+
+    <div
+      class="tutorial-hand"
+      *ngIf="tutorialService.handPosition() as hand"
+      [style.left.px]="hand.x"
+      [style.top.px]="hand.y"
+    >
+      <i
+        class="fa-solid fa-hand-pointer"
+        [class.hand-click]="tutorialService.handAction() === 'click'"
+        [class.hand-drag]="tutorialService.handAction() === 'drag'"
+      ></i>
     </div>
   </div>
 </div>

@@ -22,8 +22,23 @@ export class VendingMachinePixiDataService {
   readonly maxPurchaseCount = 5;
   purchasedImageIds: number[] = [];
 
+  tutorialActive = false;
+  tutorialTargetPrice = 1;
+  tutorialTargetToyId: number | null = null;
+
   setMode(mode: 'simple' | 'hard') {
     this.mode = mode;
+  }
+
+  enableTutorial(targetPrice = 1) {
+    this.tutorialActive = true;
+    this.tutorialTargetPrice = targetPrice;
+    this.tutorialTargetToyId = null;
+  }
+
+  disableTutorial() {
+    this.tutorialActive = false;
+    this.tutorialTargetToyId = null;
   }
 
   resetRound() {
@@ -52,9 +67,19 @@ export class VendingMachinePixiDataService {
     const selectedIds = allIds.slice(0, 9);
 
     const count = selectedIds.length;
-    const prices = this.mode === 'simple'
-      ? this.pickUniquePrices(count, 1, 9)
-      : this.pickUniquePrices(count, 10, 99);
+    let prices: number[] = [];
+    if (this.tutorialActive) {
+      const min = this.mode === 'simple' ? 1 : 10;
+      const max = this.mode === 'simple' ? 9 : 99;
+      const remainingCount = Math.max(count - 1, 0);
+      const pool = this.pickUniquePrices(remainingCount + 3, min, max)
+        .filter(price => price !== this.tutorialTargetPrice);
+      prices = [this.tutorialTargetPrice, ...pool].slice(0, count);
+    } else {
+      prices = this.mode === 'simple'
+        ? this.pickUniquePrices(count, 1, 9)
+        : this.pickUniquePrices(count, 10, 99);
+    }
 
     this.toys = [];
     for (let i = 0; i < count; i++) {
@@ -70,6 +95,11 @@ export class VendingMachinePixiDataService {
 
     // 按价格随机排序放置
     this.shuffle(this.toys);
+
+    if (this.tutorialActive) {
+      const target = this.toys.find(toy => toy.price === this.tutorialTargetPrice);
+      this.tutorialTargetToyId = target ? target.id : null;
+    }
   }
 
   private pickUniquePrices(count: number, min: number, max: number) {

@@ -29,11 +29,11 @@ export class VendingMachinePixiToyService {
       bgColors,
       tagBg,
       tagText,
-    windowWidth,
-    windowHeight,
-    rowHeight,
-    onSelect,
-  } = params;
+      windowWidth,
+      windowHeight,
+      rowHeight,
+      onSelect,
+    } = params;
 
     toysContainer.removeChildren();
 

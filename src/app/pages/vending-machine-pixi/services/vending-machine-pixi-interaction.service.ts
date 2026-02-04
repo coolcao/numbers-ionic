@@ -95,7 +95,7 @@ export class VendingMachinePixiInteractionService {
     const isEnabled = !!dataService.selectedToy && !isProcessing;
 
     coinWalletContainer.children.forEach(child => {
-      if (child.label === 'visual_coin') {
+      if (typeof child.label === 'string' && child.label.startsWith('coin_')) {
         child.alpha = isEnabled ? 1 : 0.5;
         child.eventMode = isEnabled ? 'static' : 'none';
         child.cursor = isEnabled ? 'grab' : 'default';
