@@ -242,7 +242,9 @@ export class VendingMachinePixiComponent
     this.app.stage.addChild(this.machineContainer);
 
     this.machineHeight = height * 0.65;
-    this.machineWidth = Math.min(width * 0.85, this.machineHeight * 0.68);
+    const isNarrowScreen = width <= 480;
+    const maxWidthRatio = isNarrowScreen ? 0.95 : 0.85;
+    this.machineWidth = Math.min(width * maxWidthRatio, this.machineHeight * 0.72);
 
     // Shadow
     const shadow = new Graphics()
@@ -270,13 +272,19 @@ export class VendingMachinePixiComponent
       .fill(this.colors.headerBg);
     this.machineContainer.addChild(header);
 
-    const titleText = new Text({
-      text: 'TOY SHOP',
-      style: {
-        fontSize: headerHeight * 0.5,
-        fill: this.colors.headerText,
-        fontWeight: 'bold',
-        fontFamily: 'Arial Black',
+    const titleText = new Text('TOY SHOP', {
+      fontSize: headerHeight * 0.6,
+      fill: this.colors.headerText,
+      fontWeight: '900',
+      fontFamily: 'Arial Black',
+      stroke: { color: '#FFFFFF', width: 6, join: 'round' },
+      padding: 15,
+      dropShadow: {
+        alpha: 0.3,
+        blur: 4,
+        color: '#000000',
+        distance: 4,
+        angle: Math.PI / 6,
       },
     });
     titleText.anchor.set(0.5);
@@ -657,7 +665,7 @@ export class VendingMachinePixiComponent
     const baseHeight = 100;
     const scaleX = (colWidth * 0.85) / baseWidth;
     const scaleY = (this.rowHeight * 0.85) / baseHeight;
-    this.toyBaseScale = Math.min(1.3, Math.min(scaleX, scaleY));
+    this.toyBaseScale = Math.min(1.5, Math.min(scaleX, scaleY)); // 调大最大限制
 
     for (let i = 0; i < this.toys.length; i++) {
       const toyData = this.toys[i];
@@ -674,14 +682,30 @@ export class VendingMachinePixiComponent
       toyContainer.x = -this.windowWidth / 2 + colWidth / 2 + col * colWidth;
       toyContainer.y = floorY - yOffset;
 
-      // 先创建标签 (底层)
+      // 1. 先创建 Sprite (底层)
+      // @ts-ignore
+      const texture = Assets.get(`assets/images/number-vending/toys/${toyData.imageId}.png`);
+      const sprite = new Sprite(texture);
+      sprite.anchor.set(0.5);
+
+      const maxDim = Math.max(sprite.width, sprite.height);
+      const baseInnerScale = 90 / maxDim; // 调大基准尺寸 (75 -> 90)
+      toyData.innerScale = baseInnerScale;
+
+      sprite.scale.set(baseInnerScale);
+      sprite.y = 0;
+      toyContainer.addChild(sprite);
+
+      // 2. 后创建标签 (顶层，确保不被图片遮挡)
       const tag = new Graphics()
         .roundRect(-25, 30, 50, 20, 4)
         .fill(this.colors.tagBg)
         .stroke({ width: 1, color: 0x000000 });
-      const priceText = new Text({
-        text: `¥${toyData.price}`,
-        style: { fontSize: 14, fill: this.colors.tagText, fontWeight: 'bold' },
+      
+      const priceText = new Text(`¥${toyData.price}`, {
+        fontSize: 14,
+        fill: this.colors.tagText,
+        fontWeight: 'bold',
       });
       priceText.anchor.set(0.5);
       priceText.y = 40;
@@ -690,21 +714,6 @@ export class VendingMachinePixiComponent
       priceText.visible = !!isSelected;
 
       toyContainer.addChild(tag, priceText);
-
-      // 后创建 Sprite (顶层)
-      // @ts-ignore
-      const texture = Assets.get(`assets/images/number-vending/toys/${toyData.imageId}.png`);
-      const sprite = new Sprite(texture);
-      sprite.anchor.set(0.5);
-
-      const maxDim = Math.max(sprite.width, sprite.height);
-      const baseInnerScale = 75 / maxDim;
-      toyData.innerScale = baseInnerScale;
-
-      sprite.scale.set(baseInnerScale);
-      sprite.y = 0;
-
-      toyContainer.addChild(sprite);
 
       toyContainer.eventMode = 'static';
       toyContainer.cursor = 'pointer';
@@ -808,7 +817,7 @@ export class VendingMachinePixiComponent
       // 建议文件名: buy_success.mp3
       // 建议文案: "太棒了！购买成功！"
       // 当前使用: checkout_success (right_answer.mp3)
-      // this.audioService.play('buy_success'); 
+      // this.audioService.play('buy_success');
       this.success("购买成功!");
     } else {
       const change = this.currentBalance - this.selectedToy.price;
@@ -826,14 +835,17 @@ export class VendingMachinePixiComponent
     this.isProcessing = true;
     this.audioService.play('checkout_success');
 
-    const successText = new Text({
-      text: message,
-      style: {
-        fontFamily: 'Arial Black',
-        fontSize: 48,
-        fill: '#E84118',
-        stroke: { width: 4, color: '#FFFFFF' },
-        dropShadow: { alpha: 0.5, blur: 4, distance: 4 }
+    const successText = new Text(message, {
+      fontFamily: 'Arial Black',
+      fontSize: 48,
+      fill: '#E84118',
+      stroke: { width: 4, color: '#FFFFFF' },
+      dropShadow: {
+        alpha: 0.5,
+        blur: 4,
+        distance: 4,
+        angle: Math.PI / 6,
+        color: '#000000'
       }
     });
     successText.anchor.set(0.5);
@@ -907,7 +919,7 @@ export class VendingMachinePixiComponent
 
         time++;
 
-        if (time > 360) {
+        if (time > 240) {
           this.app.ticker.remove(animate);
 
           sprite.destroy();
