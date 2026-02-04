@@ -16,9 +16,9 @@ export interface VendingMachineColors {
 
 export const VENDING_MACHINE_COLORS = {
   dark: {
-    body: 0x5D0F0A,
+    body: 0xC62828,
     shadow: 0x000000,
-    glass: 0x17202A,
+    glass: 0x3D5666,
     shelf: 0x4D5656,
     panel: 0x17202A,
     walletBg: 0x1C2833,

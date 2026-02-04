@@ -68,6 +68,46 @@ export class VendingMachinePixiSceneService {
     const maxWidthRatio = isNarrowScreen ? 0.95 : 0.85;
     const machineWidth = Math.min(width * maxWidthRatio, machineHeight * 0.72);
 
+    // Support legs/feet - fixed to extend downward from machine bottom
+    const legWidth = 28;
+    const legHeight = 15;
+    const legOffsetX = machineWidth * 0.3;
+    const machineBottom = machineHeight / 2;
+
+    // Left leg
+    const leftLeg = new Graphics()
+      .roundRect(-legOffsetX - legWidth / 2, machineBottom, legWidth, legHeight, 6)
+      .fill({ color: 0x1A1A1A })
+      .stroke({ width: 2, color: 0x0A0A0A });
+    machineContainer.addChild(leftLeg);
+
+    // Left leg top highlight
+    const leftLegTop = new Graphics()
+      .roundRect(-legOffsetX - legWidth / 2 + 4, machineBottom + 3, legWidth - 8, 6, 3)
+      .fill({ color: 0x404040 });
+    machineContainer.addChild(leftLegTop);
+
+    // Right leg
+    const rightLeg = new Graphics()
+      .roundRect(legOffsetX - legWidth / 2, machineBottom, legWidth, legHeight, 6)
+      .fill({ color: 0x1A1A1A })
+      .stroke({ width: 2, color: 0x0A0A0A });
+    machineContainer.addChild(rightLeg);
+
+    // Right leg top highlight
+    const rightLegTop = new Graphics()
+      .roundRect(legOffsetX - legWidth / 2 + 4, machineBottom + 3, legWidth - 8, 6, 3)
+      .fill({ color: 0x404040 });
+    machineContainer.addChild(rightLegTop);
+
+    // Ground shadow under legs
+    const legShadow = new Graphics()
+      .ellipse(-legOffsetX, machineBottom + legHeight, legWidth * 0.6, 6)
+      .fill({ color: 0x000000, alpha: 0.3 })
+      .ellipse(legOffsetX, machineBottom + legHeight, legWidth * 0.6, 6)
+      .fill({ color: 0x000000, alpha: 0.3 });
+    machineContainer.addChild(legShadow);
+
     // Shadow
     const shadow = new Graphics()
       .roundRect(-machineWidth / 2 + 6, -machineHeight / 2 + 6, machineWidth, machineHeight, 18)
