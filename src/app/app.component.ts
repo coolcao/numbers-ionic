@@ -6,6 +6,7 @@ import { filter } from 'rxjs';
 import { Capacitor } from '@capacitor/core';
 import { App, BackButtonListenerEvent } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
+import { ToastController } from '@ionic/angular';
 import { AppStore } from 'src/app/store/app.store';
 
 @Component({
@@ -24,7 +25,9 @@ export class AppComponent implements OnInit {
   showFooter = this.store.showFooter;
   showBack = signal(false);
 
-  showExit = signal(false);
+  private readonly toastController = inject(ToastController);
+  private lastBackPressAt = 0;
+  private backToast?: HTMLIonToastElement;
 
   constructor() {
     effect(() => {
@@ -98,15 +101,38 @@ export class AppComponent implements OnInit {
     } else {
       App.minimizeApp(); // iOS 最小化
     }
-    this.showExit.set(false);
   }
 
   private setupBackEvent() {
     App.addListener('backButton', async (event: BackButtonListenerEvent) => {
-      if (event.canGoBack) {
+      const isHome = this.router.url === '/' || this.router.url === '/home';
+
+      if (event.canGoBack && !isHome) {
         this.goBack();
       } else {
-        this.showExit.set(true);
+        if (this.getPlatform() !== 'android') {
+          return;
+        }
+
+        const now = Date.now();
+        if (now - this.lastBackPressAt < 2000) {
+          this.backToast?.dismiss().catch(() => undefined);
+          this.exitGame();
+          return;
+        }
+
+        this.lastBackPressAt = now;
+        if (!this.backToast) {
+          this.backToast = await this.toastController.create({
+            message: '再按一次退出应用',
+            duration: 1500,
+            position: 'bottom',
+          });
+          this.backToast.onDidDismiss().then(() => {
+            this.backToast = undefined;
+          });
+        }
+        await this.backToast.present();
       }
     });
   }
