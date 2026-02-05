@@ -4,7 +4,6 @@ import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule } from '@angular/forms';
-import { DragDropModule } from '@angular/cdk/drag-drop';
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 import { IonicStorageModule } from '@ionic/storage-angular';
 import { Drivers } from '@ionic/storage';
@@ -17,12 +16,6 @@ import { AppComponent } from 'src/app/app.component';
 import { HomeComponent } from 'src/app/pages/home/home.component';
 import { LearnNumbersComponent } from 'src/app/pages/learn-numbers/learn-numbers.component';
 import { ListenNumbersComponent } from 'src/app/pages/listen-numbers/listen-numbers.component';
-import { NumberTrainComponent } from 'src/app/pages/number-train/number-train.component';
-import { TrainEngineComponent } from 'src/app/pages/number-train/components/train-engine/train-engine.component';
-import { TrainCarComponent } from 'src/app/pages/number-train/components/train-car/train-car.component';
-import { TrainCabooseComponent } from 'src/app/pages/number-train/components/train-caboose/train-caboose.component';
-import { NumberMarketComponent } from 'src/app/pages/number-market/number-market.component';
-import { NumberBubblesCanvasComponent } from 'src/app/pages/number-bubbles-canvas/number-bubbles-canvas.component';
 import { NumberTrainPixiComponent } from './pages/number-train-pixi/number-train-pixi.component';
 import { NumberMarketPixiComponent } from './pages/number-market-pixi/number-market-pixi.component';
 import { NumberBubblesPixiComponent } from 'src/app/pages/number-bubbles-pixi/number-bubbles-pixi.component';
@@ -37,12 +30,6 @@ import { VendingMachinePixiComponent } from './pages/vending-machine-pixi/vendin
     HomeComponent,
     LearnNumbersComponent,
     ListenNumbersComponent,
-    NumberTrainComponent,
-    TrainEngineComponent,
-    TrainCarComponent,
-    TrainCabooseComponent,
-    NumberMarketComponent,
-    NumberBubblesCanvasComponent,
     NumberBubblesPixiComponent,
     NumberTrainPixiComponent,
     NumberMarketPixiComponent,
@@ -59,7 +46,6 @@ import { VendingMachinePixiComponent } from './pages/vending-machine-pixi/vendin
     AppRoutingModule,
     FormsModule,
     BrowserAnimationsModule,
-    DragDropModule,
   ],
   providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
   bootstrap: [AppComponent],
