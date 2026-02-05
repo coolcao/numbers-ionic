@@ -8,16 +8,30 @@
 
   <!-- Init State Overlay -->
   @if (gameState() === "init") {
-    <div class="absolute inset-0 z-50 flex flex-col items-center justify-center px-6 py-10">
+    <div
+      class="absolute inset-0 z-50 flex flex-col items-center justify-center px-6 py-10"
+    >
       <div class="text-6xl">🛒</div>
-      <h1 class="mt-3 text-5xl font-black text-cyan-800">数字小超市</h1>
-      <p class="mt-4 whitespace-pre-line text-center text-xl font-bold text-teal-700">
-        听清楚指令，\n把正确数量的商品放进购物车！
+      <h1 class="mt-3 text-5xl font-black text-cyan-800 dark:text-cyan-500">
+        数字小超市
+      </h1>
+      <p
+        class="mt-4 whitespace-pre-line text-center text-xl font-bold text-teal-700 dark:text-teal-400"
+      >
+        听清楚指令，把正确数量的商品放进购物车！
       </p>
-      <div class="mt-6 flex flex-wrap justify-center gap-4 text-base font-bold text-teal-700">
-        <div class="rounded-full bg-white/80 px-4 py-2 shadow-md">👂 听指令</div>
-        <div class="rounded-full bg-white/80 px-4 py-2 shadow-md">🧺 选商品</div>
-        <div class="rounded-full bg-white/80 px-4 py-2 shadow-md">✅ 去结账</div>
+      <div
+        class="mt-6 flex flex-wrap justify-center gap-4 text-base font-bold text-teal-700"
+      >
+        <div class="rounded-full bg-white/80 px-2 py-2 shadow-md md:px-4">
+          👂 听指令
+        </div>
+        <div class="rounded-full bg-white/80 px-2 py-2 shadow-md md:px-4">
+          🧺 选商品
+        </div>
+        <div class="rounded-full bg-white/80 px-2 py-2 shadow-md md:px-4">
+          ✅ 去结账
+        </div>
       </div>
       <button
         (click)="startGame()"
@@ -223,7 +237,7 @@
       <!-- Instruction Bubble (Top Bar Style) -->
       @if (tutorialService.instruction(); as text) {
         <div
-          class="absolute left-0 top-0 z-[120] flex min-h-[100px] w-full items-center justify-center border-b-4 border-yellow-400 bg-white/95 p-4 shadow-xl dark:bg-slate-900/95 dark:border-yellow-600"
+          class="absolute left-0 top-0 z-[120] flex min-h-[100px] w-full items-center justify-center border-b-4 border-yellow-400 bg-white/95 p-4 shadow-xl dark:border-yellow-600 dark:bg-slate-900/95"
         >
           <p
             class="whitespace-pre-line text-center text-xl font-bold text-teal-900 dark:text-teal-400 md:text-3xl"
