@@ -6,6 +6,7 @@ import { LearnNumbersAudioService } from './learn-numbers.service';
 import { learnNumbersAnimations } from './learn-numbers.animations';
 import { AppService } from 'src/app/service/app.service';
 import { AppStore } from 'src/app/store/app.store';
+import { ImagePreloaderService } from 'src/app/image-preloader.service';
 
 @Component({
   selector: 'app-learn-numbers',
@@ -21,6 +22,7 @@ export class LearnNumbersComponent implements OnInit, OnDestroy {
   private readonly audioService = inject(LearnNumbersAudioService);
   private readonly appService = inject(AppService);
   private readonly appStore = inject(AppStore);
+  private readonly imagePreloader = inject(ImagePreloaderService);
 
   numbers = this.learnNumbersStore.numbers;
   learnMode = this.learnNumbersStore.learnMode;
@@ -105,20 +107,23 @@ export class LearnNumbersComponent implements OnInit, OnDestroy {
     this.updateNumberAnimationState(number, 'playing');
     // 入门模式，播放数字，然后展示数字的详细信息
     if (this.learnMode() === LearnMode.Starter) {
-      this.showNumberDetail.set(true);
-      this.numberDetailImage.set(this.starterNumbersDetail()[number].descImg);
+      const detail = this.starterNumbersDetail()[number];
       
-      // Preload specific detail audio on demand
+      // Preload images and audio on demand
       await Promise.all([
+        this.imagePreloader.preloadImages([detail.descImg, detail.meaningImg]),
         this.audioService.preloadNumberDesc([number]),
         this.audioService.preloadNumberMeaning([number])
       ]);
 
+      this.showNumberDetail.set(true);
+      this.numberDetailImage.set(detail.descImg);
+      
       await this.audioService.playNumber(number);
       await this.waitSeconds(0.5);
       await this.audioService.playNumberDesc(number);
       await this.waitSeconds(0.5);
-      this.numberDetailImage.set(this.starterNumbersDetail()[number].meaningImg);
+      this.numberDetailImage.set(detail.meaningImg);
       await this.audioService.playNumberMeaning(number);
       await this.waitSeconds(1.5);
     } else {

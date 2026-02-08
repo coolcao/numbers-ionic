@@ -1,196 +1,130 @@
-# 宝宝数字乐园 (Numbers Ionic) - 智能体分析文档
+# AGENTS.md - Project Architecture & Implementation Details
 
-## 1. 项目概述
+## 1. Project Overview
+**Project Name:** Numbers Ionic (Baby Numbers / 宝宝数字乐园)
+**Purpose:** An educational mobile application designed for babies and toddlers to learn numbers through interactive games and audio feedback.
+**Target Platform:** Mobile (Android focus via Capacitor) & Web.
 
-**宝宝数字乐园** 是一款专为儿童设计的早教启蒙 Android 应用，旨在通过生动有趣的互动游戏帮助宝宝认知数字、学习数数和简单的加法运算。
+## 2. Technology Stack
+- **Framework:** Angular 19
+- **UI Toolkit:** Ionic 8 (components & routing)
+- **Styling:** Tailwind CSS 3 (utility-first CSS)
+- **State Management:** Angular Signals (Lightweight Store Pattern)
+- **Mobile Runtime:** Capacitor 7
+- **Game Engine:** PixiJS v8 (for high-performance 2D game components)
+- **Audio:** Howler.js (for managing sound effects and voiceovers)
+- **Storage:** @ionic/storage-angular (IndexedDB/LocalStorage wrapper)
 
-项目采用混合开发模式，结合了 Angular 的组件化架构与 PixiJS 的高性能图形渲染能力，提供了从基础认知到逻辑运算的进阶学习路径。
+## 3. Architecture Design
 
-### 当前状态 (2026-02-03)
-- **开发阶段**: 功能迭代与性能优化中
-- **目标平台**: Android (通过 Capacitor 打包)
-- **核心亮点**: 
-    - 结合 DOM (UI) 与 WebGL (游戏) 的混合架构。
-    - 针对移动端低端设备进行了详细的性能调优（GPU 动画、音频互斥、内存管理）。
+### 3.1. High-Level Architecture
+The application follows a **Monolithic Modular** architecture typical of Angular applications but modernized with **Standalone Components** principles (though currently using `AppModule` for bootstrapping) and **Signal-based State Management**.
 
-## 2. 技术栈
+- **Presentation Layer:** Angular Components (Pages & Shared Components).
+- **Business Logic Layer:** Angular Services & Stores.
+- **Data Persistence:** Ionic Storage Service.
+- **Game Rendering Layer:** PixiJS managed via dedicated Engine Services.
 
-| 领域 | 技术/库 | 版本 | 说明 |
-| :--- | :--- | :--- | :--- |
-| **核心框架** | Angular | ^19.0.0 | 全新的 Signal 响应式架构 |
-| **UI 组件库** | Ionic Framework | ^8.0.0 | 提供移动端原生交互体验 |
-| **样式系统** | Tailwind CSS | ^3.0 | 实用优先的原子化 CSS |
-| **跨平台运行时** | Capacitor | ^7.2.0 | Android 原生桥接与打包 |
-| **游戏引擎** | PixiJS | ^8.14.3 | 高性能 2D 渲染 (WebGL/WebGPU) |
-| **音频引擎** | Howler.js | ^2.2.4 | 音频播放、互斥管理、跨平台兼容 |
-| **状态管理** | Angular Signals | - | 轻量级响应式状态管理 (Store Pattern) |
+### 3.2. Core Modules
+The application is structured into a single main module `AppModule` (likely for simplicity) but logically divided into features:
 
-## 3. 项目架构
+- **AppModule:** Bootstraps the application, imports core libraries (Ionic, Storage, Animations).
+- **AppRoutingModule:** Handles navigation between different game modes (Home, Learn, Listen, Bubbles, Train, etc.).
+- **Shared Components:**
+  - `BearComponent`: Likely an animated character or mascot.
+  - `ModalComponent`: Generic overlay for messages or game results.
 
-### 3.1 目录结构
-```text
+### 3.3. State Management (Store Pattern)
+Instead of heavy libraries like NgRx, the project uses **Angular Signals** to create lightweight, reactive stores.
+
+- **AppStore (`src/app/store/app.store.ts`):**
+  - Manages global state: `isDarkMode`, `learnMode` (Starter/Advanced), `platform` (Web/Android/iOS), `showHeader/Footer`.
+  - Exposes read-only signals and modifier methods.
+- **Feature Stores:** Each game module has its own store (e.g., `NumberBubblesStore`, `LearnNumbersStore`) to manage game-specific configuration and state (numbers list, game duration, difficulty).
+
+### 3.4. Service Layer
+Services are singletons providing core functionality:
+
+- **AppService:** Handles platform-specific actions like Screen Orientation (locking portrait/landscape).
+- **AudioService:** Wrapper around `Howler.js`. Handles preloading, playing, stopping, and volume control for audio assets.
+- **StorageService:** Wrapper around `IonicStorage` for persisting user progress (e.g., tutorial completion).
+- **Feature-Specific Services:**
+  - `*AudioService`: Specialized audio handling for specific games (e.g., `NumberBubblesAudioService`).
+  - `*PixiEngineService`: Manages PixiJS `Application` instance, canvas attachment, and game loop.
+  - `*EntityService`: Manages game entities (e.g., `NumberBubblesBubbleService`).
+
+## 4. Module Design & Technical Details
+
+### 4.1. Navigation & Routing
+Routes are defined in `app-routing.module.ts` using `PreloadAllModules` strategy (though currently all components seem to be eagerly loaded in `AppModule`).
+Key Routes:
+- `/home`: Main Dashboard.
+- `/learn-numbers`: Interactive number cards.
+- `/listen-numbers`: Audio quiz.
+- `/number-bubbles`: Falling bubbles game (PixiJS).
+- `/number-train`: Train ordering game (PixiJS).
+- `/number-market`: Shopping cart game (PixiJS).
+- `/vending-machine`: Vending machine game (PixiJS).
+
+### 4.2. PixiJS Integration Strategy
+The project integrates PixiJS for performance-critical game modules. The pattern typically observed (e.g., in `NumberBubblesPixiComponent`) is:
+
+1.  **Component (`*.component.ts`):**
+    - Acts as the "Controller".
+    - Manages Angular UI (HTML overlays, buttons, score displays).
+    - Subscribes to Stores and inputs.
+    - **Delegates** rendering to the `EngineService`.
+    - Handles higher-level game loop logic (timer, score tracking, win/loss conditions).
+2.  **Engine Service (`*PixiEngineService`):**
+    - Initializes `PIXI.Application`.
+    - Manages the `canvas` element and appends it to the DOM.
+    - Exposes `startLoop`/`stopLoop` methods.
+    - Manages top-level Pixi Containers (`uiContainer`, `gameContainer`, `overlayContainer`).
+3.  **Entity Service (`*BubbleService`, etc.):**
+    - Pure logic for game entities (Bubbles, Particles).
+    - Factory methods to create Pixi Sprites/Graphics.
+    - Update logic (movement, physics simulations).
+    - Interaction handling (hit testing).
+
+### 4.3. Key Features Implementation
+
+#### Learn Numbers
+- **Logic:** Displays number cards. Clicking triggers audio pronunciation.
+- **State:** Uses `LearnNumbersStore` to switch between 'Starter' (0-9) and 'Advanced' (10-99).
+
+#### Number Bubbles (PixiJS Game)
+- **Mechanic:** Bubbles with numbers fall from the top. Player must click bubbles matching the "Target Numbers".
+- **Tech Details:**
+  - **Loop:** `requestAnimationFrame` via Pixi Ticker for smooth rendering + RxJS `interval` for game logic (bubble spawning).
+  - **Spawning:** Pseudo-random generation algorithm balancing target vs. distractor bubbles.
+  - **Feedback:** Visual "Explosion" particle effect (Pixi) and Audio feedback (Howler) on click.
+  - **Responsiveness:** Dynamic bubble sizing based on screen width.
+
+#### Audio System
+- **Assets:** MP3 files located in `src/assets/audio/`.
+- **Implementation:** `AudioService` provides `play(key)`, `playSequence(keys)`. It handles concurrent audio policies (e.g., interrupting previous sounds).
+
+#### Data Persistence
+- **Storage:** Uses `@ionic/storage` (IndexedDB fallback to LocalStorage).
+- **Usage:** Stores simple flags like `number_bubbles_tutorial_done` to improve UX by not showing tutorials repeatedly.
+
+## 5. Development Workflow
+- **Build:** `ng build` for web, `ionic capacitor build android` for mobile.
+- **Assets:** Asset generation (icons/splash) via `@capacitor/assets`.
+- **Linting:** ESLint + Prettier.
+
+## 6. Directory Structure
+```
 src/
 ├── app/
-│   ├── pages/                   # 核心功能模块 (按路由划分)
-│   │   ├── home/                # 首页 (入口、设置、资源预加载)
-│   │   ├── learn-numbers/       # [DOM] 数字认知 (0-99)
-│   │   ├── listen-numbers/      # [DOM] 听音选数
-│   │   ├── number-bubbles-pixi/ # [Pixi] 数字泡泡游戏
-│   │   ├── number-train-pixi/   # [Pixi] 数字小火车
-│   │   ├── number-market-pixi/  # [Pixi] 数字超市
-│   │   └── vending-machine-pixi/# [Pixi] 自动售卖机 (加法运算)
-│   ├── store/                   # 全局与模块级状态 (Signals)
-│   ├── service/                 # 核心单例服务 (Audio, Storage, App)
-│   └── components/              # 通用 UI 组件
-└── assets/                      # 静态资源 (音频、图片、字体)
+│   ├── components/       # Shared Angular components
+│   ├── pages/            # Game modules/Pages
+│   │   ├── [feature]/    # e.g., number-bubbles-pixi
+│   │   │   ├── *.component.ts
+│   │   │   ├── services/ # Feature-specific Pixi/Logic services
+│   ├── pixi-core/        # (Proposed) Shared PixiJS utilities
+│   ├── service/          # Core singleton services (App, Audio, Storage)
+│   ├── store/            # Signal-based stores
+│   ├── app.module.ts     # Main module
+├── assets/               # Static assets (images, audio, fonts)
 ```
-
-### 3.2 架构设计模式
-1.  **混合渲染架构 (Hybrid Rendering)**:
-    -   **DOM 层**: 用于 `LearnNumbers` 和 `ListenNumbers`。利用 Angular 的声明式模板和 CSS 3D Transforms (GPU 加速) 处理静态展示和轻量级动画。优势是开发效率高、文字清晰、无障碍支持好。
-    -   **WebGL 层 (PixiJS)**: 用于 `Bubbles`, `Train`, `Market`, `Vending`。处理大量精灵(Sprites)、粒子系统、物理碰撞和复杂拖拽交互。优势是性能强悍，适合动态游戏。
-
-2.  **服务与状态**:
-    -   **Store Pattern**: 使用 `Injectable` 服务 + `Signals` (`computed`, `effect`) 管理状态。
-    -   **Service Layer**: 
-        -   `EngineService`: 负责 PixiJS `Application` 的生命周期（Init, Resize, Destroy）。
-        -   `GameService`: 负责具体的游戏规则和业务逻辑。
-        -   `LayoutService`: 负责游戏场景的绘制。
-
-## 4. 功能模块与代码分析
-
-### 4.1 核心服务 (Core Services)
-
-*   **`AudioService`**: 
-    -   **互斥策略**: 实现了单声道逻辑，播放新音频前自动调用 `stopAll()`，防止声音重叠。
-    -   **异步修复**: 解决了音频被中断时 Promise 挂起的问题（监听 `stop` 事件）。
-*   **`StorageService`**: 封装 Ionic Storage，提供持久化存储（如教程完成状态）。
-*   **`AppService`**: 处理屏幕方向锁定（横/竖屏）、全屏模式等原生能力。
-
-### 4.2 DOM 模块 (UI/Learning)
-
-1.  **数字学习 (Learn Numbers)**
-    -   **功能**: 点击卡片展示详情（大图、发音、助记词）。
-    -   **优化**: 移除了高消耗的 `backdrop-blur`，改为半透明背景；图片按需预加载；动画使用 `transform: scale` 避免重排。
-    -   **模式**: 入门(0-9) / 进阶(0-99)。
-
-2.  **数字听选 (Listen Numbers)**
-    -   **功能**: 听指令选择正确卡片。
-    -   **优化**: 动画属性从 `width` 优化为 `transform: scaleX`，确保低端机 60FPS 流畅度。
-
-### 4.3 PixiJS 游戏模块 (Games)
-
-3.  **数字泡泡 (Number Bubbles)**
-    -   **玩法**: 点击正确的下落泡泡。
-    -   **技术**: 粒子爆炸效果；修复了 Game Loop 无法停止的闭包 Bug；使用了对象池思想建议（待完全实现）。
-
-4.  **数字小火车 (Number Train)**
-    -   **玩法**: 拖拽车厢进行数字排序。
-    -   **技术**: 复杂的拖拽逻辑；Canvas 层级管理；独立的 `SceneService` 和 `TrainService` 架构。
-
-5.  **数字超市 (Number Market)**
-    -   **玩法**: 将指定数量的商品拖入购物车。
-    -   **技术**: 碰撞检测 (Hit Testing)；纹理资源管理（修复了销毁时误删纹理缓存的问题）。
-
-6.  **自动售卖机 (Vending Machine)** *[NEW]*
-    -   **玩法**: 模拟购物体验，通过拖拽 1元/5元/10元 硬币凑出商品价格（加法运算）。
-    -   **技术**: 
-        -   目前采用单组件架构 (`VendingMachinePixiComponent`)，包含完整的场景绘制、交互逻辑。
-        -   实现了硬币吸入动画、找零逻辑、撒花特效。
-        -   资源按需加载优化。
-
-## 5. 构建与运行
-
-### 环境要求
-- Node.js 18+
-- Yarn
-- Android Studio (用于 Android 开发/打包)
-- Xcode (用于 iOS 开发/打包，仅限 macOS)
-- CocoaPods (用于 iOS 依赖管理)
-
-### 常用命令
-
-#### 通用开发
-```bash
-# 安装依赖
-yarn install
-
-# 启动开发服务器 (本地调试)
-yarn start
-
-# 构建 Web 产物 (生成 www 目录)
-yarn build
-```
-
-#### Android 平台
-```bash
-# 添加 Android 平台 (仅首次需要)
-npx cap add android
-
-# 同步 Web 构建产物到 Android 项目
-npx cap sync android
-
-# 打开 Android Studio 进行调试/打包 APK
-npx cap open android
-
-# 仅运行 Android 项目 (需连接设备或模拟器)
-npx cap run android
-```
-
-#### iOS 平台
-```bash
-# 添加 iOS 平台 (仅首次需要)
-npx cap add ios
-
-# 同步 Web 构建产物到 iOS 项目
-npx cap sync ios
-
-# 打开 Xcode 进行调试/打包 IPA
-npx cap open ios
-
-# 仅运行 iOS 项目 (需连接设备或模拟器)
-npx cap run ios
-```
-
-#### 图标与启动图生成
-```bash
-# 根据 resources 目录生成各平台图标
-yarn capacitor-assets generate
-```
-
-## 6. 开发约定
-
-### 6.1 代码风格
-- **格式化**: 使用 Prettier 进行代码格式化。
-- **质量检查**: 使用 ESLint 进行代码质量检查。
-- **严格模式**: 遵循 TypeScript 严格模式。
-- **命名规范**:
-    - 组件命名使用 `PascalCase` (如 `NumberTrainComponent`)。
-    - 文件命名使用 `kebab-case` (如 `number-train.component.ts`)。
-
-### 6.2 项目结构约定
-- **页面组件**: 位于 `src/app/pages/`。
-- **通用组件**: 位于 `src/app/components/`。
-- **状态管理**: 位于 `src/app/store/`。
-- **服务层**: 位于 `src/app/service/`。
-- **模块独立性**: 每个功能模块应包含独立的样式、模板和逻辑文件。
-
-### 6.3 组件与状态开发模式
-- **状态管理**: 使用 Angular Signals 管理状态，每个功能模块建议有独立的 Store。
-- **高性能场景**: 涉及大量动态物体、拖拽或物理碰撞的场景必须使用 PixiJS 实现。
-- **业务逻辑**: 服务层 (Service) 处理核心业务逻辑，组件保持轻量，专注 UI 渲染。
-- **响应式布局**: 必须适配不同屏幕尺寸（手机、平板、横屏、竖屏）。
-
-### 6.4 性能军规 (必读)
-1.  **动画**: 严禁在动画中修改 `width`, `height`, `margin`, `top/left` 等触发重排的属性。必须使用 `transform` (scale, translate, rotate) 和 `opacity`。
-2.  **PixiJS 销毁**: 在 `ngOnDestroy` 中必须销毁 `Application`，但需设置 `{ texture: false }` 以保留纹理缓存供后续使用。
-3.  **音频互斥**: 所有组件必须通过全局 `AudioService` 播放声音，严禁私自实例化 `Howl` 对象，以确保音频互斥策略生效。
-4.  **资源加载**: 大图必须使用 `ImagePreloaderService` 或 Pixi `Assets` 进行预加载/按需加载。
-
-### 6.5 资源与路由约定
-- **资源命名**:
-    - 图片: `assets/images/{module_name}/{id}.png`
-    - 音频: `assets/audio/{module_name}/{action}.mp3`
-- **路由参数**: 所有游戏页面统一接收 `mode` 参数：
-    - `starter`: 入门模式 (0-9)
-    - `advanced`: 进阶模式 (10-99)
